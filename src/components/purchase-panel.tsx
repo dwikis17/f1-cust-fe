@@ -14,8 +14,8 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 
 	function addToBag() {
 		const item = { productId, productName, variantId, quantity };
-		const stored = JSON.parse(localStorage.getItem("vantage97-cart") ?? "[]") as typeof item[];
-		localStorage.setItem("vantage97-cart", JSON.stringify([...stored, item]));
+		const stored = JSON.parse(localStorage.getItem("valdye-cart") ?? "[]") as typeof item[];
+		localStorage.setItem("valdye-cart", JSON.stringify([...stored, item]));
 		setMessage(`${quantity} added to your bag`);
 	}
 

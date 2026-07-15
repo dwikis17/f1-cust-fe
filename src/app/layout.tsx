@@ -9,7 +9,7 @@ const body = Hanken_Grotesk({ variable: "--font-body", subsets: ["latin"], displ
 const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-	title: { default: "VANTAGE97 | Precision F1 Collections", template: "%s | VANTAGE97" },
+	title: { default: "VALDYE | Precision F1 Collections", template: "%s | VALDYE" },
 	description: "Precision-engineered Formula 1 teamwear, collectibles and technical accessories.",
 };
 

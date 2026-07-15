@@ -13,13 +13,13 @@ export function CartClient({ products }: { products: PublicProduct[] }) {
 	const [ready, setReady] = useState(false);
 
 	useEffect(() => {
-		setItems(JSON.parse(localStorage.getItem("vantage97-cart") ?? "[]") as StoredItem[]);
+		setItems(JSON.parse(localStorage.getItem("valdye-cart") ?? "[]") as StoredItem[]);
 		setReady(true);
 	}, []);
 
 	function persist(next: StoredItem[]) {
 		setItems(next);
-		localStorage.setItem("vantage97-cart", JSON.stringify(next));
+		localStorage.setItem("valdye-cart", JSON.stringify(next));
 	}
 
 	const lines = useMemo(() => items.flatMap((item, index) => {

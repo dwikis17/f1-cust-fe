@@ -1,4 +1,4 @@
-# VANTAGE97 Storefront
+# VALDYE Storefront
 
 Customer-facing Formula 1 ecommerce storefront built with Next.js and OpenNext for Cloudflare.
 

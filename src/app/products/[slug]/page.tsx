@@ -43,7 +43,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
 			<section className="commentary-block">
 				<div><span>Paddock commentary</span><strong>Designer perspective</strong></div>
-				<article><p>The VANTAGE97 collection puts creativity in pole position. This is more than merchandise; it is an engineering study that mirrors the meticulous detail required in the actual paddock.</p><p>Every material, line and graphic is selected to celebrate the team&apos;s competitive identity while preserving the character of the original race equipment.</p><blockquote>“Built for the people who notice the final millimetre.”</blockquote></article>
+				<article><p>The VALDYE collection puts creativity in pole position. This is more than merchandise; it is an engineering study that mirrors the meticulous detail required in the actual paddock.</p><p>Every material, line and graphic is selected to celebrate the team&apos;s competitive identity while preserving the character of the original race equipment.</p><blockquote>“Built for the people who notice the final millimetre.”</blockquote></article>
 			</section>
 		</main>
 	);

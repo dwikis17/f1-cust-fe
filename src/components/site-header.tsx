@@ -13,7 +13,7 @@ export function SiteHeader() {
 	return (
 		<header className="site-header">
 			<div className="header-left">
-				<Link className="brand" href="/" aria-label="Vantage97 home">VANTAGE97</Link>
+				<Link className="brand" href="/" aria-label="Valdye home">VALDYE</Link>
 				<nav className="desktop-nav" aria-label="Primary navigation">
 					{nav.map(([label, href]) => <Link key={label} href={href}>{label}</Link>)}
 				</nav>
