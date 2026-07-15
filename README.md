@@ -1,47 +1,31 @@
-# OpenNext Starter
+# VANTAGE97 Storefront
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Customer-facing Formula 1 ecommerce storefront built with Next.js and OpenNext for Cloudflare.
 
-## Getting Started
-
-Read the documentation at https://opennext.js.org/cloudflare.
-
-## Develop
-
-Run the Next.js development server:
+## Local development
 
 ```bash
+npm install
 npm run dev
-# or similar package manager command
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-## Preview
-
-Preview the application locally on the Cloudflare runtime:
+The storefront uses the backend-compatible data in `src/lib/mock.ts` when no API URL is configured. To use `f1-be`, start the backend and set:
 
 ```bash
+API_BASE_URL=http://localhost:3000
+```
+
+The catalog adapter in `src/lib/catalog.ts` then calls:
+
+- `GET /api/categories`
+- `GET /api/tags`
+- `GET /api/products`
+- `GET /api/products/:slug`
+
+## Checks and deployment
+
+```bash
+npm run build
 npm run preview
-# or similar package manager command
-```
-
-## Deploy
-
-Deploy the application to Cloudflare:
-
-```bash
 npm run deploy
-# or similar package manager command
 ```
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
