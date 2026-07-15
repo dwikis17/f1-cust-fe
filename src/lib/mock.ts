@@ -95,10 +95,17 @@ type ProductSeed = {
 	priceIdr: number;
 	category: number;
 	tags: number[];
-	images: Array<{ path: string; alt: string }>;
 	colors?: string[];
 	sizes?: string[];
 };
+
+const sharedProductGallery = [
+	{ path: "/images/generated/product-01-hero.webp", alt: "Apex 97 carbon-fibre collectible helmet, three-quarter view" },
+	{ path: "/images/generated/product-02-side.webp", alt: "Apex 97 carbon-fibre collectible helmet, side view" },
+	{ path: "/images/generated/product-03-rear.webp", alt: "Apex 97 carbon-fibre collectible helmet, rear view" },
+	{ path: "/images/generated/product-04-detail.webp", alt: "Apex 97 helmet carbon weave and visor hardware detail" },
+	{ path: "/images/generated/product-05-front.webp", alt: "Apex 97 carbon-fibre collectible helmet, front view" },
+];
 
 function makeProduct(seed: ProductSeed): PublicProduct {
 	const colors = seed.colors ?? ["Team Edition"];
@@ -130,7 +137,7 @@ function makeProduct(seed: ProductSeed): PublicProduct {
 		category: mockCategories[seed.category],
 		tags: seed.tags.map((tag) => mockTags[tag]),
 		variants,
-		photos: seed.images.map((image, index) => ({
+		photos: sharedProductGallery.map((image, index) => ({
 			id: `${seed.id.slice(0, -2)}9${index}`,
 			productId: seed.id,
 			color: null,
@@ -155,13 +162,6 @@ const seededProducts: PublicProduct[] = [
 		priceIdr: 1699000,
 		category: 0,
 		tags: [0, 5],
-		images: [
-			{ path: "/images/lego-main.jpg", alt: "Oscar Piastri LEGO racing helmet on a black display stand" },
-			{ path: "/images/lego-detail.jpg", alt: "Close detail of the blue and papaya LEGO helmet graphics" },
-			{ path: "/images/lego-side.jpg", alt: "Side profile of the Oscar Piastri LEGO helmet" },
-			{ path: "/images/lego-box.jpg", alt: "Oscar Piastri LEGO helmet collector box" },
-			{ path: "/images/lego-rear.jpg", alt: "Rear view of the Oscar Piastri LEGO helmet" },
-		],
 	}),
 	makeProduct({
 		id: "30000000-0000-4000-8000-000000000002",
@@ -171,7 +171,6 @@ const seededProducts: PublicProduct[] = [
 		priceIdr: 21999000,
 		category: 0,
 		tags: [0, 5],
-		images: [{ path: "/images/piastri-replica.jpg", alt: "Papaya orange Oscar Piastri racing helmet replica" }],
 	}),
 	makeProduct({
 		id: "30000000-0000-4000-8000-000000000003",
@@ -181,7 +180,6 @@ const seededProducts: PublicProduct[] = [
 		priceIdr: 23999000,
 		category: 0,
 		tags: [1, 5],
-		images: [{ path: "/images/verstappen-helmet.jpg", alt: "Max Verstappen world champion helmet replica" }],
 	}),
 	makeProduct({
 		id: "30000000-0000-4000-8000-000000000004",
@@ -191,7 +189,6 @@ const seededProducts: PublicProduct[] = [
 		priceIdr: 3299000,
 		category: 0,
 		tags: [0],
-		images: [{ path: "/images/norris-helmet.jpg", alt: "Fluorescent yellow Lando Norris helmet replica" }],
 	}),
 	makeProduct({
 		id: "30000000-0000-4000-8000-000000000005",
@@ -201,7 +198,6 @@ const seededProducts: PublicProduct[] = [
 		priceIdr: 1999000,
 		category: 1,
 		tags: [2],
-		images: [{ path: "/images/ferrari-polo.jpg", alt: "Scuderia Ferrari red technical team polo" }],
 		colors: ["Rosso Corsa", "Black"],
 		sizes: ["S", "M", "L", "XL"],
 	}),
@@ -213,7 +209,6 @@ const seededProducts: PublicProduct[] = [
 		priceIdr: 949000,
 		category: 2,
 		tags: [3],
-		images: [{ path: "/images/mercedes-cap.jpg", alt: "Mercedes AMG Petronas grey driver cap" }],
 	}),
 	makeProduct({
 		id: "30000000-0000-4000-8000-000000000007",
@@ -223,7 +218,6 @@ const seededProducts: PublicProduct[] = [
 		priceIdr: 22999000,
 		category: 0,
 		tags: [4, 5],
-		images: [{ path: "/images/alonso-helmet.jpg", alt: "Fernando Alonso green racing helmet replica" }],
 	}),
 	makeProduct({
 		id: "30000000-0000-4000-8000-000000000008",
@@ -233,7 +227,6 @@ const seededProducts: PublicProduct[] = [
 		priceIdr: 699000,
 		category: 2,
 		tags: [3],
-		images: [{ path: "/images/mercedes-bottle.jpg", alt: "Matte black Mercedes AMG technical water bottle" }],
 	}),
 ];
 

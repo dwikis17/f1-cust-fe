@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRightIcon, ChevronDownIcon, GridIcon } from "@/components/icons";
 import { ProductCard } from "@/components/product-card";
+import { ResponsiveBanner } from "@/components/responsive-banner";
 import { catalog } from "@/lib/catalog";
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -22,7 +23,7 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
 	return (
 		<main className="page-shell collection-page">
 			<section className="collection-hero">
-				<Image src="/images/collection-hero.jpg" alt="A racing helmet displayed in a Formula 1 engineering garage" fill priority sizes="100vw" />
+				<ResponsiveBanner alt="Fictional grand-prix cars racing through a floodlit night circuit" />
 				<div className="hero-shade" />
 				<div><p className="eyebrow light">Heritage & innovation</p><h1>Precision engineered<br />collectibles</h1><p>Experience the apex of motorsport engineering through our curated selection of authentic driver replicas and team technical wear.</p><a className="button button-light" href="#catalog">Explore collection</a></div>
 			</section>
@@ -43,7 +44,7 @@ export default async function CollectionsPage({ searchParams }: { searchParams: 
 
 			<section className="collection-editorial">
 				<div><p className="eyebrow light">Inside the paddock</p><h2>The engineering of<br />aerodynamics</h2><p>Discover the obsessive attention to detail that goes into every curve of a Formula 1 helmet. Designed not just for safety, but for the invisible science of air management at 200mph.</p><a className="text-link light" href="#">Read the article <ArrowRightIcon /></a></div>
-				<div className="aero-image"><Image src="/images/aero-editorial.jpg" alt="Formula 1 car undergoing aerodynamic testing" fill sizes="50vw" /></div>
+				<div className="aero-image"><Image src="/images/generated/product-03-rear.webp" alt="Rear engineering view of a carbon-fibre racing helmet" fill sizes="50vw" /></div>
 			</section>
 		</main>
 	);

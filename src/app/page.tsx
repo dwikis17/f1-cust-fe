@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRightIcon } from "@/components/icons";
 import { ProductCard } from "@/components/product-card";
+import { ResponsiveBanner } from "@/components/responsive-banner";
 import { catalog } from "@/lib/catalog";
 
 const teams = [
@@ -13,7 +14,7 @@ export default async function Home() {
 	return (
 		<main className="page-shell home-page">
 			<section className="home-hero">
-				<Image src="/images/home-hero.jpg" alt="Formula 1 cars racing under floodlights at night" fill priority sizes="100vw" />
+				<ResponsiveBanner alt="Two fictional grand-prix cars racing through a floodlit corner at night" />
 				<div className="hero-shade" />
 				<div className="hero-copy">
 					<p className="eyebrow light">Performance engineering</p>
@@ -38,12 +39,12 @@ export default async function Home() {
 
 			<section className="editorial-section" id="editorial">
 				<article className="editorial-feature">
-					<Image src="/images/editorial-driver.jpg" alt="Formula 1 driver walking through a dark garage tunnel" fill sizes="(max-width: 800px) 100vw, 65vw" />
+					<Image src="/images/generated/banner-desktop.webp" alt="Grand-prix cars racing at night" fill sizes="(max-width: 800px) 100vw, 65vw" />
 					<div className="editorial-copy"><p className="eyebrow light">Editorial</p><h2>The silent seconds</h2><p>Inside the mental preparation of the world&apos;s fastest athletes during the pre-race blackout.</p><a href="#">Read story</a></div>
 				</article>
 				<div className="editorial-side">
 					<div className="engineering-card"><h3>Engineering brief</h3><p>Discover the aerodynamics behind our 2026 apparel textile weave.</p><span>♞</span></div>
-					<div className="wheel-card"><Image src="/images/steering-wheel.jpg" alt="Detailed Formula 1 steering wheel" fill sizes="35vw" /><button type="button" aria-label="Play film">▶</button></div>
+					<div className="wheel-card"><Image src="/images/generated/product-04-detail.webp" alt="Detailed carbon-fibre racing helmet visor hardware" fill sizes="35vw" /><button type="button" aria-label="Play film">▶</button></div>
 				</div>
 			</section>
 		</main>
