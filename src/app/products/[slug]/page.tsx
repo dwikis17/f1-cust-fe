@@ -8,19 +8,19 @@ import { mockProducts } from "@/lib/mock";
 
 export function generateStaticParams() { return mockProducts.map(({ slug }) => ({ slug })); }
 
-export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
-	const { slug } = await params;
+export default async function ProductPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ collection?: string }> }) {
+	const [{ slug }, query] = await Promise.all([params, searchParams]);
 	const product = await catalog.getProduct(slug);
 	if (!product) notFound();
-	const variant = product.variants[0];
+	const currentCollection = product.collections.find((collection) => collection.slug === query.collection) ?? product.collections[0];
 
 	return (
 		<main className="page-shell product-page">
-			<nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">Homepage</Link><span>/</span><Link href={`/collections?tag=${product.tags[0]?.slug ?? ""}`}>{product.tags[0]?.name ?? product.category.name}</Link><span>/</span><strong>{product.name}</strong></nav>
+			<nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">Homepage</Link><span>/</span><Link href={currentCollection ? `/collections/${currentCollection.slug}` : "/collections"}>{currentCollection?.name ?? "Collections"}</Link><span>/</span><strong>{product.name}</strong></nav>
 			<section className="product-top">
 				<ProductGallery photos={product.photos} />
 				<div className="product-info">
-					<p className="eyebrow">{product.tags.some((tag) => tag.slug === "limited-edition") ? "Collectors series / limited edition" : product.category.name}</p>
+					<p className="eyebrow">{product.team?.name ?? product.productType.name}{product.drivers.length ? ` / ${product.drivers.map((driver) => driver.name).join(" + ")}` : ""}</p>
 					<h1>{product.name}</h1>
 					<p className="product-price">{formatPrice(product.priceIdr)}</p>
 					<p className="product-description">{product.description}</p>
@@ -29,16 +29,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 					<details><summary>Product details</summary><p>Precision-made collector merchandise. Each piece is verified and packaged for secure display.</p></details>
 					<details><summary>Delivery & returns</summary><p>Complimentary tracked delivery. Returns are accepted within 14 days in original condition.</p></details>
 				</div>
-			</section>
-
-			<section className="technical-data">
-				<div className="data-heading"><span>Technical data</span><strong>Precision specifications</strong></div>
-				<div><span>Package weight</span><strong>{variant ? `${variant.packageWeightG} grams` : "—"}</strong></div>
-				<div><span>Dimensions</span><strong>{variant ? `${variant.packageLengthMm} × ${variant.packageWidthMm} × ${variant.packageHeightMm} mm` : "—"}</strong></div>
-				<div><span>Model no.</span><strong>{variant?.sku ?? "—"}</strong></div>
-				<div><span>Edition</span><strong>{variant?.color ?? "Team edition"}</strong></div>
-				<div><span>Availability</span><strong>{variant?.available ? "Ready to dispatch" : "Waitlist"}</strong></div>
-				<div><span>Authenticity</span><strong>Verified</strong></div>
 			</section>
 
 			<section className="commentary-block">

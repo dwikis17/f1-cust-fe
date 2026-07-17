@@ -3,16 +3,16 @@ import Link from "next/link";
 import { formatPrice } from "@/lib/catalog";
 import type { PublicProduct } from "@/lib/mock";
 
-export function ProductCard({ product, priority = false }: { product: PublicProduct; priority?: boolean }) {
+export function ProductCard({ product, priority = false, collectionSlug }: { product: PublicProduct; priority?: boolean; collectionSlug?: string }) {
 	const photo = product.photos[0];
 	return (
 		<article className="product-card">
-			<Link href={`/products/${product.slug}`} aria-label={product.name}>
+			<Link href={`/products/${product.slug}${collectionSlug ? `?collection=${collectionSlug}` : ""}`} aria-label={product.name}>
 				<div className="product-image">
-					{photo ? <Image src={photo.url} alt={photo.altText} fill sizes="(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 25vw" priority={priority} /> : null}
+					{photo ? <Image src={photo.url} alt={photo.altText} fill sizes="(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 25vw" loading={priority ? "eager" : "lazy"} /> : null}
 				</div>
 				<div className="product-meta">
-					<p>{product.tags[0]?.name ?? product.category.name}</p>
+					<p>{product.team?.name ?? product.productType.name}</p>
 					<div><h3>{product.name}</h3><strong>{formatPrice(product.priceIdr)}</strong></div>
 				</div>
 			</Link>

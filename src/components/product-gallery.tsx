@@ -20,7 +20,7 @@ export function ProductGallery({ photos }: { photos: ProductPhoto[] }) {
 			</div>
 			<div className="gallery-main">
 				<span className="stock-badge">Last stock</span>
-				<Image src={current.url} alt={current.altText} fill sizes="(max-width: 800px) 100vw, 50vw" priority />
+				<Image src={current.url} alt={current.altText} fill sizes="(max-width: 800px) 100vw, 50vw" loading="eager" />
 			</div>
 		</div>
 	);

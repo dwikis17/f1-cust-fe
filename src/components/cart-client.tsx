@@ -39,7 +39,7 @@ export function CartClient({ products }: { products: PublicProduct[] }) {
 				{lines.map((line) => (
 					<article className="cart-line" key={`${line.productId}-${line.index}`}>
 						<Link className="cart-line-image" href={`/products/${line.product.slug}`}><Image src={line.product.photos[0].url} alt={line.product.photos[0].altText} fill sizes="150px" /></Link>
-						<div className="cart-line-copy"><p>{line.product.tags[0]?.name}</p><h2><Link href={`/products/${line.product.slug}`}>{line.product.name}</Link></h2><span>{line.variant?.color} / {line.variant?.size}</span><button type="button" onClick={() => persist(items.filter((_, index) => index !== line.index))}>Remove</button></div>
+						<div className="cart-line-copy"><p>{line.product.team?.name ?? line.product.productType.name}</p><h2><Link href={`/products/${line.product.slug}`}>{line.product.name}</Link></h2>{line.variant ? <span>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</span> : null}<button type="button" onClick={() => persist(items.filter((_, index) => index !== line.index))}>Remove</button></div>
 						<div className="cart-line-end"><strong>{formatPrice(line.product.priceIdr * line.quantity)}</strong><div className="quantity"><button type="button" onClick={() => persist(items.map((item, index) => index === line.index ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item))}>−</button><span>{line.quantity}</span><button type="button" onClick={() => persist(items.map((item, index) => index === line.index ? { ...item, quantity: Math.min(9, item.quantity + 1) } : item))}>+</button></div></div>
 					</article>
 				))}
