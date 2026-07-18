@@ -22,7 +22,7 @@ const apiBaseUrl = process.env.API_BASE_URL?.replace(/\/$/, "");
 
 async function apiFetch<T>(path: string): Promise<T> {
 	if (!apiBaseUrl) throw new Error("API_BASE_URL is not configured");
-	const response = await fetch(`${apiBaseUrl}${path}`, { next: { revalidate: 60 } });
+	const response = await fetch(`${apiBaseUrl}${path}`, { next: { revalidate: 180 } });
 	if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
 	return response.json() as Promise<T>;
 }
@@ -44,7 +44,7 @@ export const catalog = {
 	},
 	async getProduct(slug: string, locale: Locale = "en"): Promise<PublicProduct | null> {
 		if (!apiBaseUrl) return mockGetProduct(slug, locale);
-		const response = await fetch(`${apiBaseUrl}/api/products/${encodeURIComponent(slug)}?locale=${locale}`, { next: { revalidate: 60 } });
+		const response = await fetch(`${apiBaseUrl}/api/products/${encodeURIComponent(slug)}?locale=${locale}`, { next: { revalidate: 180 } });
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
 		return response.json() as Promise<PublicProduct>;
@@ -63,7 +63,7 @@ export const catalog = {
 	},
 	async getCollection(slug: string): Promise<CollectionDetail | null> {
 		if (!apiBaseUrl) return mockGetCollection(slug);
-		const response = await fetch(`${apiBaseUrl}/api/collections/${encodeURIComponent(slug)}`, { next: { revalidate: 60 } });
+		const response = await fetch(`${apiBaseUrl}/api/collections/${encodeURIComponent(slug)}`, { next: { revalidate: 180 } });
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
 		return response.json() as Promise<CollectionDetail>;
@@ -72,7 +72,7 @@ export const catalog = {
 		if (!apiBaseUrl) return mockListCollectionProducts(slug, query, locale);
 		const response = await fetch(
 			`${apiBaseUrl}/api/collections/${encodeURIComponent(slug)}/products${queryString({ ...query, locale })}`,
-			{ next: { revalidate: 60 } },
+			{ next: { revalidate: 180 } },
 		);
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);

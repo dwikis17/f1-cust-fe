@@ -4,9 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
-import { cartSubtotal, readStoredCart, resolveCartLines, type CartLine, type StoredCartItem, writeStoredCart } from "@/lib/cart";
+import { cartSubtotal, resolveCartLines, type CartLine } from "@/lib/cart";
+import { useCartStore } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/catalog";
 import type { PublicProduct } from "@/lib/mock";
 
@@ -32,6 +34,7 @@ type ShippingDetails = {
 	postalCode: string;
 	phone: string;
 };
+type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }> };
 type CheckoutResponse = { orderId: string; snapToken: string; paymentStatus: string; totalIdr: number };
 
 declare global {
@@ -49,102 +52,59 @@ const emptyDetails: ShippingDetails = { email: "", firstName: "", lastName: "", 
 
 export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 	const router = useRouter();
+	const queryClient = useQueryClient();
 	const locale = useLocale();
 	const messages = useDictionary();
-	const [items, setItems] = useState<StoredCartItem[]>([]);
-	const [ready, setReady] = useState(false);
+	const items = useCartStore((state) => state.items);
+	const ready = useCartStore((state) => state.hydrated);
+	const reconcile = useCartStore((state) => state.reconcile);
 	const [step, setStep] = useState<Step>("shipping");
 	const [details, setDetails] = useState<ShippingDetails>(emptyDetails);
-	const [rates, setRates] = useState<ShippingRate[]>([]);
 	const [selectedRateKey, setSelectedRateKey] = useState("");
-	const [shippingError, setShippingError] = useState("");
-	const [shippingLoading, setShippingLoading] = useState(false);
 	const [idempotencyKey, setIdempotencyKey] = useState("");
-	const [checkout, setCheckout] = useState<CheckoutResponse>();
-	const [paymentLoading, setPaymentLoading] = useState(false);
 	const [paymentError, setPaymentError] = useState("");
 	const [snapReady, setSnapReady] = useState(false);
 
 	useEffect(() => {
-		const stored = readStoredCart(localStorage);
-		const resolvedIndexes = new Set(resolveCartLines(stored, products).map((line) => line.index));
-		const valid = stored.filter((_, index) => resolvedIndexes.has(index));
-		if (valid.length !== stored.length) writeStoredCart(localStorage, valid);
-		setItems(valid);
-		setIdempotencyKey(crypto.randomUUID());
-		setReady(true);
-	}, [products]);
+		if (ready) reconcile(products);
+	}, [products, ready, reconcile]);
+
+	useEffect(() => setIdempotencyKey(crypto.randomUUID()), []);
 
 	const lines = useMemo(() => resolveCartLines(items, products), [items, products]);
 	const subtotal = cartSubtotal(lines);
+	const shippingMutation = useMutation({
+		mutationFn: (request: ShippingRequest) => queryClient.fetchQuery({
+			queryKey: ["shipping-rates", request.destinationPostalCode, request.items],
+			queryFn: async () => {
+				const response = await fetch("/api/shipping/rates", {
+					method: "POST",
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify(request),
+				});
+				const body = await response.json() as { rates?: ShippingRate[]; error?: { code?: string } };
+				if (!response.ok) {
+					const errors: Record<string, string> = {
+						INVALID_DESTINATION: messages.cart.invalidDestination,
+						NO_COURIER_AVAILABLE: messages.cart.noServices,
+						CART_CHANGED: messages.cart.unavailableItem,
+						SHIPPING_NOT_CONFIGURED: messages.cart.shippingNotConfigured,
+						SHIPPING_TIMEOUT: messages.cart.shippingUnavailable,
+						SHIPPING_UPSTREAM_ERROR: messages.cart.shippingUnavailable,
+						SHIPPING_API_UNAVAILABLE: messages.cart.shippingUnavailable,
+					};
+					throw new Error(errors[body.error?.code ?? ""] ?? messages.cart.genericShippingError);
+				}
+				return body.rates ?? [];
+			},
+		}),
+	});
+	const rates = shippingMutation.data ?? [];
 	const selectedRate = rates.find((rate) => rateKey(rate) === selectedRateKey);
 	const total = subtotal + (selectedRate?.price ?? 0);
-
-	function updateDetail(field: keyof ShippingDetails, value: string) {
-		const nextValue = field === "postalCode" ? value.replace(/\D/g, "").slice(0, 5) : value;
-		setDetails((current) => ({ ...current, [field]: nextValue }));
-		if (field === "postalCode") {
-			setRates([]);
-			setSelectedRateKey("");
-			setShippingError("");
-		}
-	}
-
-	async function checkShipping(event: FormEvent<HTMLFormElement>) {
-		event.preventDefault();
-		setShippingLoading(true);
-		setShippingError("");
-		setRates([]);
-		setSelectedRateKey("");
-		try {
-			const response = await fetch("/api/shipping/rates", {
-				method: "POST",
-				headers: { "content-type": "application/json" },
-				body: JSON.stringify({ destinationPostalCode: details.postalCode, items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })) }),
-			});
-			const body = await response.json() as { rates?: ShippingRate[]; error?: { code?: string } };
-			if (!response.ok) {
-				const errors: Record<string, string> = {
-					INVALID_DESTINATION: messages.cart.invalidDestination,
-					NO_COURIER_AVAILABLE: messages.cart.noServices,
-					CART_CHANGED: messages.cart.unavailableItem,
-					SHIPPING_NOT_CONFIGURED: messages.cart.shippingNotConfigured,
-					SHIPPING_TIMEOUT: messages.cart.shippingUnavailable,
-					SHIPPING_UPSTREAM_ERROR: messages.cart.shippingUnavailable,
-					SHIPPING_API_UNAVAILABLE: messages.cart.shippingUnavailable,
-				};
-				throw new Error(errors[body.error?.code ?? ""] ?? messages.cart.genericShippingError);
-			}
-			setRates(body.rates ?? []);
-		} catch (error) {
-			setShippingError(error instanceof Error ? error.message : messages.cart.genericShippingError);
-		} finally {
-			setShippingLoading(false);
-		}
-	}
-
-	function openSnap(payment: CheckoutResponse) {
-		if (!window.snap) {
-			setPaymentError(messages.checkout.paymentUnavailable);
-			return;
-		}
-		window.snap.pay(payment.snapToken, {
-			onSuccess: () => router.push(`/orders/${payment.orderId}`),
-			onPending: () => router.push(`/orders/${payment.orderId}`),
-			onError: () => setPaymentError(messages.checkout.paymentFailed),
-			onClose: () => setPaymentError(messages.checkout.paymentClosed),
-		});
-	}
-
-	async function startPayment() {
-		if (checkout) {
-			openSnap(checkout);
-			return;
-		}
-		if (!selectedRate || !idempotencyKey) return;
-		setPaymentLoading(true);
-		setPaymentError("");
-		try {
+	const checkoutMutation = useMutation({
+		mutationFn: async () => {
+			if (!selectedRate || !idempotencyKey) throw new Error(messages.checkout.paymentFailed);
 			const response = await fetch("/api/checkout", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
@@ -167,13 +127,52 @@ export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 				};
 				throw new Error(errors[body.error?.code ?? ""] ?? messages.checkout.paymentFailed);
 			}
-			setCheckout(body);
-			openSnap(body);
-		} catch (error) {
-			setPaymentError(error instanceof Error ? error.message : messages.checkout.paymentFailed);
-		} finally {
-			setPaymentLoading(false);
+			return body;
+		},
+		onSuccess: (checkout) => openSnap(checkout),
+		onError: (error) => setPaymentError(error instanceof Error ? error.message : messages.checkout.paymentFailed),
+	});
+
+	function updateDetail(field: keyof ShippingDetails, value: string) {
+		const nextValue = field === "postalCode" ? value.replace(/\D/g, "").slice(0, 5) : value;
+		setDetails((current) => ({ ...current, [field]: nextValue }));
+		if (field === "postalCode") {
+			shippingMutation.reset();
+			setSelectedRateKey("");
 		}
+	}
+
+	function checkShipping(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		setSelectedRateKey("");
+		shippingMutation.reset();
+		shippingMutation.mutate({
+			destinationPostalCode: details.postalCode,
+			items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })),
+		});
+	}
+
+	function openSnap(payment: CheckoutResponse) {
+		if (!window.snap) {
+			setPaymentError(messages.checkout.paymentUnavailable);
+			return;
+		}
+		window.snap.pay(payment.snapToken, {
+			onSuccess: () => router.push(`/orders/${payment.orderId}`),
+			onPending: () => router.push(`/orders/${payment.orderId}`),
+			onError: () => setPaymentError(messages.checkout.paymentFailed),
+			onClose: () => setPaymentError(messages.checkout.paymentClosed),
+		});
+	}
+
+	function startPayment() {
+		if (checkoutMutation.data) {
+			openSnap(checkoutMutation.data);
+			return;
+		}
+		if (!selectedRate || !idempotencyKey) return;
+		setPaymentError("");
+		checkoutMutation.mutate();
 	}
 
 	if (!ready) return <main className="page-shell checkout-page"><div className="checkout-empty"><p className="eyebrow">{messages.checkout.loading}</p></div></main>;
@@ -185,8 +184,8 @@ export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 			<CheckoutSteps step={step} setStep={setStep} canOpenPayment={Boolean(selectedRate)} messages={messages.checkout} />
 			<div className="checkout-layout">
 				<section className="checkout-main">
-					{step === "shipping" ? <ShippingStep details={details} updateDetail={updateDetail} rates={rates} selectedRateKey={selectedRateKey} setSelectedRateKey={setSelectedRateKey} error={shippingError} loading={shippingLoading} checkShipping={checkShipping} continueToReview={() => setStep("review")} messages={messages} locale={locale} /> : null}
-					{step === "review" && selectedRate ? <ReviewStep lines={lines} details={details} selectedRate={selectedRate} editShipping={() => setStep("shipping")} locked={Boolean(checkout)} startPayment={startPayment} paymentLoading={paymentLoading} paymentReady={snapReady && Boolean(midtransClientKey)} paymentError={paymentError} messages={messages.checkout} locale={locale} /> : null}
+					{step === "shipping" ? <ShippingStep details={details} updateDetail={updateDetail} rates={rates} selectedRateKey={selectedRateKey} setSelectedRateKey={setSelectedRateKey} error={shippingMutation.error instanceof Error ? shippingMutation.error.message : ""} loading={shippingMutation.isPending} checkShipping={checkShipping} continueToReview={() => setStep("review")} messages={messages} locale={locale} /> : null}
+					{step === "review" && selectedRate ? <ReviewStep lines={lines} details={details} selectedRate={selectedRate} editShipping={() => setStep("shipping")} locked={Boolean(checkoutMutation.data)} startPayment={startPayment} paymentLoading={checkoutMutation.isPending} paymentReady={snapReady && Boolean(midtransClientKey)} paymentError={paymentError} messages={messages.checkout} locale={locale} /> : null}
 				</section>
 				<CheckoutSummary lines={lines} subtotal={subtotal} selectedRate={selectedRate} total={total} messages={messages.checkout} locale={locale} />
 			</div>

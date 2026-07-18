@@ -3,13 +3,14 @@
 import { useMemo, useState } from "react";
 
 import { useDictionary } from "@/components/i18n-provider";
-import { addStoredCartItem, readStoredCart, writeStoredCart } from "@/lib/cart";
+import { useCartStore } from "@/lib/cart-store";
 import type { ProductVariant } from "@/lib/mock";
 
 type Props = { productId: string; productName: string; variants: ProductVariant[] };
 
 export function PurchasePanel({ productId, productName, variants }: Props) {
 	const messages = useDictionary();
+	const addItem = useCartStore((state) => state.addItem);
 	const firstAvailable = variants.find((variant) => variant.available) ?? variants[0];
 	const [variantId, setVariantId] = useState(firstAvailable?.id ?? "");
 	const [quantity, setQuantity] = useState(1);
@@ -26,8 +27,7 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 
 	function addToBag() {
 		if (!selected?.available) return;
-		const item = { productId, productName, variantId: selected.id, quantity };
-		writeStoredCart(localStorage, addStoredCartItem(readStoredCart(localStorage), item));
+		addItem({ productId, productName, variantId: selected.id, quantity });
 		setMessage(`${quantity} ${messages.product.addedToBag}`);
 	}
 

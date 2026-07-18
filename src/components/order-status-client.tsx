@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
-import { writeStoredCart } from "@/lib/cart";
+import { useCartStore } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/catalog";
 
 type OrderReceipt = {
@@ -21,35 +22,32 @@ type OrderReceipt = {
 export function OrderStatusClient({ id }: { id: string }) {
 	const messages = useDictionary().order;
 	const locale = useLocale();
-	const [order, setOrder] = useState<OrderReceipt>();
-	const [error, setError] = useState("");
+	const attempts = useRef(0);
+	const clearCart = useCartStore((state) => state.clear);
+	const { data: order, error } = useQuery({
+		queryKey: ["order", id],
+		queryFn: async () => {
+			const response = await fetch(`/api/orders/${encodeURIComponent(id)}`, { cache: "no-store" });
+			if (!response.ok) throw new Error(messages.loadError);
+			const receipt = await response.json() as OrderReceipt;
+			attempts.current += 1;
+			return receipt;
+		},
+		refetchInterval: (query) => {
+			const receipt = query.state.data;
+			if (query.state.status === "error" || !receipt || attempts.current >= 10) return false;
+			return receipt.paymentStatus === "PENDING" || (receipt.paymentStatus === "PAID" && receipt.fulfillmentStatus === "UNFULFILLED") ? 2_000 : false;
+		},
+		refetchIntervalInBackground: true,
+		refetchOnReconnect: false,
+		refetchOnWindowFocus: false,
+	});
 
 	useEffect(() => {
-		let active = true;
-		let timer: ReturnType<typeof setTimeout>;
-		let attempts = 0;
-		async function load() {
-			try {
-				const response = await fetch(`/api/orders/${encodeURIComponent(id)}`, { cache: "no-store" });
-				if (!response.ok) throw new Error(messages.loadError);
-				const next = await response.json() as OrderReceipt;
-				if (!active) return;
-				setOrder(next);
-				setError("");
-				if (next.paymentStatus === "PAID") writeStoredCart(localStorage, []);
-				attempts += 1;
-				if (attempts < 10 && (next.paymentStatus === "PENDING" || (next.paymentStatus === "PAID" && next.fulfillmentStatus === "UNFULFILLED"))) {
-					timer = setTimeout(load, 2_000);
-				}
-			} catch (loadError) {
-				if (active) setError(loadError instanceof Error ? loadError.message : messages.loadError);
-			}
-		}
-		load();
-		return () => { active = false; clearTimeout(timer); };
-	}, [id, messages.loadError]);
+		if (order?.paymentStatus === "PAID") clearCart();
+	}, [order?.paymentStatus, clearCart]);
 
-	if (!order) return <main className="page-shell order-status-page"><section className="order-status-card"><p className="eyebrow">{messages.title}</p><h1>{error || messages.loading}</h1></section></main>;
+	if (!order) return <main className="page-shell order-status-page"><section className="order-status-card"><p className="eyebrow">{messages.title}</p><h1>{error instanceof Error ? error.message : messages.loading}</h1></section></main>;
 	const payment = messages.paymentStatuses[order.paymentStatus];
 	const fulfillment = messages.fulfillmentStatuses[order.fulfillmentStatus];
 	return (
@@ -67,7 +65,7 @@ export function OrderStatusClient({ id }: { id: string }) {
 					<div><dt>{messages.shipping}</dt><dd>{formatPrice(order.shippingIdr, locale)}</dd></div>
 					<div><dt>{messages.total}</dt><dd>{formatPrice(order.totalIdr, locale)}</dd></div>
 				</dl>
-				{error ? <p className="payment-notice" role="alert">{error}</p> : null}
+				{error instanceof Error ? <p className="payment-notice" role="alert">{error.message}</p> : null}
 				<Link className="button button-dark" href="/">{messages.returnHome}</Link>
 			</section>
 		</main>

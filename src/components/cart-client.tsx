@@ -2,31 +2,25 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
-import { cartSubtotal, readStoredCart, resolveCartLines, type StoredCartItem, writeStoredCart } from "@/lib/cart";
+import { cartSubtotal, resolveCartLines } from "@/lib/cart";
+import { useCartStore } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/catalog";
 import type { PublicProduct } from "@/lib/mock";
 
 export function CartClient({ products }: { products: PublicProduct[] }) {
 	const locale = useLocale();
 	const messages = useDictionary();
-	const [items, setItems] = useState<StoredCartItem[]>([]);
-	const [ready, setReady] = useState(false);
+	const items = useCartStore((state) => state.items);
+	const ready = useCartStore((state) => state.hydrated);
+	const setQuantity = useCartStore((state) => state.setQuantity);
+	const removeItem = useCartStore((state) => state.removeItem);
+	const reconcile = useCartStore((state) => state.reconcile);
 
 	useEffect(() => {
-		const stored = readStoredCart(localStorage);
-		const resolvedIndexes = new Set(resolveCartLines(stored, products).map((line) => line.index));
-		const valid = stored.filter((_, index) => resolvedIndexes.has(index));
-		if (valid.length !== stored.length) writeStoredCart(localStorage, valid);
-		setItems(valid);
-		setReady(true);
-	}, [products]);
-
-	function persist(next: StoredCartItem[]) {
-		setItems(next);
-		writeStoredCart(localStorage, next);
-	}
+		if (ready) reconcile(products);
+	}, [products, ready, reconcile]);
 
 	const lines = useMemo(() => resolveCartLines(items, products), [items, products]);
 	const subtotal = cartSubtotal(lines);
@@ -51,14 +45,14 @@ export function CartClient({ products }: { products: PublicProduct[] }) {
 							<h2><Link href={`/products/${line.product.slug}`}>{line.product.name}</Link></h2>
 							<span>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</span>
 							{!line.variant.available ? <strong className="cart-unavailable">{messages.cart.unavailableItem}</strong> : null}
-							<button type="button" onClick={() => persist(items.filter((_, index) => index !== line.index))}>{messages.cart.remove}</button>
+							<button type="button" onClick={() => removeItem(line.variantId)}>{messages.cart.remove}</button>
 						</div>
 						<div className="cart-line-end">
 							<strong>{formatPrice(line.product.priceIdr * line.quantity, locale)}</strong>
 							<div className="quantity" aria-label={`${line.product.name} ${messages.product.quantitySelector}`}>
-								<button type="button" aria-label="−" onClick={() => persist(items.map((item, index) => index === line.index ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item))}>−</button>
+								<button type="button" aria-label="−" onClick={() => setQuantity(line.variantId, line.quantity - 1)}>−</button>
 								<span>{line.quantity}</span>
-								<button type="button" aria-label="+" onClick={() => persist(items.map((item, index) => index === line.index ? { ...item, quantity: Math.min(9, item.quantity + 1) } : item))}>+</button>
+								<button type="button" aria-label="+" onClick={() => setQuantity(line.variantId, line.quantity + 1)}>+</button>
 							</div>
 						</div>
 					</article>

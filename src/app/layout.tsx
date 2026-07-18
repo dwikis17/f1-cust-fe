@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { AppProviders } from "@/components/app-providers";
 import { I18nProvider } from "@/components/i18n-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -25,9 +26,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 		<html lang={locale} data-scroll-behavior="smooth">
 			<body className={`${display.variable} ${body.variable} ${mono.variable}`}>
 				<I18nProvider locale={locale}>
-					<SiteHeader locale={locale} />
-					{children}
-					<SiteFooter locale={locale} />
+					<AppProviders>
+						<SiteHeader locale={locale} />
+						{children}
+						<SiteFooter locale={locale} />
+					</AppProviders>
 				</I18nProvider>
 			</body>
 		</html>
