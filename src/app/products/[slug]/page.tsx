@@ -24,10 +24,10 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
 					<h1>{product.name}</h1>
 					<p className="product-price">{formatPrice(product.priceIdr)}</p>
 					<p className="product-description">{product.description}</p>
-					<div className="product-promises"><span><VerifiedIcon /> Official merchandise</span><span><CubeIcon /> Free shipping</span></div>
+					<div className="product-promises"><span><VerifiedIcon /> Official merchandise</span><span><CubeIcon /> Live shipping rates</span></div>
 					<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />
 					<details><summary>Product details</summary><p>Precision-made collector merchandise. Each piece is verified and packaged for secure display.</p></details>
-					<details><summary>Delivery & returns</summary><p>Complimentary tracked delivery. Returns are accepted within 14 days in original condition.</p></details>
+					<details><summary>Delivery & returns</summary><p>Tracked delivery is calculated from your destination in the cart. Returns are accepted within 14 days in original condition.</p></details>
 				</div>
 			</section>
 
