@@ -199,6 +199,7 @@ export async function mockGetProduct(slug: string, locale: Locale = "en") {
 }
 export async function mockListCategories() { return mockCategories; }
 export async function mockListTags() { return mockTags; }
+export async function mockListTeams() { return teams; }
 export async function mockListCollections(): Promise<CollectionNode[]> {
 	const build = (parentId: string | null): CollectionNode[] => collectionSeed.filter((item) => item.parentId === parentId).map((item) => ({ ...item, children: build(item.id) }));
 	return build(null);

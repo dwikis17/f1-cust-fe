@@ -7,14 +7,14 @@ import { catalog } from "@/lib/catalog";
 import { dictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
 
-const teams = [
-	["◒", "McLaren"], ["ϟ", "Ferrari"], ["⬡", "Red Bull"], ["◇", "Mercedes"], ["⬢", "Aston Martin"], ["▦", "Sauber"], ["⠿", "Williams"],
-];
-
 export default async function Home() {
 	const locale = await getLocale();
 	const messages = dictionary(locale);
-	const { data: products } = await catalog.listProducts({ limit: 8 }, locale);
+	const [{ data: products }, teams] = await Promise.all([
+		catalog.listProducts({ limit: 8 }, locale),
+		catalog.listTeams(),
+	]);
+	if (process.env.NODE_ENV === "development") console.log("[home] fetched teams", teams);
 	return (
 		<main className="page-shell home-page">
 			<section className="home-hero">
@@ -30,7 +30,7 @@ export default async function Home() {
 			</section>
 
 			<section className="team-strip" aria-label={messages.home.teamsLabel}>
-				{teams.map(([symbol, name]) => <div key={name}><b>{symbol}</b><span>{name}</span></div>)}
+				{teams.map((team) => <Link href={`/collections/${team.slug}`} aria-label={team.name} key={team.id}>{team.logoUrl ? <Image src={team.logoUrl} alt={team.name} fill sizes="120px" /> : <span>{team.name}</span>}</Link>)}
 			</section>
 
 			<section className="section selected-products">

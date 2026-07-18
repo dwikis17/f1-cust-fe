@@ -37,7 +37,7 @@
 	},
 	"upload_source_maps": true,
 	"vars": {
-		"API_BASE_URL": "https://f1-store-api.dwikis17.workers.dev"
+		"API_BASE_URL": "https://api.valydejersey.com"
 	}
 	/**
 	 * Smart Placement

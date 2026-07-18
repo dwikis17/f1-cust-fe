@@ -6,6 +6,7 @@ import {
 	mockListCollections,
 	mockListProducts,
 	mockListTags,
+	mockListTeams,
 	type CatalogEntity,
 	type CollectionDetail,
 	type CollectionNode,
@@ -13,6 +14,7 @@ import {
 	type ProductListResponse,
 	type ProductQuery,
 	type PublicProduct,
+	type Team,
 } from "./mock";
 import type { Locale } from "./i18n";
 
@@ -52,6 +54,9 @@ export const catalog = {
 	},
 	listTags(): Promise<CatalogEntity[]> {
 		return apiBaseUrl ? apiFetch("/api/tags") : mockListTags();
+	},
+	listTeams(): Promise<Team[]> {
+		return apiBaseUrl ? apiFetch("/api/teams") : mockListTeams();
 	},
 	listCollections(): Promise<CollectionNode[]> {
 		return apiBaseUrl ? apiFetch("/api/collections") : mockListCollections();
