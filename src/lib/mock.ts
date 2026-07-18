@@ -1,3 +1,5 @@
+import type { Locale } from "./i18n";
+
 export type CatalogEntity = { id: string; name: string; slug: string; createdAt: string; updatedAt: string };
 export type ProductAudience = "MEN" | "WOMEN" | "KIDS" | "UNISEX";
 export type CollectionKind = "DOMAIN" | "TEAM" | "DRIVER" | "MERCHANDISE" | "BRAND" | "PROMOTION" | "MANUAL";
@@ -78,17 +80,18 @@ const collectionSeed: CollectionSummary[] = [
 ];
 
 type Seed = {
-	id: string; name: string; slug: string; description: string; priceIdr: number; type: number; team: number | null;
+	id: string; name: string; nameId?: string; slug: string; description: string; descriptionId?: string; priceIdr: number; type: number; team: number | null;
 	drivers: number[]; collections: string[]; audience: ProductAudience; tags?: number[];
 	sizes?: string[]; color?: string | null; unavailableSizes?: string[];
 };
+type MockProduct = PublicProduct & { nameId?: string; descriptionId?: string };
 const gallery = [
 	["/images/generated/product-01-hero.webp", "Motorsport collectible, three-quarter view"],
 	["/images/generated/product-02-side.webp", "Motorsport collectible, side view"],
 	["/images/generated/product-04-detail.webp", "Motorsport merchandise material detail"],
 ] as const;
 
-function makeProduct(seed: Seed): PublicProduct {
+function makeProduct(seed: Seed): MockProduct {
 	const productId = seed.id;
 	const membershipSlugs = new Set([
 		...seed.collections,
@@ -107,7 +110,8 @@ function makeProduct(seed: Seed): PublicProduct {
 			createdAt: now, updatedAt: now, available: true }];
 	const category = mockCategories[seed.type];
 	return {
-		id: productId, name: seed.name, slug: seed.slug, description: seed.description, priceIdr: seed.priceIdr,
+		id: productId, name: seed.name, nameId: seed.nameId, slug: seed.slug, description: seed.description,
+		descriptionId: seed.descriptionId, priceIdr: seed.priceIdr,
 		category, productType: category, team: seed.team === null ? null : teams[seed.team], drivers: seed.drivers.map((index) => drivers[index]),
 		audience: seed.audience, collections: collectionSeed.filter((item) => membershipSlugs.has(item.slug)),
 		tags: (seed.tags ?? []).map((index) => mockTags[index]), variants,
@@ -116,21 +120,30 @@ function makeProduct(seed: Seed): PublicProduct {
 	};
 }
 
-export const mockProducts: PublicProduct[] = [
-	makeProduct({ id: "product-1", name: "McLaren Driver Cap — Papaya", slug: "mclaren-driver-cap-papaya", description: "A lightweight papaya driver cap with precision embroidery.", priceIdr: 949000, type: 0, team: 0, drivers: [0, 1], collections: ["mclaren", "lando-norris", "oscar-piastri"], audience: "UNISEX", tags: [1] }),
-	makeProduct({ id: "product-2", name: "McLaren Driver Cap — Black", slug: "mclaren-driver-cap-black", description: "A separate black colorway with its own gallery, SKU, and stock.", priceIdr: 949000, type: 0, team: 0, drivers: [0], collections: ["mclaren", "lando-norris"], audience: "UNISEX" }),
-	makeProduct({ id: "product-3", name: "McLaren Technical Shirt", slug: "mclaren-technical-shirt", description: "Breathable size-only teamwear developed for race weekends.", priceIdr: 1999000, type: 1, team: 0, drivers: [0, 1], collections: ["mclaren", "lando-norris", "oscar-piastri"], audience: "MEN", sizes: ["S", "M", "L", "XL"], unavailableSizes: ["L"] }),
-	makeProduct({ id: "product-4", name: "Ferrari Heritage Polo", slug: "ferrari-heritage-polo", description: "A tribute to Ferrari history, related to both a current and a legendary driver.", priceIdr: 2199000, type: 1, team: 1, drivers: [2, 3], collections: ["ferrari", "charles-leclerc", "niki-lauda"], audience: "UNISEX", sizes: ["S", "M", "L"] }),
-	makeProduct({ id: "product-5", name: "Oscar Piastri LEGO Helmet", slug: "oscar-piastri-lego-helmet", description: "A display-ready replica of Oscar Piastri's official racing helmet.", priceIdr: 1699000, type: 2, team: 0, drivers: [1], collections: ["mclaren", "oscar-piastri"], audience: "KIDS", tags: [0] }),
+export const mockProducts: MockProduct[] = [
+	makeProduct({ id: "product-1", name: "McLaren Driver Cap — Papaya", nameId: "Topi Pembalap McLaren — Papaya", slug: "mclaren-driver-cap-papaya", description: "A lightweight papaya driver cap with precision embroidery.", descriptionId: "Topi pembalap papaya ringan dengan bordir presisi.", priceIdr: 949000, type: 0, team: 0, drivers: [0, 1], collections: ["mclaren", "lando-norris", "oscar-piastri"], audience: "UNISEX", tags: [1] }),
+	makeProduct({ id: "product-2", name: "McLaren Driver Cap — Black", nameId: "Topi Pembalap McLaren — Hitam", slug: "mclaren-driver-cap-black", description: "A separate black colorway with its own gallery, SKU, and stock.", descriptionId: "Varian warna hitam dengan galeri, SKU, dan stok tersendiri.", priceIdr: 949000, type: 0, team: 0, drivers: [0], collections: ["mclaren", "lando-norris"], audience: "UNISEX" }),
+	makeProduct({ id: "product-3", name: "McLaren Technical Shirt", nameId: "Kaus Teknis McLaren", slug: "mclaren-technical-shirt", description: "Breathable size-only teamwear developed for race weekends.", descriptionId: "Pakaian tim bernapas yang dikembangkan untuk akhir pekan balapan.", priceIdr: 1999000, type: 1, team: 0, drivers: [0, 1], collections: ["mclaren", "lando-norris", "oscar-piastri"], audience: "MEN", sizes: ["S", "M", "L", "XL"], unavailableSizes: ["L"] }),
+	makeProduct({ id: "product-4", name: "Ferrari Heritage Polo", nameId: "Polo Warisan Ferrari", slug: "ferrari-heritage-polo", description: "A tribute to Ferrari history, related to both a current and a legendary driver.", descriptionId: "Penghormatan untuk sejarah Ferrari yang terhubung dengan pembalap masa kini dan legendaris.", priceIdr: 2199000, type: 1, team: 1, drivers: [2, 3], collections: ["ferrari", "charles-leclerc", "niki-lauda"], audience: "UNISEX", sizes: ["S", "M", "L"] }),
+	makeProduct({ id: "product-5", name: "Oscar Piastri LEGO Helmet", nameId: "Helm LEGO Oscar Piastri", slug: "oscar-piastri-lego-helmet", description: "A display-ready replica of Oscar Piastri's official racing helmet.", descriptionId: "Replika helm balap resmi Oscar Piastri yang siap dipajang.", priceIdr: 1699000, type: 2, team: 0, drivers: [1], collections: ["mclaren", "oscar-piastri"], audience: "KIDS", tags: [0] }),
 	makeProduct({ id: "product-6", name: "Mercedes Paddock Bottle", slug: "mercedes-paddock-bottle", description: "A vacuum-insulated bottle engineered for race weekends.", priceIdr: 699000, type: 3, team: 2, drivers: [], collections: ["mercedes"], audience: "UNISEX" }),
 ];
 
+function localizeProduct(product: MockProduct, locale: Locale): PublicProduct {
+	const { nameId, descriptionId, ...value } = product;
+	return {
+		...value,
+		name: locale === "id" ? nameId ?? value.name : value.name,
+		description: locale === "id" ? descriptionId ?? value.description : value.description,
+	};
+}
+
 function values(value?: string[]) { return value ?? []; }
-function filterProducts(source: PublicProduct[], query: ProductQuery, omit?: "team" | "driver" | "productType" | "audience" | "availability" | "price") {
+function filterProducts(source: MockProduct[], query: ProductQuery, omit?: "team" | "driver" | "productType" | "audience" | "availability" | "price") {
 	const search = query.search?.trim().toLowerCase();
 	const productTypes = [...values(query.productType), ...values(query.category)];
 	return source.filter((product) => {
-		if (search && !`${product.name} ${product.description}`.toLowerCase().includes(search)) return false;
+		if (search && !`${product.name} ${product.nameId ?? ""} ${product.description} ${product.descriptionId ?? ""}`.toLowerCase().includes(search)) return false;
 		if (omit !== "productType" && productTypes.length && !productTypes.includes(product.productType.slug)) return false;
 		if (values(query.tag).length && !product.tags.some((item) => values(query.tag).includes(item.slug))) return false;
 		if (omit !== "team" && values(query.team).length && (!product.team || !values(query.team).includes(product.team.slug))) return false;
@@ -144,7 +157,7 @@ function filterProducts(source: PublicProduct[], query: ProductQuery, omit?: "te
 		return true;
 	});
 }
-function sorted(products: PublicProduct[], sort: ProductSort = "newest") {
+function sorted(products: MockProduct[], sort: ProductSort = "newest") {
 	const result = [...products];
 	if (sort === "name_asc") result.sort((a, b) => a.name.localeCompare(b.name));
 	if (sort === "name_desc") result.sort((a, b) => b.name.localeCompare(a.name));
@@ -153,7 +166,7 @@ function sorted(products: PublicProduct[], sort: ProductSort = "newest") {
 	if (sort === "oldest") result.reverse();
 	return result;
 }
-function page(products: PublicProduct[], query: ProductQuery): ProductListResponse {
+function page(products: MockProduct[], query: ProductQuery): ProductListResponse {
 	const current = query.page ?? 1; const limit = query.limit ?? 20; const start = (current - 1) * limit;
 	return { data: products.slice(start, start + limit), page: current, limit, total: products.length };
 }
@@ -162,7 +175,7 @@ function named(items: CatalogEntity[]) {
 	for (const item of items) { const current = count.get(item.id); count.set(item.id, { item, count: (current?.count ?? 0) + 1 }); }
 	return [...count.values()].map(({ item, count: total }) => ({ id: item.id, name: item.name, slug: item.slug, count: total })).sort((a, b) => a.name.localeCompare(b.name));
 }
-function facets(source: PublicProduct[], query: ProductQuery): ProductFacets {
+function facets(source: MockProduct[], query: ProductQuery): ProductFacets {
 	const audienceCount = new Map<ProductAudience, number>();
 	for (const product of filterProducts(source, query, "audience")) if (product.audience) audienceCount.set(product.audience, (audienceCount.get(product.audience) ?? 0) + 1);
 	const priceProducts = filterProducts(source, query, "price");
@@ -176,8 +189,14 @@ function facets(source: PublicProduct[], query: ProductQuery): ProductFacets {
 	};
 }
 
-export async function mockListProducts(query: ProductQuery = {}) { return page(sorted(filterProducts(mockProducts, query), query.sort), query); }
-export async function mockGetProduct(slug: string) { return mockProducts.find((product) => product.slug === slug) ?? null; }
+export async function mockListProducts(query: ProductQuery = {}, locale: Locale = "en") {
+	const response = page(sorted(filterProducts(mockProducts, query), query.sort), query);
+	return { ...response, data: (response.data as MockProduct[]).map((product) => localizeProduct(product, locale)) };
+}
+export async function mockGetProduct(slug: string, locale: Locale = "en") {
+	const product = mockProducts.find((item) => item.slug === slug);
+	return product ? localizeProduct(product, locale) : null;
+}
 export async function mockListCategories() { return mockCategories; }
 export async function mockListTags() { return mockTags; }
 export async function mockListCollections(): Promise<CollectionNode[]> {
@@ -188,8 +207,9 @@ export async function mockGetCollection(slug: string): Promise<CollectionDetail 
 	const item = collectionSeed.find((collection) => collection.slug === slug); if (!item) return null;
 	return { ...item, parent: collectionSeed.find((parent) => parent.id === item.parentId) ?? null, children: collectionSeed.filter((child) => child.parentId === item.id), _count: { products: mockProducts.filter((product) => product.collections.some((collection) => collection.slug === slug)).length } };
 }
-export async function mockListCollectionProducts(slug: string, query: ProductQuery = {}): Promise<CollectionProductsResponse | null> {
+export async function mockListCollectionProducts(slug: string, query: ProductQuery = {}, locale: Locale = "en"): Promise<CollectionProductsResponse | null> {
 	const collection = await mockGetCollection(slug); if (!collection) return null;
 	const source = mockProducts.filter((product) => product.collections.some((item) => item.slug === slug));
-	return { ...page(sorted(filterProducts(source, query), query.sort ?? "featured"), query), collection, facets: facets(source, query) };
+	const response = page(sorted(filterProducts(source, query), query.sort ?? "featured"), query);
+	return { ...response, data: (response.data as MockProduct[]).map((product) => localizeProduct(product, locale)), collection, facets: facets(source, query) };
 }

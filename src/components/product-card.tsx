@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatPrice } from "@/lib/catalog";
+import type { Locale } from "@/lib/i18n";
 import type { PublicProduct } from "@/lib/mock";
 
-export function ProductCard({ product, priority = false, collectionSlug }: { product: PublicProduct; priority?: boolean; collectionSlug?: string }) {
+export function ProductCard({ product, locale, priority = false, collectionSlug }: { product: PublicProduct; locale: Locale; priority?: boolean; collectionSlug?: string }) {
 	const photo = product.photos[0];
 	return (
 		<article className="product-card">
@@ -13,7 +14,7 @@ export function ProductCard({ product, priority = false, collectionSlug }: { pro
 				</div>
 				<div className="product-meta">
 					<p>{product.team?.name ?? product.productType.name}</p>
-					<div><h3>{product.name}</h3><strong>{formatPrice(product.priceIdr)}</strong></div>
+					<div><h3>{product.name}</h3><strong>{formatPrice(product.priceIdr, locale)}</strong></div>
 				</div>
 			</Link>
 		</article>

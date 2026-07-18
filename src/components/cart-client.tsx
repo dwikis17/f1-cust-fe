@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { useDictionary, useLocale } from "@/components/i18n-provider";
 import { formatPrice } from "@/lib/catalog";
 import type { PublicProduct } from "@/lib/mock";
 
@@ -20,6 +21,8 @@ type ShippingRate = {
 };
 
 export function CartClient({ products }: { products: PublicProduct[] }) {
+	const locale = useLocale();
+	const messages = useDictionary();
 	const [items, setItems] = useState<StoredItem[]>([]);
 	const [ready, setReady] = useState(false);
 	const [destinationPostalCode, setDestinationPostalCode] = useState("");
@@ -66,55 +69,66 @@ export function CartClient({ products }: { products: PublicProduct[] }) {
 					items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })),
 				}),
 			});
-			const body = await response.json() as { rates?: ShippingRate[]; error?: { message?: string } };
-			if (!response.ok) throw new Error(body.error?.message ?? "Unable to check shipping rates");
+			const body = await response.json() as { rates?: ShippingRate[]; error?: { code?: string } };
+			if (!response.ok) {
+				const errors: Record<string, string> = {
+					INVALID_DESTINATION: messages.cart.invalidDestination,
+					NO_COURIER_AVAILABLE: messages.cart.noServices,
+					CART_CHANGED: messages.cart.unavailableItem,
+					SHIPPING_NOT_CONFIGURED: messages.cart.shippingNotConfigured,
+					SHIPPING_TIMEOUT: messages.cart.shippingUnavailable,
+					SHIPPING_UPSTREAM_ERROR: messages.cart.shippingUnavailable,
+					SHIPPING_API_UNAVAILABLE: messages.cart.shippingUnavailable,
+				};
+				throw new Error(errors[body.error?.code ?? ""] ?? messages.cart.genericShippingError);
+			}
 			setRates(body.rates ?? []);
 		} catch (error) {
-			setShippingError(error instanceof Error ? error.message : "Unable to check shipping rates");
+			setShippingError(error instanceof Error ? error.message : messages.cart.genericShippingError);
 		} finally {
 			setShippingLoading(false);
 		}
 	}
 
-	if (!ready) return <div className="cart-empty"><p className="eyebrow">Loading garage</p></div>;
-	if (!lines.length) return <div className="cart-empty"><p className="eyebrow">Your bag / 00</p><h1>The garage is empty</h1><p>Build your race-day collection from the latest technical equipment.</p><Link className="button button-dark" href="/collections">Explore collection</Link></div>;
+	if (!ready) return <div className="cart-empty"><p className="eyebrow">{messages.cart.loadingGarage}</p></div>;
+	if (!lines.length) return <div className="cart-empty"><p className="eyebrow">{messages.cart.yourBag} / 00</p><h1>{messages.cart.emptyTitle}</h1><p>{messages.cart.emptyText}</p><Link className="button button-dark" href="/collections">{messages.cart.exploreCollection}</Link></div>;
 
 	return (
 		<div className="cart-layout">
 			<section className="cart-lines">
-				<div className="cart-title"><p className="eyebrow">Your bag / {lines.length.toString().padStart(2, "0")}</p><h1>Selected equipment</h1></div>
+				<div className="cart-title"><p className="eyebrow">{messages.cart.yourBag} / {lines.length.toString().padStart(2, "0")}</p><h1>{messages.cart.selectedEquipment}</h1></div>
 				{lines.map((line) => (
 					<article className="cart-line" key={`${line.productId}-${line.index}`}>
 						<Link className="cart-line-image" href={`/products/${line.product.slug}`}><Image src={line.product.photos[0].url} alt={line.product.photos[0].altText} fill sizes="150px" /></Link>
-						<div className="cart-line-copy"><p>{line.product.team?.name ?? line.product.productType.name}</p><h2><Link href={`/products/${line.product.slug}`}>{line.product.name}</Link></h2>{line.variant ? <span>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</span> : null}<button type="button" onClick={() => persist(items.filter((_, index) => index !== line.index))}>Remove</button></div>
-						<div className="cart-line-end"><strong>{formatPrice(line.product.priceIdr * line.quantity)}</strong><div className="quantity"><button type="button" onClick={() => persist(items.map((item, index) => index === line.index ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item))}>−</button><span>{line.quantity}</span><button type="button" onClick={() => persist(items.map((item, index) => index === line.index ? { ...item, quantity: Math.min(9, item.quantity + 1) } : item))}>+</button></div></div>
+						<div className="cart-line-copy"><p>{line.product.team?.name ?? line.product.productType.name}</p><h2><Link href={`/products/${line.product.slug}`}>{line.product.name}</Link></h2>{line.variant ? <span>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</span> : null}<button type="button" onClick={() => persist(items.filter((_, index) => index !== line.index))}>{messages.cart.remove}</button></div>
+						<div className="cart-line-end"><strong>{formatPrice(line.product.priceIdr * line.quantity, locale)}</strong><div className="quantity"><button type="button" onClick={() => persist(items.map((item, index) => index === line.index ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item))}>−</button><span>{line.quantity}</span><button type="button" onClick={() => persist(items.map((item, index) => index === line.index ? { ...item, quantity: Math.min(9, item.quantity + 1) } : item))}>+</button></div></div>
 					</article>
 				))}
 			</section>
 			<aside className="cart-summary">
-				<p className="eyebrow light">Race summary</p>
-				<div><span>Subtotal</span><strong>{formatPrice(subtotal)}</strong></div>
-				<div><span>Shipping</span><strong>{rates?.length ? `From ${formatPrice(rates[0].price)}` : "Enter postal code"}</strong></div>
+				<p className="eyebrow light">{messages.cart.raceSummary}</p>
+				<div><span>{messages.cart.subtotal}</span><strong>{formatPrice(subtotal, locale)}</strong></div>
+				<div><span>{messages.cart.shipping}</span><strong>{rates?.length ? `${messages.cart.from} ${formatPrice(rates[0].price, locale)}` : messages.cart.enterPostalCode}</strong></div>
 				<form className="shipping-form" onSubmit={checkShipping}>
-					<label htmlFor="destination-postal-code">Destination postal code</label>
+					<label htmlFor="destination-postal-code">{messages.cart.destinationPostalCode}</label>
 					<div>
-						<input id="destination-postal-code" name="destinationPostalCode" value={destinationPostalCode} onChange={(event) => updatePostalCode(event.target.value)} inputMode="numeric" autoComplete="postal-code" pattern="[0-9]{5}" minLength={5} maxLength={5} placeholder="e.g. 12240" required />
-						<button className="button button-light" type="submit" disabled={shippingLoading}>{shippingLoading ? "Checking…" : "Check shipping"}</button>
+						<input id="destination-postal-code" name="destinationPostalCode" value={destinationPostalCode} onChange={(event) => updatePostalCode(event.target.value)} inputMode="numeric" autoComplete="postal-code" pattern="[0-9]{5}" minLength={5} maxLength={5} placeholder={messages.cart.postalPlaceholder} required />
+						<button className="button button-light" type="submit" disabled={shippingLoading}>{shippingLoading ? messages.cart.checking : messages.cart.checkShipping}</button>
 					</div>
 					<p className={shippingError ? "shipping-message shipping-error" : "shipping-message"} aria-live="polite">
-						{shippingError || (rates && rates.length === 0 ? "No delivery services are available for this destination." : "Rates are live estimates and may change at checkout.")}
+						{shippingError || (rates && rates.length === 0 ? messages.cart.noServices : messages.cart.rateEstimate)}
 					</p>
 				</form>
-				{rates?.length ? <ul className="shipping-rates" aria-label="Available shipping rates">
+				{rates?.length ? <ul className="shipping-rates" aria-label={messages.cart.availableRates}>
 					{rates.map((rate, index) => <li key={`${rate.courierCode}-${rate.serviceCode}-${index}`}>
 						<div><strong>{rate.courierName}</strong><span>{rate.serviceName}</span></div>
-						<div><strong>{formatPrice(rate.price)}</strong><span>{rate.duration || "ETA unavailable"}</span></div>
+						<div><strong>{formatPrice(rate.price, locale)}</strong><span>{rate.duration || messages.cart.etaUnavailable}</span></div>
 						{rate.description ? <p>{rate.description}</p> : null}
 					</li>)}
 				</ul> : null}
-				<p>Taxes calculated at checkout. All merchandise ships in track-safe protective packaging.</p>
-				<button className="button button-light" type="button">Proceed to checkout</button>
-				<Link href="/collections">Continue shopping →</Link>
+				<p>{messages.cart.taxes}</p>
+				<button className="button button-light" type="button">{messages.cart.checkout}</button>
+				<Link href="/collections">{messages.cart.continueShopping}</Link>
 			</aside>
 		</div>
 	);
