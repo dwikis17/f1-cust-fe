@@ -30,7 +30,7 @@ export default async function Home() {
 			</section>
 
 			<section className="team-strip" aria-label={messages.home.teamsLabel}>
-				{teams.map((team) => <Link href={`/collections/${team.slug}`} aria-label={team.name} key={team.id}>{team.logoUrl ? <Image src={team.logoUrl} alt={team.name} fill sizes="120px" /> : <span>{team.name}</span>}</Link>)}
+				{teams.map((team) => <Link href={`/collections/${team.slug}`} aria-label={team.name} key={team.id}>{team.logoUrl ? <img src={team.logoUrl} alt={team.name} loading="lazy" /> : <span>{team.name}</span>}</Link>)}
 			</section>
 
 			<section className="section selected-products">
