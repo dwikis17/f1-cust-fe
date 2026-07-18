@@ -181,7 +181,7 @@ export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 
 	return (
 		<main className="page-shell checkout-page">
-			{midtransClientKey ? <Script src={midtransSnapUrl} data-client-key={midtransClientKey} strategy="afterInteractive" onLoad={() => setSnapReady(true)} onError={() => setPaymentError(messages.checkout.paymentUnavailable)} /> : null}
+			{midtransClientKey ? <Script src={midtransSnapUrl} data-client-key={midtransClientKey} strategy="afterInteractive" onReady={() => setSnapReady(Boolean(window.snap))} onError={() => setPaymentError(messages.checkout.paymentUnavailable)} /> : null}
 			<CheckoutSteps step={step} setStep={setStep} canOpenPayment={Boolean(selectedRate)} messages={messages.checkout} />
 			<div className="checkout-layout">
 				<section className="checkout-main">
