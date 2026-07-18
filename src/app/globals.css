@@ -331,6 +331,14 @@ img { max-width: 100%; }
 .payment-method > span { font-size: 20px; grid-row: span 2; }
 .payment-preview fieldset { opacity: .55; }
 .payment-notice { background: #ededed; border-left: 3px solid var(--ink); color: var(--muted); font-size: 12px; line-height: 1.5; margin: 18px 0; padding: 14px; }
+.order-status-page { display: grid; min-height: 70vh; place-items: center; padding-block: 64px; }
+.order-status-card { background: white; border: 1px solid var(--line); max-width: 680px; padding: 36px; width: 100%; }
+.order-status-card h1 { font-family: var(--font-display), sans-serif; font-size: clamp(34px, 6vw, 70px); margin: 12px 0 24px; text-transform: uppercase; }
+.order-status-card > p { overflow-wrap: anywhere; }
+.order-status-card dl { border-top: 1px solid var(--line); margin: 28px 0; }
+.order-status-card dl > div { border-bottom: 1px solid var(--line); display: flex; gap: 20px; justify-content: space-between; padding: 14px 0; }
+.order-status-card dt { color: var(--muted); font-family: var(--font-mono), monospace; font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+.order-status-card dd { font-weight: 600; margin: 0; text-align: right; }
 .review-block { border: 1px solid var(--line); margin-bottom: 16px; padding: 20px; }
 .review-block > div { align-items: center; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; padding-bottom: 12px; }
 .review-block h2 { font-family: var(--font-display), sans-serif; font-size: 15px; margin: 0; text-transform: uppercase; }

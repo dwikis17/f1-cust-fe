@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
 	images: {
 		remotePatterns: [
 			{ protocol: "https", hostname: "media.valydejersey.com" },
+			{ protocol: "https", hostname: "f1-store-api.dwikis17.workers.dev" },
 	
 		],
 	},

@@ -26,6 +26,8 @@ The storefront supports English and Indonesian without locale-prefixed URLs. The
 
 The cart posts shipping estimates to the storefront's same-origin `POST /api/shipping/rates` route, which forwards to `API_BASE_URL` without exposing backend configuration to the browser. The backend must have its Biteship key and origin postal code configured before live estimates are available.
 
+Checkout uses the same-origin `POST /api/checkout` proxy and Midtrans Snap.js. Set `NEXT_PUBLIC_MIDTRANS_ENV=sandbox` and the public `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` from `.env.example`; the Midtrans server key belongs only in `f1-be`. Payment and shipment state is displayed at `/orders/:id` from the safe public receipt endpoint.
+
 ## Checks and deployment
 
 ```bash
