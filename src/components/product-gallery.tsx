@@ -22,7 +22,9 @@ export function ProductGallery({ photos }: { photos: ProductPhoto[] }) {
 			</div>
 			<div className="gallery-main">
 				<span className="stock-badge">{messages.product.lastStock}</span>
-				<Image src={current.url} alt={current.altText} fill sizes="(max-width: 800px) 100vw, 50vw" loading="eager" />
+				<div className="gallery-main-image" key={current.id}>
+					<Image src={current.url} alt={current.altText} fill sizes="(max-width: 800px) 100vw, 50vw" loading="eager" />
+				</div>
 			</div>
 		</div>
 	);

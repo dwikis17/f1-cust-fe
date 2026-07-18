@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { useDictionary } from "@/components/i18n-provider";
+import { addStoredCartItem, readStoredCart, writeStoredCart } from "@/lib/cart";
 import type { ProductVariant } from "@/lib/mock";
 
 type Props = { productId: string; productName: string; variants: ProductVariant[] };
@@ -26,8 +27,7 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 	function addToBag() {
 		if (!selected?.available) return;
 		const item = { productId, productName, variantId: selected.id, quantity };
-		const stored = JSON.parse(localStorage.getItem("valdye-cart") ?? "[]") as typeof item[];
-		localStorage.setItem("valdye-cart", JSON.stringify([...stored, item]));
+		writeStoredCart(localStorage, addStoredCartItem(readStoredCart(localStorage), item));
 		setMessage(`${quantity} ${messages.product.addedToBag}`);
 	}
 

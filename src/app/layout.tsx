@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
 	const locale = await getLocale();
 	return (
-		<html lang={locale}>
+		<html lang={locale} data-scroll-behavior="smooth">
 			<body className={`${display.variable} ${body.variable} ${mono.variable}`}>
 				<I18nProvider locale={locale}>
 					<SiteHeader locale={locale} />
