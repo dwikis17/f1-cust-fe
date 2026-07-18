@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 
+import { useDictionary } from "@/components/i18n-provider";
 import type { ProductVariant } from "@/lib/mock";
 
 type Props = { productId: string; productName: string; variants: ProductVariant[] };
 
 export function PurchasePanel({ productId, productName, variants }: Props) {
+	const messages = useDictionary();
 	const firstAvailable = variants.find((variant) => variant.available) ?? variants[0];
 	const [variantId, setVariantId] = useState(firstAvailable?.id ?? "");
 	const [quantity, setQuantity] = useState(1);
@@ -26,27 +28,27 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 		const item = { productId, productName, variantId: selected.id, quantity };
 		const stored = JSON.parse(localStorage.getItem("valdye-cart") ?? "[]") as typeof item[];
 		localStorage.setItem("valdye-cart", JSON.stringify([...stored, item]));
-		setMessage(`${quantity} added to your bag`);
+		setMessage(`${quantity} ${messages.product.addedToBag}`);
 	}
 
 	return <>
 		<div className="purchase-panel">
-			{colors.length > 1 ? <OptionButtons label="Color" values={colors} selected={selected?.color} available={(value) => variants.some((variant) => variant.color === value && variant.available)} choose={(value) => chooseOption("color", value)} /> : null}
-			{sizes.length > 0 ? <OptionButtons label="Size" values={sizes} selected={selected?.size} available={(value) => variants.some((variant) => variant.size === value && variant.available && (colors.length < 2 || variant.color === selected?.color))} choose={(value) => chooseOption("size", value)} /> : null}
-			<div className="purchase-row"><div className="quantity" aria-label="Quantity selector"><button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))}>−</button><span>{quantity}</span><button type="button" onClick={() => setQuantity((value) => Math.min(9, value + 1))}>+</button></div><button className="button button-dark add-button" type="button" onClick={addToBag} disabled={!selected?.available}>{selected?.available ? "Add to cart" : "Out of stock"}</button></div>
-			<button className="express-button" type="button" disabled={!selected?.available}>Buy with <strong>Shop</strong></button>
-			<p className="payment-note" aria-live="polite">{message || (selected?.available ? "More payment options" : "This option is currently unavailable")}</p>
+			{colors.length > 1 ? <OptionButtons label={messages.product.color} values={colors} selected={selected?.color} available={(value) => variants.some((variant) => variant.color === value && variant.available)} choose={(value) => chooseOption("color", value)} /> : null}
+			{sizes.length > 0 ? <OptionButtons label={messages.product.size} values={sizes} selected={selected?.size} available={(value) => variants.some((variant) => variant.size === value && variant.available && (colors.length < 2 || variant.color === selected?.color))} choose={(value) => chooseOption("size", value)} /> : null}
+			<div className="purchase-row"><div className="quantity" aria-label={messages.product.quantitySelector}><button type="button" onClick={() => setQuantity((value) => Math.max(1, value - 1))}>−</button><span>{quantity}</span><button type="button" onClick={() => setQuantity((value) => Math.min(9, value + 1))}>+</button></div><button className="button button-dark add-button" type="button" onClick={addToBag} disabled={!selected?.available}>{selected?.available ? messages.product.addToCart : messages.product.outOfStock}</button></div>
+			<button className="express-button" type="button" disabled={!selected?.available}>{messages.product.buyWith} <strong>Shop</strong></button>
+			<p className="payment-note" aria-live="polite">{message || (selected?.available ? messages.product.morePaymentOptions : messages.product.optionUnavailable)}</p>
 		</div>
 		<section className="technical-data" aria-live="polite">
-			<div className="data-heading"><span>Technical data</span><strong>Selected specification</strong></div>
-			<div><span>Package weight</span><strong>{selected ? `${selected.packageWeightG} grams` : "—"}</strong></div>
-			<div><span>Dimensions</span><strong>{selected ? `${selected.packageLengthMm} × ${selected.packageWidthMm} × ${selected.packageHeightMm} mm` : "—"}</strong></div>
-			<div><span>Model no.</span><strong>{selected?.sku ?? "—"}</strong></div>
-			{selected?.size ? <div><span>Size</span><strong>{selected.size}</strong></div> : null}
-			{colors.length > 1 && selected?.color ? <div><span>Color</span><strong>{selected.color}</strong></div> : null}
-			<div><span>Availability</span><strong>{selected?.available ? "Ready to dispatch" : "Out of stock"}</strong></div>
-			<div><span>Authenticity</span><strong>Verified</strong></div>
-			{selected?.sizingGuide ? <div className="sizing-data"><span>Sizing guide ({selected.sizingGuide.unit})</span><strong>{Object.entries(selected.sizingGuide.measurements).map(([name, value]) => `${name}: ${value}`).join(" · ")}</strong></div> : null}
+			<div className="data-heading"><span>{messages.product.technicalData}</span><strong>{messages.product.selectedSpecification}</strong></div>
+			<div><span>{messages.product.packageWeight}</span><strong>{selected ? `${selected.packageWeightG} ${messages.product.grams}` : "—"}</strong></div>
+			<div><span>{messages.product.dimensions}</span><strong>{selected ? `${selected.packageLengthMm} × ${selected.packageWidthMm} × ${selected.packageHeightMm} mm` : "—"}</strong></div>
+			<div><span>{messages.product.modelNumber}</span><strong>{selected?.sku ?? "—"}</strong></div>
+			{selected?.size ? <div><span>{messages.product.size}</span><strong>{selected.size}</strong></div> : null}
+			{colors.length > 1 && selected?.color ? <div><span>{messages.product.color}</span><strong>{selected.color}</strong></div> : null}
+			<div><span>{messages.product.availability}</span><strong>{selected?.available ? messages.product.readyToDispatch : messages.product.outOfStock}</strong></div>
+			<div><span>{messages.product.authenticity}</span><strong>{messages.product.verified}</strong></div>
+			{selected?.sizingGuide ? <div className="sizing-data"><span>{messages.product.sizingGuide} ({selected.sizingGuide.unit})</span><strong>{Object.entries(selected.sizingGuide.measurements).map(([name, value]) => `${name}: ${value}`).join(" · ")}</strong></div> : null}
 		</section>
 	</>;
 }

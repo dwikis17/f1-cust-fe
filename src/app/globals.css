@@ -32,6 +32,9 @@ img { max-width: 100%; }
 .nav-group:focus-within .nav-dropdown, .nav-group:hover .nav-dropdown { display: block; }
 .header-actions { gap: 24px; }
 .header-actions a, .icon-button { align-items: center; background: none; border: 0; color: white; cursor: pointer; display: flex; justify-content: center; padding: 0; }
+.language-switcher { border: 1px solid #555; display: flex; }
+.language-switcher button { background: transparent; border: 0; color: #888; cursor: pointer; font-family: var(--font-mono), monospace; font-size: 8px; padding: 5px 6px; }
+.language-switcher button[aria-pressed="true"] { background: white; color: black; }
 .mobile-menu { display: none; }
 .mobile-menu summary { cursor: pointer; display: flex; list-style: none; }
 .mobile-menu summary::-webkit-details-marker { display: none; }
@@ -315,7 +318,7 @@ img { max-width: 100%; }
 @media (max-width: 600px) {
 	body { font-size: 15px; }
 	.site-header { padding: 0 16px; }
-	.header-actions a:first-child { display: none; }
+	.header-search { display: none; }
 	.home-hero { height: 620px; }
 	.home-hero > img { object-position: 55% center; }
 	.hero-art img { object-position: center 42%; }
