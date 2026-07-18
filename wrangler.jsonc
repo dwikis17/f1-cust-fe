@@ -37,7 +37,9 @@
 	},
 	"upload_source_maps": true,
 	"vars": {
-		"API_BASE_URL": "https://api.valydejersey.com"
+		"API_BASE_URL": "https://api.valydejersey.com",
+		"NEXT_PUBLIC_MIDTRANS_ENV": "sandbox",
+		"NEXT_PUBLIC_MIDTRANS_CLIENT_KEY": "Mid-client-cwkRE-SgbQ93Ylht"
 	}
 	/**
 	 * Smart Placement
