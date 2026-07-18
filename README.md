@@ -22,6 +22,8 @@ The catalog adapter in `src/lib/catalog.ts` then calls:
 - `GET /api/products`
 - `GET /api/products/:slug`
 
+The cart posts shipping estimates to the storefront's same-origin `POST /api/shipping/rates` route, which forwards to `API_BASE_URL` without exposing backend configuration to the browser. The backend must have its Biteship key and origin postal code configured before live estimates are available.
+
 ## Checks and deployment
 
 ```bash

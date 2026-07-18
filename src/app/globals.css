@@ -245,6 +245,21 @@ img { max-width: 100%; }
 .cart-summary > p:not(.eyebrow) { color: #999; font-size: 13px; line-height: 1.5; margin: 26px 0; }
 .cart-summary .button { width: 100%; }
 .cart-summary > a { display: block; font-family: var(--font-mono), monospace; font-size: 9px; margin-top: 20px; text-align: center; text-transform: uppercase; }
+.shipping-form { border-bottom: 1px solid #333; padding: 22px 0; }
+.shipping-form > label { display: block; font-family: var(--font-mono), monospace; font-size: 9px; letter-spacing: .12em; margin-bottom: 10px; text-transform: uppercase; }
+.shipping-form > div { display: grid; gap: 8px; grid-template-columns: minmax(0, 1fr) auto; }
+.shipping-form input { background: #111; border: 1px solid #555; color: white; min-height: 48px; min-width: 0; padding: 0 12px; width: 100%; }
+.shipping-form input::placeholder { color: #777; }
+.shipping-form .button { padding: 0 18px; white-space: nowrap; }
+.shipping-form .button:disabled { cursor: wait; opacity: .6; }
+.shipping-message { color: #888; font-size: 11px; line-height: 1.4; margin: 10px 0 0; }
+.shipping-message.shipping-error { color: #ff9a9a; }
+.shipping-rates { list-style: none; margin: 0; padding: 0; }
+.shipping-rates li { border-bottom: 1px solid #333; padding: 16px 0; }
+.shipping-rates li > div { align-items: baseline; display: flex; font-family: var(--font-mono), monospace; font-size: 9px; justify-content: space-between; text-transform: uppercase; }
+.shipping-rates li > div + div { color: #aaa; margin-top: 6px; }
+.shipping-rates li span { color: #999; margin-left: 12px; text-align: right; }
+.shipping-rates li p { color: #777; font-size: 11px; margin: 8px 0 0; }
 .cart-empty { min-height: 710px; padding: 100px 5%; }
 .cart-empty > p:not(.eyebrow) { color: var(--muted); margin: 12px 0 28px; }
 
@@ -292,6 +307,7 @@ img { max-width: 100%; }
 	.commentary-block { grid-template-columns: 1fr; }
 	.cart-layout { grid-template-columns: 1fr; }
 	.cart-summary { padding: 44px 24px; }
+	.shipping-form > div { grid-template-columns: 1fr; }
 	.site-footer { grid-template-columns: 2fr 1fr 1fr; }
 	.footer-brand { grid-column: span 3; }
 }
