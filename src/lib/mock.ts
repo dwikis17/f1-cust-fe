@@ -5,7 +5,10 @@ export type ProductAudience = "MEN" | "WOMEN" | "KIDS" | "UNISEX";
 export type CollectionKind = "DOMAIN" | "TEAM" | "DRIVER" | "MERCHANDISE" | "BRAND" | "PROMOTION" | "MANUAL";
 export type Team = CatalogEntity & { logoUrl: string | null };
 export type Driver = CatalogEntity & { racingNumber: number; photoUrl: string | null; teamId: string | null; team: Team | null };
-export type SizingGuide = { unit: "cm" | "in"; measurements: Record<string, number> };
+export type SizingGuide = {
+	unit: "cm" | "in";
+	measurements: { length: number; chestWidth: number; waistWidth: number };
+};
 export type ProductVariant = {
 	id: string; productId: string; sku: string; size: string | null; color: string | null;
 	packageLengthMm: number; packageWidthMm: number; packageHeightMm: number; packageWeightG: number;
@@ -24,7 +27,7 @@ export type CollectionDetail = CollectionSummary & {
 	parent: CollectionSummary | null; children: CollectionSummary[]; _count: { products: number };
 };
 export type PublicProduct = {
-	id: string; name: string; slug: string; description: string; priceIdr: number;
+	id: string; name: string; slug: string; description: string; sizingNote: string | null; priceIdr: number;
 	category: CatalogEntity; productType: CatalogEntity; team: Team | null; drivers: Driver[];
 	audience: ProductAudience | null; collections: CollectionSummary[]; tags: CatalogEntity[];
 	variants: ProductVariant[]; photos: ProductPhoto[]; createdAt: string; updatedAt: string;
@@ -80,7 +83,7 @@ const collectionSeed: CollectionSummary[] = [
 ];
 
 type Seed = {
-	id: string; name: string; nameId?: string; slug: string; description: string; descriptionId?: string; priceIdr: number; type: number; team: number | null;
+	id: string; name: string; nameId?: string; slug: string; description: string; descriptionId?: string; sizingNote?: string; priceIdr: number; type: number; team: number | null;
 	drivers: number[]; collections: string[]; audience: ProductAudience; tags?: number[];
 	sizes?: string[]; color?: string | null; unavailableSizes?: string[];
 };
@@ -102,7 +105,7 @@ function makeProduct(seed: Seed): MockProduct {
 		? seed.sizes.map((size, index) => ({
 			id: `${productId}-variant-${index}`, productId, sku: `${seed.slug.slice(0, 10).toUpperCase()}-${size}`,
 			size, color: seed.color ?? null, packageLengthMm: 320, packageWidthMm: 240, packageHeightMm: 50,
-			packageWeightG: 420, sizingGuide: { unit: "cm", measurements: { chest: 52 + index * 2, length: 70 + index } },
+			packageWeightG: 420, sizingGuide: { unit: "cm", measurements: { length: 70 + index, chestWidth: 52 + index * 2, waistWidth: 50 + index * 2 } },
 			createdAt: now, updatedAt: now, available: !seed.unavailableSizes?.includes(size),
 		}))
 		: [{ id: `${productId}-variant`, productId, sku: `${seed.slug.slice(0, 14).toUpperCase()}-STD`, size: null, color: seed.color ?? null,
@@ -111,7 +114,7 @@ function makeProduct(seed: Seed): MockProduct {
 	const category = mockCategories[seed.type];
 	return {
 		id: productId, name: seed.name, nameId: seed.nameId, slug: seed.slug, description: seed.description,
-		descriptionId: seed.descriptionId, priceIdr: seed.priceIdr,
+		descriptionId: seed.descriptionId, sizingNote: seed.sizingNote ?? null, priceIdr: seed.priceIdr,
 		category, productType: category, team: seed.team === null ? null : teams[seed.team], drivers: seed.drivers.map((index) => drivers[index]),
 		audience: seed.audience, collections: collectionSeed.filter((item) => membershipSlugs.has(item.slug)),
 		tags: (seed.tags ?? []).map((index) => mockTags[index]), variants,
@@ -123,7 +126,7 @@ function makeProduct(seed: Seed): MockProduct {
 export const mockProducts: MockProduct[] = [
 	makeProduct({ id: "product-1", name: "McLaren Driver Cap — Papaya", nameId: "Topi Pembalap McLaren — Papaya", slug: "mclaren-driver-cap-papaya", description: "A lightweight papaya driver cap with precision embroidery.", descriptionId: "Topi pembalap papaya ringan dengan bordir presisi.", priceIdr: 949000, type: 0, team: 0, drivers: [0, 1], collections: ["mclaren", "lando-norris", "oscar-piastri"], audience: "UNISEX", tags: [1] }),
 	makeProduct({ id: "product-2", name: "McLaren Driver Cap — Black", nameId: "Topi Pembalap McLaren — Hitam", slug: "mclaren-driver-cap-black", description: "A separate black colorway with its own gallery, SKU, and stock.", descriptionId: "Varian warna hitam dengan galeri, SKU, dan stok tersendiri.", priceIdr: 949000, type: 0, team: 0, drivers: [0], collections: ["mclaren", "lando-norris"], audience: "UNISEX" }),
-	makeProduct({ id: "product-3", name: "McLaren Technical Shirt", nameId: "Kaus Teknis McLaren", slug: "mclaren-technical-shirt", description: "Breathable size-only teamwear developed for race weekends.", descriptionId: "Pakaian tim bernapas yang dikembangkan untuk akhir pekan balapan.", priceIdr: 1999000, type: 1, team: 0, drivers: [0, 1], collections: ["mclaren", "lando-norris", "oscar-piastri"], audience: "MEN", sizes: ["S", "M", "L", "XL"], unavailableSizes: ["L"] }),
+	makeProduct({ id: "product-3", name: "McLaren Technical Shirt", nameId: "Kaus Teknis McLaren", slug: "mclaren-technical-shirt", description: "Breathable size-only teamwear developed for race weekends.", descriptionId: "Pakaian tim bernapas yang dikembangkan untuk akhir pekan balapan.", sizingNote: "Measurements are taken flat. Allow a 1 cm tolerance.", priceIdr: 1999000, type: 1, team: 0, drivers: [0, 1], collections: ["mclaren", "lando-norris", "oscar-piastri"], audience: "MEN", sizes: ["S", "M", "L", "XL"], unavailableSizes: ["L"] }),
 	makeProduct({ id: "product-4", name: "Ferrari Heritage Polo", nameId: "Polo Warisan Ferrari", slug: "ferrari-heritage-polo", description: "A tribute to Ferrari history, related to both a current and a legendary driver.", descriptionId: "Penghormatan untuk sejarah Ferrari yang terhubung dengan pembalap masa kini dan legendaris.", priceIdr: 2199000, type: 1, team: 1, drivers: [2, 3], collections: ["ferrari", "charles-leclerc", "niki-lauda"], audience: "UNISEX", sizes: ["S", "M", "L"] }),
 	makeProduct({ id: "product-5", name: "Oscar Piastri LEGO Helmet", nameId: "Helm LEGO Oscar Piastri", slug: "oscar-piastri-lego-helmet", description: "A display-ready replica of Oscar Piastri's official racing helmet.", descriptionId: "Replika helm balap resmi Oscar Piastri yang siap dipajang.", priceIdr: 1699000, type: 2, team: 0, drivers: [1], collections: ["mclaren", "oscar-piastri"], audience: "KIDS", tags: [0] }),
 	makeProduct({ id: "product-6", name: "Mercedes Paddock Bottle", slug: "mercedes-paddock-bottle", description: "A vacuum-insulated bottle engineered for race weekends.", priceIdr: 699000, type: 3, team: 2, drivers: [], collections: ["mercedes"], audience: "UNISEX" }),

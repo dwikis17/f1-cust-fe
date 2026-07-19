@@ -257,6 +257,23 @@ img { max-width: 100%; }
 .product-info { padding-top: 2px; }
 .product-info h1 { font-family: var(--font-display), sans-serif; font-size: clamp(38px, 4vw, 58px); letter-spacing: -.055em; line-height: 1.05; margin: 12px 0 14px; text-transform: uppercase; }
 .product-price { font-family: var(--font-mono), monospace; font-size: 21px; margin: 0 0 18px; }
+.sizing-guide-control { margin: -10px 0 18px; }
+.sizing-guide-link { background: transparent; border: 0; border-bottom: 1px solid currentColor; color: var(--muted); cursor: pointer; display: inline-block; font-family: var(--font-mono), monospace; font-size: 10px; letter-spacing: .1em; padding: 0 0 2px; text-transform: uppercase; }
+.sizing-guide-link:focus-visible, .sizing-guide-dialog button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.sizing-guide-dialog { background: white; border: 0; color: black; max-height: min(84dvh, 720px); max-width: min(680px, calc(100vw - 32px)); padding: 0; width: 100%; }
+.sizing-guide-dialog:not([open]) { display: none; }
+.sizing-guide-dialog[open] { display: block; left: 50%; margin: 0; position: fixed; top: 50%; transform: translate(-50%, -50%); z-index: 1000; }
+.sizing-guide-dialog::backdrop { background: rgba(0, 0, 0, .62); }
+.sizing-guide-dialog-body { padding: 28px; text-align: center; }
+.sizing-guide-dialog header { align-items: center; border-bottom: 1px solid var(--line); display: flex; justify-content: center; padding-bottom: 18px; position: relative; }
+.sizing-guide-dialog h2 { font-family: var(--font-display), sans-serif; font-size: 30px; letter-spacing: -.03em; margin: 0; text-transform: uppercase; }
+.sizing-guide-dialog header button { background: transparent; border: 0; cursor: pointer; font-size: 28px; height: 36px; line-height: 1; padding: 0; position: absolute; right: 0; width: 36px; }
+.sizing-guide-table-wrap { overflow-x: auto; padding-top: 22px; }
+.sizing-guide-dialog table { border-collapse: collapse; min-width: 560px; width: 100%; }
+.sizing-guide-dialog th, .sizing-guide-dialog td { border-bottom: 1px solid var(--line); font-family: var(--font-mono), monospace; font-size: 11px; padding: 14px 12px; text-align: center; }
+.sizing-guide-dialog thead th { color: var(--muted); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.sizing-guide-dialog tbody th { font-weight: 600; }
+.sizing-guide-note { color: var(--muted); font-size: 13px; line-height: 1.55; margin: 20px 0 0; }
 .product-description { border-top: 1px solid var(--line); font-size: 16px; line-height: 1.5; margin: 0; padding: 18px 0; }
 .product-promises { border-bottom: 1px solid var(--line); display: flex; gap: 22px; padding-bottom: 18px; }
 .product-promises span { align-items: center; display: flex; font-family: var(--font-mono), monospace; font-size: 9px; gap: 6px; letter-spacing: .1em; text-transform: uppercase; }
@@ -538,6 +555,8 @@ img { max-width: 100%; }
 	.gallery-thumbs { flex-direction: row; overflow-x: auto; }
 	.gallery-thumbs button { flex: 0 0 70px; height: 70px; width: 70px; }
 	.product-info h1 { font-size: 38px; }
+	.sizing-guide-dialog-body { padding: 20px; }
+	.sizing-guide-dialog h2 { font-size: 26px; }
 	.product-description { font-size: 15px; }
 	.product-promises { align-items: flex-start; flex-direction: column; gap: 8px; }
 	.purchase-row { grid-template-columns: 112px 1fr; }

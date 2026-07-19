@@ -158,6 +158,10 @@ const en = {
     authenticity: "Authenticity",
     verified: "Verified",
     sizingGuide: "Sizing guide",
+    length: "Length",
+    chestWidth: "Chest width",
+    waistWidth: "Waist width",
+    closeSizingGuide: "Close sizing guide",
   },
   cart: {
     loadingGarage: "Loading garage",
@@ -444,6 +448,10 @@ const id: Dictionary = {
     authenticity: "Keaslian",
     verified: "Terverifikasi",
     sizingGuide: "Panduan ukuran",
+    length: "Panjang",
+    chestWidth: "Lebar dada",
+    waistWidth: "Lebar pinggang",
+    closeSizingGuide: "Tutup panduan ukuran",
   },
   cart: {
     loadingGarage: "Memuat garasi",

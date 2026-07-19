@@ -48,7 +48,6 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 			{colors.length > 1 && selected?.color ? <div><span>{messages.product.color}</span><strong>{selected.color}</strong></div> : null}
 			<div><span>{messages.product.availability}</span><strong>{selected?.available ? messages.product.readyToDispatch : messages.product.outOfStock}</strong></div>
 			<div><span>{messages.product.authenticity}</span><strong>{messages.product.verified}</strong></div>
-			{selected?.sizingGuide ? <div className="sizing-data"><span>{messages.product.sizingGuide} ({selected.sizingGuide.unit})</span><strong>{Object.entries(selected.sizingGuide.measurements).map(([name, value]) => `${name}: ${value}`).join(" · ")}</strong></div> : null}
 		</section>
 	</>;
 }

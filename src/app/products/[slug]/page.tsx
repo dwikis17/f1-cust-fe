@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CubeIcon, VerifiedIcon } from "@/components/icons";
 import { ProductGallery } from "@/components/product-gallery";
 import { PurchasePanel } from "@/components/purchase-panel";
+import { SizingGuide } from "@/components/sizing-guide";
 import { catalog, formatPrice } from "@/lib/catalog";
 import { dictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
@@ -27,6 +28,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
 					<p className="eyebrow">{product.team?.name ?? product.productType.name}{product.drivers.length ? ` / ${product.drivers.map((driver) => driver.name).join(" + ")}` : ""}</p>
 					<h1>{product.name}</h1>
 					<p className="product-price">{formatPrice(product.priceIdr, locale)}</p>
+					<SizingGuide variants={product.variants} note={product.sizingNote} />
 					<p className="product-description">{product.description}</p>
 					<div className="product-promises"><span><VerifiedIcon /> {messages.product.officialMerchandise}</span><span><CubeIcon /> {messages.product.liveShippingRates}</span></div>
 					<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />
