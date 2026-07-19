@@ -14,7 +14,6 @@ export default async function Home() {
 		catalog.listProducts({ limit: 8 }, locale),
 		catalog.listTeams(),
 	]);
-	if (process.env.NODE_ENV === "development") console.log("[home] fetched teams", teams);
 	return (
 		<main className="page-shell home-page">
 			<section className="home-hero">
@@ -44,11 +43,11 @@ export default async function Home() {
 			<section className="editorial-section" id="editorial">
 				<article className="editorial-feature">
 					<Image src="/images/generated/banner-desktop.webp" alt={messages.home.racingAlt} fill sizes="(max-width: 800px) 100vw, 65vw" />
-					<div className="editorial-copy"><p className="eyebrow light">{messages.home.editorial}</p><h2>{messages.home.silentSeconds}</h2><p>{messages.home.silentText}</p><a href="#">{messages.home.readStory}</a></div>
+					<div className="editorial-copy"><p className="eyebrow light">{messages.home.editorial}</p><h2>{messages.home.silentSeconds}</h2><p>{messages.home.silentText}</p><Link href="/collections">{messages.home.shopNow}</Link></div>
 				</article>
 				<div className="editorial-side">
-					<div className="engineering-card"><h3>{messages.home.engineeringBrief}</h3><p>{messages.home.engineeringText}</p><span>♞</span></div>
-					<div className="wheel-card"><Image src="/images/generated/product-04-detail.webp" alt={messages.home.detailAlt} fill sizes="35vw" /><button type="button" aria-label={messages.home.playFilm}>▶</button></div>
+					<div className="engineering-card"><h3>{messages.home.engineeringBrief}</h3><p>{messages.home.engineeringText}</p><Link className="text-link light" href="/collections">{messages.home.exploreShop} <ArrowRightIcon /></Link></div>
+					<div className="wheel-card"><Link href="/collections" aria-label={messages.home.shopNow}><Image src="/images/generated/product-04-detail.webp" alt={messages.home.detailAlt} fill sizes="(max-width: 600px) 100vw, 35vw" /><span aria-hidden="true"><ArrowRightIcon /></span></Link></div>
 				</div>
 			</section>
 		</main>

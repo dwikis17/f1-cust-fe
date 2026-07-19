@@ -27,7 +27,7 @@ export function CartClient({ products }: { products: PublicProduct[] }) {
 	const itemCount = lines.reduce((sum, line) => sum + line.quantity, 0);
 	const hasUnavailableItem = lines.some((line) => !line.variant.available);
 
-	if (!ready) return <div className="cart-empty"><p className="eyebrow">{messages.cart.loadingGarage}</p></div>;
+	if (!ready) return <div className="cart-loading" role="status" aria-live="polite"><p className="eyebrow">{messages.cart.loadingGarage}</p><div className="cart-loading-line" /><div className="cart-loading-line" /></div>;
 	if (!lines.length) return <div className="cart-empty"><p className="eyebrow">{messages.cart.yourBag} / 00</p><h1>{messages.cart.emptyTitle}</h1><p>{messages.cart.emptyText}</p><Link className="button button-dark" href="/collections">{messages.cart.exploreCollection}</Link></div>;
 
 	return (
@@ -50,23 +50,23 @@ export function CartClient({ products }: { products: PublicProduct[] }) {
 						<div className="cart-line-end">
 							<strong>{formatPrice(line.product.priceIdr * line.quantity, locale)}</strong>
 							<div className="quantity" aria-label={`${line.product.name} ${messages.product.quantitySelector}`}>
-								<button type="button" aria-label="−" onClick={() => setQuantity(line.variantId, line.quantity - 1)}>−</button>
-								<span>{line.quantity}</span>
-								<button type="button" aria-label="+" onClick={() => setQuantity(line.variantId, line.quantity + 1)}>+</button>
+								<button type="button" aria-label={`${messages.product.quantitySelector}: ${line.product.name}, −`} disabled={line.quantity <= 1} onClick={() => setQuantity(line.variantId, line.quantity - 1)}>−</button>
+								<span aria-live="polite">{line.quantity}</span>
+								<button type="button" aria-label={`${messages.product.quantitySelector}: ${line.product.name}, +`} disabled={line.quantity >= 9} onClick={() => setQuantity(line.variantId, line.quantity + 1)}>+</button>
 							</div>
 						</div>
 					</article>
 				))}
 			</section>
-			<aside className="cart-summary">
-				<p className="eyebrow light">{messages.cart.raceSummary}</p>
+			<aside className="cart-summary" aria-labelledby="cart-summary-title">
+				<h2 id="cart-summary-title">{messages.cart.raceSummary}</h2>
 				<div><span>{messages.cart.subtotal}</span><strong>{formatPrice(subtotal, locale)}</strong></div>
 				<div><span>{messages.cart.shipping}</span><strong>{messages.cart.calculatedAtCheckout}</strong></div>
 				<div className="cart-total"><span>{messages.cart.total}</span><strong>{formatPrice(subtotal, locale)}</strong></div>
 				<p>{hasUnavailableItem ? messages.cart.unavailableItem : messages.cart.checkoutShippingNote}</p>
 				{hasUnavailableItem
-					? <span className="button button-light disabled" aria-disabled="true">{messages.cart.checkout}</span>
-					: <Link className="button button-light" href="/checkout">{messages.cart.checkout}</Link>}
+					? <span className="button button-dark disabled" aria-disabled="true">{messages.cart.checkout}</span>
+					: <Link className="button button-dark" href="/checkout">{messages.cart.checkout}</Link>}
 				<Link href="/collections">{messages.cart.continueShopping}</Link>
 			</aside>
 		</div>

@@ -35,7 +35,24 @@ type ShippingDetails = {
 	phone: string;
 };
 type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }> };
-type CheckoutResponse = { orderId: string; snapToken: string; paymentStatus: string; totalIdr: number };
+type PromoPreview = {
+	code: string;
+	discountPercentage: number;
+	maxDiscountIdr: number | null;
+	subtotalIdr: number;
+	discountIdr: number;
+	discountedSubtotalIdr: number;
+};
+type CheckoutResponse = {
+	orderId: string;
+	snapToken: string;
+	paymentStatus: string;
+	subtotalIdr: number;
+	discountIdr: number;
+	shippingIdr: number;
+	totalIdr: number;
+	promoCode: string | null;
+};
 
 declare global {
 	interface Window {
@@ -64,6 +81,8 @@ export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 	const [idempotencyKey, setIdempotencyKey] = useState("");
 	const [paymentError, setPaymentError] = useState("");
 	const [snapReady, setSnapReady] = useState(false);
+	const [promoInput, setPromoInput] = useState("");
+	const [appliedPromo, setAppliedPromo] = useState<PromoPreview | null>(null);
 
 	useEffect(() => {
 		if (ready) reconcile(products);
@@ -101,7 +120,34 @@ export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 	});
 	const rates = shippingMutation.data ?? [];
 	const selectedRate = rates.find((rate) => rateKey(rate) === selectedRateKey);
-	const total = subtotal + (selectedRate?.price ?? 0);
+	const pricedSubtotal = appliedPromo?.subtotalIdr ?? subtotal;
+	const discount = appliedPromo?.discountIdr ?? 0;
+	const total = pricedSubtotal - discount + (selectedRate?.price ?? 0);
+	const promoMutation = useMutation({
+		mutationFn: async () => {
+			const response = await fetch("/api/promo-codes/preview", {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({
+					code: promoInput,
+					items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })),
+				}),
+			});
+			const body = await response.json() as PromoPreview & { error?: { code?: string } };
+			if (!response.ok) {
+				throw new Error(body.error?.code === "PROMO_CODE_UNAVAILABLE"
+					? messages.checkout.promoUnavailable
+					: messages.checkout.promoError);
+			}
+			return body;
+		},
+		onSuccess: (promo) => {
+			setAppliedPromo(promo);
+			setPromoInput(promo.code);
+		},
+	});
+	const cartKey = lines.map((line) => `${line.variantId}:${line.quantity}`).join("|");
+	useEffect(() => setAppliedPromo(null), [cartKey]);
 	const checkoutMutation = useMutation({
 		mutationFn: async () => {
 			if (!selectedRate || !idempotencyKey) throw new Error(messages.checkout.paymentFailed);
@@ -114,6 +160,7 @@ export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 					items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })),
 					courierCode: selectedRate.courierCode,
 					serviceCode: selectedRate.serviceCode,
+					...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
 				}),
 			});
 			const body = await response.json() as CheckoutResponse & { error?: { code?: string } };
@@ -122,6 +169,7 @@ export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 				const errors: Record<string, string> = {
 					CART_CHANGED: messages.cart.unavailableItem,
 					SHIPPING_RATE_CHANGED: messages.checkout.shippingRateChanged,
+					PROMO_CODE_UNAVAILABLE: messages.checkout.promoUnavailable,
 					PAYMENT_NOT_CONFIGURED: messages.checkout.paymentUnavailable,
 					PAYMENT_UPSTREAM_ERROR: messages.checkout.paymentFailed,
 				};
@@ -187,7 +235,27 @@ export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 					{step === "shipping" ? <ShippingStep details={details} updateDetail={updateDetail} rates={rates} selectedRateKey={selectedRateKey} setSelectedRateKey={setSelectedRateKey} error={shippingMutation.error instanceof Error ? shippingMutation.error.message : ""} loading={shippingMutation.isPending} checkShipping={checkShipping} continueToReview={() => setStep("review")} messages={messages} locale={locale} /> : null}
 					{step === "review" && selectedRate ? <ReviewStep lines={lines} details={details} selectedRate={selectedRate} editShipping={() => setStep("shipping")} locked={Boolean(checkoutMutation.data)} startPayment={startPayment} paymentLoading={checkoutMutation.isPending} paymentReady={snapReady && Boolean(midtransClientKey)} paymentError={paymentError} messages={messages.checkout} locale={locale} /> : null}
 				</section>
-				<CheckoutSummary lines={lines} subtotal={subtotal} selectedRate={selectedRate} total={total} messages={messages.checkout} locale={locale} />
+				<CheckoutSummary
+					lines={lines}
+					subtotal={pricedSubtotal}
+					discount={discount}
+					selectedRate={selectedRate}
+					total={total}
+					promoInput={promoInput}
+					setPromoInput={setPromoInput}
+					appliedPromo={appliedPromo}
+					applyPromo={() => promoMutation.mutate()}
+					removePromo={() => {
+						setAppliedPromo(null);
+						setPromoInput("");
+						promoMutation.reset();
+					}}
+					promoLoading={promoMutation.isPending}
+					promoError={promoMutation.error instanceof Error ? promoMutation.error.message : ""}
+					locked={Boolean(checkoutMutation.data)}
+					messages={messages.checkout}
+					locale={locale}
+				/>
 			</div>
 		</main>
 	);
@@ -260,6 +328,22 @@ function ReviewStep({ lines, details, selectedRate, editShipping, locked, startP
 	</>;
 }
 
-function CheckoutSummary({ lines, subtotal, selectedRate, total, messages, locale }: { lines: CartLine[]; subtotal: number; selectedRate?: ShippingRate; total: number; messages: ReturnType<typeof useDictionary>["checkout"]; locale: "en" | "id" }) {
-	return <aside className="checkout-summary"><h2>{messages.orderSummary}</h2><ul>{lines.map((line) => <li key={line.variantId}><div>{line.product.photos[0] ? <Image src={line.product.photos[0].url} alt="" fill sizes="72px" /> : <span className="cart-image-placeholder">V</span>}<span className="checkout-item-quantity">{line.quantity}</span></div><p><strong>{line.product.name}</strong><small>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</small></p><b>{formatPrice(line.product.priceIdr * line.quantity, locale)}</b></li>)}</ul><dl><div><dt>{messages.subtotal}</dt><dd>{formatPrice(subtotal, locale)}</dd></div><div><dt>{messages.shipping}</dt><dd>{selectedRate ? formatPrice(selectedRate.price, locale) : messages.calculatedAfterSelection}</dd></div><div><dt>{messages.total}</dt><dd>{formatPrice(total, locale)}</dd></div></dl><p className="secure-note">◇ {messages.secureCheckout}</p></aside>;
+function CheckoutSummary({ lines, subtotal, discount, selectedRate, total, promoInput, setPromoInput, appliedPromo, applyPromo, removePromo, promoLoading, promoError, locked, messages, locale }: {
+	lines: CartLine[];
+	subtotal: number;
+	discount: number;
+	selectedRate?: ShippingRate;
+	total: number;
+	promoInput: string;
+	setPromoInput: (value: string) => void;
+	appliedPromo: PromoPreview | null;
+	applyPromo: () => void;
+	removePromo: () => void;
+	promoLoading: boolean;
+	promoError: string;
+	locked: boolean;
+	messages: ReturnType<typeof useDictionary>["checkout"];
+	locale: "en" | "id";
+}) {
+	return <aside className="checkout-summary"><h2>{messages.orderSummary}</h2><ul>{lines.map((line) => <li key={line.variantId}><div>{line.product.photos[0] ? <Image src={line.product.photos[0].url} alt="" fill sizes="72px" /> : <span className="cart-image-placeholder">V</span>}<span className="checkout-item-quantity">{line.quantity}</span></div><p><strong>{line.product.name}</strong><small>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</small></p><b>{formatPrice(line.product.priceIdr * line.quantity, locale)}</b></li>)}</ul><div className="promo-code"><label htmlFor="promo-code">{messages.promoCode}</label><form onSubmit={(event) => { event.preventDefault(); applyPromo(); }}><input id="promo-code" value={promoInput} placeholder={messages.promoPlaceholder} disabled={promoLoading || locked || Boolean(appliedPromo)} onChange={(event) => setPromoInput(event.target.value.toUpperCase())} /><button type="submit" disabled={promoLoading || locked || Boolean(appliedPromo) || promoInput.trim().length < 3}>{promoLoading ? messages.applyingPromo : messages.applyPromo}</button></form>{appliedPromo ? <p><span>{appliedPromo.code} · {appliedPromo.discountPercentage}%</span><button type="button" disabled={locked} onClick={removePromo}>{messages.removePromo}</button></p> : null}{promoError ? <small role="alert">{promoError}</small> : null}</div><dl><div><dt>{messages.subtotal}</dt><dd>{formatPrice(subtotal, locale)}</dd></div>{appliedPromo ? <div className="promo-discount"><dt>{messages.discount}</dt><dd>-{formatPrice(discount, locale)}</dd></div> : null}<div><dt>{messages.shipping}</dt><dd>{selectedRate ? formatPrice(selectedRate.price, locale) : messages.calculatedAfterSelection}</dd></div><div><dt>{messages.total}</dt><dd>{formatPrice(total, locale)}</dd></div></dl><p className="secure-note">◇ {messages.secureCheckout}</p></aside>;
 }

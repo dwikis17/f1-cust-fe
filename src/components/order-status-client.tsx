@@ -10,8 +10,10 @@ import { formatPrice } from "@/lib/catalog";
 type OrderReceipt = {
 	id: string;
 	subtotalIdr: number;
+	discountIdr: number;
 	shippingIdr: number;
 	totalIdr: number;
+	promoCode: string | null;
 	paymentStatus: "PENDING" | "PAID" | "FAILED" | "EXPIRED" | "CANCELLED" | "REFUNDED";
 	fulfillmentStatus: "UNFULFILLED" | "BOOKED" | "BOOKING_FAILED";
 	courier: { name: string; serviceName: string; duration: string };
@@ -62,6 +64,7 @@ export function OrderStatusClient({ id }: { id: string }) {
 					<div><dt>{messages.courier}</dt><dd>{order.courier.name} — {order.courier.serviceName}</dd></div>
 					{order.tracking.waybillId ? <div><dt>{messages.waybill}</dt><dd>{order.tracking.waybillId}</dd></div> : null}
 					<div><dt>{messages.subtotal}</dt><dd>{formatPrice(order.subtotalIdr, locale)}</dd></div>
+					{order.promoCode ? <div><dt>{messages.promoCode} · {order.promoCode}</dt><dd>-{formatPrice(order.discountIdr, locale)}</dd></div> : null}
 					<div><dt>{messages.shipping}</dt><dd>{formatPrice(order.shippingIdr, locale)}</dd></div>
 					<div><dt>{messages.total}</dt><dd>{formatPrice(order.totalIdr, locale)}</dd></div>
 				</dl>
