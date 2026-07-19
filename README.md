@@ -9,18 +9,21 @@ npm install
 npm run dev
 ```
 
-The storefront uses the backend-compatible data in `src/lib/mock.ts` when no API URL is configured. To use `f1-be`, start the backend and set:
+The storefront requires `f1-be` for all catalog, collection, team, driver, and filter data. Start the backend and set:
 
 ```bash
 API_BASE_URL=http://localhost:3000
 ```
 
-The catalog adapter in `src/lib/catalog.ts` then calls:
+`API_BASE_URL` is required in development and production. Catalog responses are revalidated every 180 seconds, so admin changes may take up to three minutes to appear. The catalog adapter in `src/lib/catalog.ts` calls:
 
 - `GET /api/categories`
 - `GET /api/tags`
 - `GET /api/products`
 - `GET /api/products/:slug`
+- `GET /api/teams`
+- `GET /api/collections`
+- `GET /api/collections/:slug/products`
 
 The storefront supports English and Indonesian without locale-prefixed URLs. The header language switcher stores `en` or `id` in the `valdye-locale` cookie, and catalog requests forward that selection through the public API's `locale` query parameter. English is the default and the fallback when optional Indonesian product copy is missing.
 

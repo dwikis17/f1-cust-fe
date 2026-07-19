@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useDictionary } from "@/components/i18n-provider";
-import type { ProductPhoto } from "@/lib/mock";
+import type { ProductPhoto } from "@/lib/catalog";
 
 export function ProductGallery({ photos }: { photos: ProductPhoto[] }) {
 	const messages = useDictionary();

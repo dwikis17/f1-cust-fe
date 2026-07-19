@@ -7,9 +7,6 @@ import { SizingGuide } from "@/components/sizing-guide";
 import { catalog, formatPrice } from "@/lib/catalog";
 import { dictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
-import { mockProducts } from "@/lib/mock";
-
-export function generateStaticParams() { return mockProducts.map(({ slug }) => ({ slug })); }
 
 export default async function ProductPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ collection?: string }> }) {
 	const [{ slug }, query] = await Promise.all([params, searchParams]);

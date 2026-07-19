@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 import { addStoredCartItem, readStoredCart, resolveCartLines, type StoredCartItem, writeStoredCart } from "./cart.ts";
-import type { PublicProduct } from "./mock.ts";
+import type { PublicProduct } from "./catalog.ts";
 
 type CartStore = {
 	items: StoredCartItem[];

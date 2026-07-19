@@ -1,28 +1,61 @@
-import {
-	mockGetProduct,
-	mockGetCollection,
-	mockListCategories,
-	mockListCollectionProducts,
-	mockListCollections,
-	mockListProducts,
-	mockListTags,
-	mockListTeams,
-	type CatalogEntity,
-	type CollectionDetail,
-	type CollectionNode,
-	type CollectionProductsResponse,
-	type ProductListResponse,
-	type ProductQuery,
-	type PublicProduct,
-	type Team,
-} from "./mock";
 import type { Locale } from "./i18n";
+
+export type CatalogEntity = { id: string; name: string; slug: string; createdAt: string; updatedAt: string };
+export type ProductAudience = "MEN" | "WOMEN" | "KIDS" | "UNISEX";
+export type CollectionKind = "DOMAIN" | "TEAM" | "DRIVER" | "MERCHANDISE" | "BRAND" | "PROMOTION" | "MANUAL";
+export type Team = CatalogEntity & { logoUrl: string | null };
+export type Driver = CatalogEntity & { racingNumber: number; photoUrl: string | null; teamId: string | null; team: Team | null };
+export type SizingGuide = {
+	unit: "cm" | "in";
+	measurements: { length: number; chestWidth: number; waistWidth: number };
+};
+export type ProductVariant = {
+	id: string; productId: string; sku: string; size: string | null; color: string | null;
+	packageLengthMm: number; packageWidthMm: number; packageHeightMm: number; packageWeightG: number;
+	sizingGuide: SizingGuide | null; createdAt: string; updatedAt: string; available: boolean;
+};
+export type ProductPhoto = {
+	id: string; productId: string; color: string | null; path: string; altText: string; position: number;
+	createdAt: string; updatedAt: string; url: string;
+};
+export type CollectionSummary = {
+	id: string; name: string; slug: string; kind: CollectionKind; parentId: string | null; imageUrl: string | null;
+	description: string; position: number; active: boolean; createdAt: string; updatedAt: string;
+};
+export type CollectionNode = CollectionSummary & { children: CollectionNode[] };
+export type CollectionDetail = CollectionSummary & {
+	parent: CollectionSummary | null; children: CollectionSummary[]; _count: { products: number };
+};
+export type PublicProduct = {
+	id: string; name: string; slug: string; description: string; sizingNote: string | null; priceIdr: number;
+	category: CatalogEntity; productType: CatalogEntity; team: Team | null; drivers: Driver[];
+	audience: ProductAudience | null; collections: CollectionSummary[]; tags: CatalogEntity[];
+	variants: ProductVariant[]; photos: ProductPhoto[]; createdAt: string; updatedAt: string;
+};
+export type NamedFacet = { id: string; name: string; slug: string; count: number };
+export type ProductFacets = {
+	teams: NamedFacet[]; drivers: NamedFacet[]; productTypes: NamedFacet[];
+	audiences: Array<{ value: ProductAudience; count: number }>;
+	availability: { inStock: number }; price: { min: number; max: number };
+};
+export type ProductListResponse = { data: PublicProduct[]; page: number; limit: number; total: number };
+export type CollectionProductsResponse = ProductListResponse & { collection: CollectionDetail; facets: ProductFacets };
+export type ProductSort = "featured" | "relevance" | "name_asc" | "name_desc" | "price_asc" | "price_desc" | "newest" | "oldest";
+export type ProductQuery = {
+	page?: number; limit?: number; search?: string; productType?: string[]; category?: string[]; tag?: string[];
+	team?: string[]; driver?: string[]; size?: string[]; color?: string[]; audience?: ProductAudience[];
+	availability?: "in_stock"; minPrice?: number; maxPrice?: number; sort?: ProductSort;
+};
 
 const apiBaseUrl = process.env.API_BASE_URL?.replace(/\/$/, "");
 
+function apiUrl(path: string): string {
+	if (!apiBaseUrl) throw new Error("API_BASE_URL is required for storefront catalog requests");
+	return `${apiBaseUrl}${path}`;
+}
+
 async function apiFetch<T>(path: string): Promise<T> {
-	if (!apiBaseUrl) throw new Error("API_BASE_URL is not configured");
-	const response = await fetch(`${apiBaseUrl}${path}`, { next: { revalidate: 180 } });
+	const response = await fetch(apiUrl(path), { next: { revalidate: 180 } });
 	if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
 	return response.json() as Promise<T>;
 }
@@ -40,38 +73,35 @@ function queryString(query: ProductQuery & { locale?: Locale }): string {
 
 export const catalog = {
 	listProducts(query: ProductQuery = {}, locale: Locale = "en"): Promise<ProductListResponse> {
-		return apiBaseUrl ? apiFetch(`/api/products${queryString({ ...query, locale })}`) : mockListProducts(query, locale);
+		return apiFetch(`/api/products${queryString({ ...query, locale })}`);
 	},
 	async getProduct(slug: string, locale: Locale = "en"): Promise<PublicProduct | null> {
-		if (!apiBaseUrl) return mockGetProduct(slug, locale);
-		const response = await fetch(`${apiBaseUrl}/api/products/${encodeURIComponent(slug)}?locale=${locale}`, { next: { revalidate: 180 } });
+		const response = await fetch(apiUrl(`/api/products/${encodeURIComponent(slug)}?locale=${locale}`), { next: { revalidate: 180 } });
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
 		return response.json() as Promise<PublicProduct>;
 	},
 	listCategories(): Promise<CatalogEntity[]> {
-		return apiBaseUrl ? apiFetch("/api/categories") : mockListCategories();
+		return apiFetch("/api/categories");
 	},
 	listTags(): Promise<CatalogEntity[]> {
-		return apiBaseUrl ? apiFetch("/api/tags") : mockListTags();
+		return apiFetch("/api/tags");
 	},
 	listTeams(): Promise<Team[]> {
-		return apiBaseUrl ? apiFetch("/api/teams") : mockListTeams();
+		return apiFetch("/api/teams");
 	},
 	listCollections(): Promise<CollectionNode[]> {
-		return apiBaseUrl ? apiFetch("/api/collections") : mockListCollections();
+		return apiFetch("/api/collections");
 	},
 	async getCollection(slug: string): Promise<CollectionDetail | null> {
-		if (!apiBaseUrl) return mockGetCollection(slug);
-		const response = await fetch(`${apiBaseUrl}/api/collections/${encodeURIComponent(slug)}`, { next: { revalidate: 180 } });
+		const response = await fetch(apiUrl(`/api/collections/${encodeURIComponent(slug)}`), { next: { revalidate: 180 } });
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
 		return response.json() as Promise<CollectionDetail>;
 	},
 	async listCollectionProducts(slug: string, query: ProductQuery = {}, locale: Locale = "en"): Promise<CollectionProductsResponse | null> {
-		if (!apiBaseUrl) return mockListCollectionProducts(slug, query, locale);
 		const response = await fetch(
-			`${apiBaseUrl}/api/collections/${encodeURIComponent(slug)}/products${queryString({ ...query, locale })}`,
+			apiUrl(`/api/collections/${encodeURIComponent(slug)}/products${queryString({ ...query, locale })}`),
 			{ next: { revalidate: 180 } },
 		);
 		if (response.status === 404) return null;

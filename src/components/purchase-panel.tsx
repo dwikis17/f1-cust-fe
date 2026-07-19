@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 
 import { useDictionary } from "@/components/i18n-provider";
 import { useCartStore } from "@/lib/cart-store";
-import type { ProductVariant } from "@/lib/mock";
+import type { ProductVariant } from "@/lib/catalog";
 
 type Props = { productId: string; productName: string; variants: ProductVariant[] };
 

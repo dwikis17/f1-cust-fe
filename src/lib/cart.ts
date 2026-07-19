@@ -1,4 +1,4 @@
-import type { ProductVariant, PublicProduct } from "./mock";
+import type { ProductVariant, PublicProduct } from "./catalog";
 
 export const CART_STORAGE_KEY = "valdye-cart";
 

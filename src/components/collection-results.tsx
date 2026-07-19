@@ -2,9 +2,8 @@ import Link from "next/link";
 
 import { AutoSubmitSelect, PendingSubmitButton } from "@/components/form-controls";
 import { ProductCard } from "@/components/product-card";
-import { formatPrice } from "@/lib/catalog";
+import { formatPrice, type CollectionProductsResponse, type NamedFacet, type ProductAudience, type ProductQuery, type ProductSort } from "@/lib/catalog";
 import { dictionary, type Locale } from "@/lib/i18n";
-import type { CollectionProductsResponse, NamedFacet, ProductAudience, ProductQuery, ProductSort } from "@/lib/mock";
 
 export type CollectionSearchParams = Record<string, string | string[] | undefined>;
 

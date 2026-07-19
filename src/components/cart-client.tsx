@@ -6,8 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
 import { cartSubtotal, resolveCartLines } from "@/lib/cart";
 import { useCartStore } from "@/lib/cart-store";
-import { formatPrice } from "@/lib/catalog";
-import type { PublicProduct } from "@/lib/mock";
+import { formatPrice, type PublicProduct } from "@/lib/catalog";
 
 export function CartClient({ products }: { products: PublicProduct[] }) {
 	const locale = useLocale();

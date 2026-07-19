@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatPrice } from "@/lib/catalog";
+import { formatPrice, type PublicProduct } from "@/lib/catalog";
 import { dictionary, type Locale } from "@/lib/i18n";
-import type { PublicProduct } from "@/lib/mock";
 
 export function ProductCard({ product, locale, priority = false, collectionSlug }: { product: PublicProduct; locale: Locale; priority?: boolean; collectionSlug?: string }) {
 	const photo = product.photos[0];

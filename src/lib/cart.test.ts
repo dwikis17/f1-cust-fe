@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { addStoredCartItem, CART_STORAGE_KEY, cartSubtotal, parseStoredCart, resolveCartLines, type StoredCartItem } from "./cart.ts";
 import { useCartStore } from "./cart-store.ts";
-import type { PublicProduct } from "./mock.ts";
+import type { PublicProduct } from "./catalog.ts";
 
 const item: StoredCartItem = { productId: "product-1", productName: "Helmet", variantId: "variant-1", quantity: 2 };
 const product = {

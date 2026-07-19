@@ -3,7 +3,7 @@
 import { useRef } from "react";
 
 import { useDictionary } from "@/components/i18n-provider";
-import type { ProductVariant } from "@/lib/mock";
+import type { ProductVariant } from "@/lib/catalog";
 import { buildSizingRows } from "@/lib/sizing-guide";
 
 export function SizingGuide({ variants, note }: { variants: ProductVariant[]; note: string | null }) {
