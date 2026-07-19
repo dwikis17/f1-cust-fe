@@ -24,6 +24,7 @@ API_BASE_URL=http://localhost:3000
 - `GET /api/teams`
 - `GET /api/collections`
 - `GET /api/collections/:slug/products`
+- `GET /api/faqs?locale=en|id`
 
 The storefront supports English and Indonesian without locale-prefixed URLs. The header language switcher stores `en` or `id` in the `valdye-locale` cookie, and catalog requests forward that selection through the public API's `locale` query parameter. English is the default and the fallback when optional Indonesian product copy is missing.
 
