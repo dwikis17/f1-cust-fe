@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
 import { cartSubtotal, resolveCartLines } from "@/lib/cart";
 import { useCartStore } from "@/lib/cart-store";
@@ -16,7 +16,9 @@ export function CartClient({ products }: { products: PublicProduct[] }) {
 	const ready = useCartStore((state) => state.hydrated);
 	const setQuantity = useCartStore((state) => state.setQuantity);
 	const removeItem = useCartStore((state) => state.removeItem);
+	const addItem = useCartStore((state) => state.addItem);
 	const reconcile = useCartStore((state) => state.reconcile);
+	const [removed, setRemoved] = useState<{ productId: string; productName: string; variantId: string; quantity: number } | null>(null);
 
 	useEffect(() => {
 		if (ready) reconcile(products);
@@ -26,9 +28,27 @@ export function CartClient({ products }: { products: PublicProduct[] }) {
 	const subtotal = cartSubtotal(lines);
 	const itemCount = lines.reduce((sum, line) => sum + line.quantity, 0);
 	const hasUnavailableItem = lines.some((line) => !line.variant.available);
+	useEffect(() => {
+		if (!removed) return;
+		const timer = window.setTimeout(() => setRemoved(null), 6000);
+		return () => window.clearTimeout(timer);
+	}, [removed]);
+
+	function removeLine(line: (typeof lines)[number]) {
+		setRemoved({ productId: line.productId, productName: line.productName, variantId: line.variantId, quantity: line.quantity });
+		removeItem(line.variantId);
+	}
+
+	function undoRemove() {
+		if (!removed) return;
+		addItem(removed);
+		setRemoved(null);
+	}
+
+	const undoNotice = removed ? <div className="cart-toast" role="status"><span>{messages.cart.removedItem}</span><button type="button" onClick={undoRemove}>{messages.cart.undo}</button></div> : null;
 
 	if (!ready) return <div className="cart-loading" role="status" aria-live="polite"><p className="eyebrow">{messages.cart.loadingGarage}</p><div className="cart-loading-line" /><div className="cart-loading-line" /></div>;
-	if (!lines.length) return <div className="cart-empty"><p className="eyebrow">{messages.cart.yourBag} / 00</p><h1>{messages.cart.emptyTitle}</h1><p>{messages.cart.emptyText}</p><Link className="button button-dark" href="/collections">{messages.cart.exploreCollection}</Link></div>;
+	if (!lines.length) return <><div className="cart-empty"><p className="eyebrow">{messages.cart.yourBag} / 00</p><h1>{messages.cart.emptyTitle}</h1><p>{messages.cart.emptyText}</p><Link className="button button-dark" href="/collections">{messages.cart.exploreCollection}</Link></div>{undoNotice}</>;
 
 	return (
 		<div className="cart-layout">
@@ -45,7 +65,7 @@ export function CartClient({ products }: { products: PublicProduct[] }) {
 							<h2><Link href={`/products/${line.product.slug}`}>{line.product.name}</Link></h2>
 							<span>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</span>
 							{!line.variant.available ? <strong className="cart-unavailable">{messages.cart.unavailableItem}</strong> : null}
-							<button type="button" onClick={() => removeItem(line.variantId)}>{messages.cart.remove}</button>
+							<button type="button" onClick={() => removeLine(line)}>{messages.cart.remove}</button>
 						</div>
 						<div className="cart-line-end">
 							<strong>{formatPrice(line.product.priceIdr * line.quantity, locale)}</strong>
@@ -69,6 +89,7 @@ export function CartClient({ products }: { products: PublicProduct[] }) {
 					: <Link className="button button-dark" href="/checkout">{messages.cart.checkout}</Link>}
 				<Link href="/collections">{messages.cart.continueShopping}</Link>
 			</aside>
+			{undoNotice}
 		</div>
 	);
 }

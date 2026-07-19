@@ -33,7 +33,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
 					<div className="product-promises"><span><VerifiedIcon /> {messages.product.officialMerchandise}</span><span><CubeIcon /> {messages.product.liveShippingRates}</span></div>
 					<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />
 					<details><summary>{messages.product.productDetails}</summary><p>{messages.product.productDetailsText}</p></details>
-					<details><summary>{messages.product.deliveryReturns}</summary><p>{messages.product.deliveryReturnsText}</p></details>
+					<details><summary>{messages.product.deliveryReturns}</summary><p>{messages.product.deliveryReturnsText} <Link className="inline-link" href="/help/shipping-returns">{messages.footer.shippingReturns} →</Link></p></details>
 				</div>
 			</section>
 

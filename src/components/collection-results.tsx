@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { AutoSubmitSelect, PendingSubmitButton } from "@/components/form-controls";
 import { ProductCard } from "@/components/product-card";
 import { formatPrice } from "@/lib/catalog";
 import { dictionary, type Locale } from "@/lib/i18n";
@@ -57,6 +58,16 @@ export function CollectionResults({ path, params, response, locale }: { path: st
 		...(query.availability ? [{ key: "availability", value: query.availability, label: messages.filters.inStock }] : []),
 	];
 	const audienceFacets = [...response.facets.audiences];
+	const sortOptions = [
+		{ value: "featured", label: messages.filters.featured },
+		...(query.search ? [{ value: "relevance", label: messages.filters.relevance }] : []),
+		{ value: "name_asc", label: messages.filters.nameAsc },
+		{ value: "name_desc", label: messages.filters.nameDesc },
+		{ value: "price_asc", label: messages.filters.priceAsc },
+		{ value: "price_desc", label: messages.filters.priceDesc },
+		{ value: "newest", label: messages.filters.newest },
+		{ value: "oldest", label: messages.filters.oldest },
+	];
 	for (const value of query.audience ?? []) {
 		if (!audienceFacets.some((item) => item.value === value)) audienceFacets.push({ value, count: 0 });
 	}
@@ -72,14 +83,14 @@ export function CollectionResults({ path, params, response, locale }: { path: st
 					<div className="filter-group"><h2>{messages.filters.genderAudience}</h2><ul>{audienceFacets.map((item) => <li key={item.value}><label><input type="checkbox" name="audience" value={item.value} defaultChecked={query.audience?.includes(item.value)} /><span>{messages.audiences[item.value]}</span><small>{item.count}</small></label></li>)}</ul></div>
 					<div className="filter-group"><h2>{messages.filters.availability}</h2><ul><li><label><input type="checkbox" name="availability" value="in_stock" defaultChecked={query.availability === "in_stock"} /><span>{messages.filters.inStock}</span><small>{response.facets.availability.inStock}</small></label></li></ul></div>
 					<div className="filter-group"><h2>{messages.filters.priceRange}</h2><div className="price-inputs"><label>{messages.filters.from}<input name="minPrice" type="number" min="0" step="1000" defaultValue={query.minPrice} placeholder={formatPrice(response.facets.price.min, locale)} /></label><label>{messages.filters.to}<input name="maxPrice" type="number" min="0" step="1000" defaultValue={query.maxPrice} placeholder={formatPrice(response.facets.price.max, locale)} /></label></div></div>
-					<div className="filter-actions"><button className="button button-dark" type="submit">{messages.filters.applyFilters}</button><Link href={path}>{messages.filters.clearAll}</Link></div>
+					<div className="filter-actions"><PendingSubmitButton className="button button-dark" idle={messages.filters.applyFilters} pending={messages.filters.updating} /><Link href={path}>{messages.filters.clearAll}</Link></div>
 				</form>
 			</details>
 			<div className="catalog-results">
-				<div className="catalog-toolbar"><span>{messages.filters.showing} {response.total.toString().padStart(2, "0")} {messages.filters.results}</span><form className="catalog-sort" action={path}>{Object.entries(params).flatMap(([key, value]) => key === "sort" || key === "page" ? [] : (Array.isArray(value) ? value : value ? [value] : []).map((item) => <input key={`${key}-${item}`} type="hidden" name={key} value={item} />))}<label>{messages.filters.sortBy} <select name="sort" defaultValue={query.sort}><option value="featured">{messages.filters.featured}</option>{query.search ? <option value="relevance">{messages.filters.relevance}</option> : null}<option value="name_asc">{messages.filters.nameAsc}</option><option value="name_desc">{messages.filters.nameDesc}</option><option value="price_asc">{messages.filters.priceAsc}</option><option value="price_desc">{messages.filters.priceDesc}</option><option value="newest">{messages.filters.newest}</option><option value="oldest">{messages.filters.oldest}</option></select></label><button type="submit">{messages.filters.apply}</button></form></div>
+				<div className="catalog-toolbar"><span>{messages.filters.showing} {response.total.toString().padStart(2, "0")} {messages.filters.results}</span><form className="catalog-sort" action={path}>{Object.entries(params).flatMap(([key, value]) => key === "sort" || key === "page" ? [] : (Array.isArray(value) ? value : value ? [value] : []).map((item) => <input key={`${key}-${item}`} type="hidden" name={key} value={item} />))}<AutoSubmitSelect label={messages.filters.sortBy} name="sort" defaultValue={query.sort ?? "featured"} options={sortOptions} pendingLabel={messages.filters.updating} applyLabel={messages.filters.apply} /></form></div>
 				{active.length || query.minPrice !== undefined || query.maxPrice !== undefined ? <div className="active-filters">{active.map((item) => <Link key={`${item.key}-${item.value}`} href={removeValueHref(path, params, item.key, item.value)}>{item.label} ×</Link>)}{query.minPrice !== undefined ? <Link href={removeValueHref(path, params, "minPrice", String(query.minPrice))}>{messages.filters.from} {formatPrice(query.minPrice, locale)} ×</Link> : null}{query.maxPrice !== undefined ? <Link href={removeValueHref(path, params, "maxPrice", String(query.maxPrice))}>{messages.filters.to} {formatPrice(query.maxPrice, locale)} ×</Link> : null}<Link className="clear-filters" href={path}>{messages.filters.clearAll}</Link></div> : null}
 				{response.data.length ? <div className="catalog-grid">{response.data.map((product, index) => <ProductCard key={product.id} product={product} locale={locale} priority={index < 3} collectionSlug={response.collection.slug} />)}</div> : <div className="empty-state"><h2>{messages.filters.noProducts}</h2><p>{messages.filters.adjustFilters}</p><Link className="button button-dark" href={path}>{messages.filters.clearFilters}</Link></div>}
-				<nav className="pagination" aria-label={messages.filters.productPages}><Link aria-disabled={response.page <= 1} href={response.page > 1 ? pageHref(path, params, response.page - 1) : path}>‹</Link><span>{messages.filters.page} {String(response.page).padStart(2, "0")} / {String(pages).padStart(2, "0")}</span><Link aria-disabled={response.page >= pages} href={response.page < pages ? pageHref(path, params, response.page + 1) : path}>›</Link></nav>
+				<nav className="pagination" aria-label={messages.filters.productPages}>{response.page > 1 ? <Link href={pageHref(path, params, response.page - 1)} aria-label={`${messages.filters.page} ${response.page - 1}`}>‹</Link> : <span className="pagination-disabled" aria-hidden="true">‹</span>}<span>{messages.filters.page} {String(response.page).padStart(2, "0")} / {String(pages).padStart(2, "0")}</span>{response.page < pages ? <Link href={pageHref(path, params, response.page + 1)} aria-label={`${messages.filters.page} ${response.page + 1}`}>›</Link> : <span className="pagination-disabled" aria-hidden="true">›</span>}</nav>
 			</div>
 		</section>
 	);

@@ -25,7 +25,6 @@ export default async function Home() {
 					<p>{messages.home.heroText}</p>
 					<div className="hero-actions"><Link className="button button-light" href="/collections">{messages.home.shopNow}</Link><a className="button button-outline-light" href="#editorial">{messages.home.viewCampaign}</a></div>
 				</div>
-				<div className="hero-index"><span>01</span><i /><span>03</span></div>
 			</section>
 
 			<section className="team-strip" aria-label={messages.home.teamsLabel}>

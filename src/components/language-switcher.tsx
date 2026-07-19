@@ -17,7 +17,7 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <div className="language-switcher" aria-label={messages.header.language}>
+    <div className="language-switcher" aria-label={messages.header.language} aria-live="polite">
       {(["en", "id"] as const).map((value) => (
         <button key={value} type="button" aria-pressed={locale === value} onClick={() => select(value)}>
           {value.toUpperCase()}
