@@ -450,6 +450,71 @@ img { max-width: 100%; }
 .order-status-card dl > div { border-bottom: 1px solid var(--line); display: flex; gap: 20px; justify-content: space-between; padding: 14px 0; }
 .order-status-card dt { color: var(--muted); font-family: var(--font-mono), monospace; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
 .order-status-card dd { font-weight: 600; margin: 0; text-align: right; }
+.order-status-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* Shipment tracking */
+.tracking-page { min-height: 80vh; }
+.tracking-hero { border-bottom: 1px solid var(--line); margin: 0 auto; max-width: 1280px; padding: 76px 32px 50px; }
+.tracking-hero > h1 { font-family: var(--font-display), sans-serif; font-size: clamp(44px, 6vw, 78px); letter-spacing: -.05em; line-height: .95; margin: 0 0 18px; text-transform: uppercase; text-wrap: balance; }
+.tracking-hero > p:not(.eyebrow, .tracking-form-status) { color: var(--muted); line-height: 1.6; margin: 0; max-width: 62ch; }
+.tracking-form { align-items: end; display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(190px, .62fr); margin-top: 38px; }
+.tracking-form label { display: grid; gap: 8px; min-width: 0; }
+.tracking-form label > span, .tracking-summary span, .tracking-timeline-card header > div:last-child span, .tracking-source { color: var(--muted); font-family: var(--font-mono), monospace; font-size: 10px; letter-spacing: .09em; text-transform: uppercase; }
+.tracking-form input { background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; font-family: var(--font-mono), monospace; height: 48px; min-width: 0; outline: 0; padding: 0; width: 100%; }
+.tracking-form input:focus { border-bottom-width: 2px; }
+.tracking-form .button:disabled { cursor: wait; opacity: .55; }
+.tracking-form-status { color: #9a231d; font-size: 13px; min-height: 20px; margin: 12px 0 0; }
+.tracking-results { margin: 0 auto; max-width: 1280px; padding: 42px 32px 76px; }
+.tracking-summary { align-items: end; border-bottom: 1px solid var(--ink); display: flex; gap: 50px; justify-content: space-between; margin-bottom: 24px; padding-bottom: 18px; }
+.tracking-summary > div { display: grid; gap: 5px; }
+.tracking-summary > div:last-child { text-align: right; }
+.tracking-summary strong { font-family: var(--font-display), sans-serif; font-size: 21px; text-transform: uppercase; }
+.tracking-grid { display: grid; gap: 24px; grid-template-columns: minmax(0, 2fr) minmax(290px, 1fr); }
+.tracking-timeline-card, .tracking-detail-card, .tracking-package-card { background: white; border: 1px solid #9c9c9c; }
+.tracking-timeline-card { min-height: 520px; overflow: hidden; padding: 32px; position: relative; }
+.tracking-timeline-card::after { color: var(--ink); content: "IN TRANSIT"; font-family: var(--font-mono), monospace; font-size: clamp(44px, 7vw, 90px); opacity: .025; pointer-events: none; position: absolute; right: 14px; top: 12px; white-space: nowrap; }
+.tracking-timeline-card > header { align-items: start; display: flex; gap: 24px; justify-content: space-between; position: relative; z-index: 1; }
+.tracking-badge { background: var(--ink); color: white; display: inline-block; font-family: var(--font-mono), monospace; font-size: 9px; letter-spacing: .08em; margin-bottom: 9px; padding: 5px 7px; text-transform: uppercase; }
+.tracking-timeline-card h2 { font-family: var(--font-display), sans-serif; font-size: clamp(24px, 3vw, 36px); letter-spacing: -.035em; line-height: 1; margin: 0 0 8px; overflow-wrap: anywhere; text-transform: uppercase; }
+.tracking-timeline-card header p { color: var(--muted); margin: 0; }
+.tracking-timeline-card header > div:last-child { display: grid; flex: 0 0 auto; gap: 5px; text-align: right; }
+.tracking-timeline-card header > div:last-child strong { font-family: var(--font-display), sans-serif; text-transform: uppercase; }
+.tracking-timeline { list-style: none; margin: 52px 0 0; max-width: 680px; padding: 0; position: relative; z-index: 1; }
+.tracking-timeline li { display: grid; gap: 20px; grid-template-columns: 16px minmax(0, 1fr); min-height: 98px; position: relative; }
+.tracking-timeline li > span { background: var(--ink); border: 2px solid var(--ink); border-radius: 999px; height: 14px; margin-top: 2px; position: relative; width: 14px; }
+.tracking-timeline li.current > span { background: white; box-shadow: inset 0 0 0 3px white; }
+.tracking-timeline li:not(:last-child) > span::after { background: var(--ink); content: ""; height: 84px; left: 5px; opacity: .65; position: absolute; top: 12px; width: 1px; }
+.tracking-timeline li > div { min-width: 0; }
+.tracking-timeline li strong { display: block; font-family: var(--font-mono), monospace; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
+.tracking-timeline time { color: var(--muted); display: block; font-family: var(--font-mono), monospace; font-size: 10px; margin-top: 4px; text-transform: uppercase; }
+.tracking-timeline p { line-height: 1.5; margin: 7px 0 0; overflow-wrap: anywhere; }
+.tracking-pending { border-top: 1px solid var(--line); margin-top: 48px; max-width: 620px; padding-top: 32px; position: relative; z-index: 1; }
+.tracking-pending h3 { font-family: var(--font-display), sans-serif; font-size: 28px; margin: 0 0 10px; text-transform: uppercase; }
+.tracking-pending p { color: var(--muted); line-height: 1.6; margin: 0; }
+.tracking-sidebar { display: flex; flex-direction: column; gap: 20px; }
+.tracking-detail-card, .tracking-package-card { padding: 24px; }
+.tracking-detail-card h2, .tracking-package-card h2 { border-bottom: 1px solid var(--line); font-family: var(--font-mono), monospace; font-size: 10px; letter-spacing: .09em; margin: 0 0 20px; padding-bottom: 12px; text-transform: uppercase; }
+.tracking-detail-card dl { display: grid; gap: 18px 14px; grid-template-columns: 1fr 1fr; margin: 0; }
+.tracking-detail-card dl > div { min-width: 0; }
+.tracking-detail-card dl .wide { grid-column: 1 / -1; }
+.tracking-detail-card dt { color: var(--muted); font-family: var(--font-mono), monospace; font-size: 9px; letter-spacing: .08em; margin-bottom: 5px; text-transform: uppercase; }
+.tracking-detail-card dd { font-weight: 700; margin: 0; overflow-wrap: anywhere; text-transform: uppercase; }
+.tracking-detail-card .wide dd { align-items: center; display: flex; gap: 10px; justify-content: space-between; }
+.tracking-detail-card .wide button { background: transparent; border: 0; border-bottom: 1px solid; cursor: pointer; flex: 0 0 auto; font-family: var(--font-mono), monospace; font-size: 9px; min-height: 32px; padding: 0; text-transform: uppercase; }
+.tracking-detail-card .text-link { margin-top: 22px; }
+.tracking-package-card ul { list-style: none; margin: 0; padding: 0; }
+.tracking-package-card li { align-items: start; border-bottom: 1px solid var(--line); display: flex; gap: 18px; justify-content: space-between; padding: 14px 0; }
+.tracking-package-card li:first-child { padding-top: 0; }
+.tracking-package-card li:last-child { border-bottom: 0; padding-bottom: 0; }
+.tracking-package-card li > div { display: grid; gap: 5px; min-width: 0; }
+.tracking-package-card li > div:last-child { flex: 0 0 auto; text-align: right; }
+.tracking-package-card li strong { font-size: 13px; text-transform: uppercase; }
+.tracking-package-card li span { color: var(--muted); font-family: var(--font-mono), monospace; font-size: 9px; overflow-wrap: anywhere; text-transform: uppercase; }
+.tracking-support { background: var(--ink); color: white; display: grid; gap: 8px; padding: 24px; transition: background 180ms ease; }
+.tracking-support:hover { background: #292929; }
+.tracking-support strong, .tracking-support b { font-family: var(--font-mono), monospace; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.tracking-support span { color: #b7b7b7; font-size: 12px; line-height: 1.5; }
+.tracking-source { display: flex; gap: 24px; justify-content: space-between; margin-top: 32px; }
 .review-block { border: 1px solid var(--line); margin-bottom: 16px; padding: 20px; }
 .review-block > div { align-items: center; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; padding-bottom: 12px; }
 .review-block h2 { font-family: var(--font-display), sans-serif; font-size: 15px; margin: 0; text-transform: uppercase; }
@@ -485,6 +550,9 @@ img { max-width: 100%; }
 .faq-count span { color: var(--ink); font-weight: 700; }
 .faq-support h2 { font-family: var(--font-display), sans-serif; font-size: 24px; letter-spacing: -.03em; line-height: 1.05; margin: 0 0 12px; text-transform: uppercase; text-wrap: balance; }
 .faq-support > p:not(.faq-count) { color: #5f6161; line-height: 1.6; margin: 0 0 20px; max-width: 31ch; }
+.faq-contact-link { background: var(--apex); color: white; display: inline-flex; font-family: var(--font-mono), monospace; font-size: 11px; font-weight: 700; justify-content: center; letter-spacing: .08em; padding: 14px 18px; text-decoration: none; text-transform: uppercase; transition: background-color 180ms var(--ease-out), color 180ms var(--ease-out); }
+.faq-contact-link:hover { background: var(--black); color: white; }
+.faq-contact-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .faq-list { border-top: 1px solid var(--ink); min-width: 0; }
 .faq-item { border-bottom: 1px solid var(--line); }
 .faq-item summary { align-items: center; cursor: pointer; display: grid; gap: 16px; grid-template-columns: 42px minmax(0, 1fr) 30px; list-style: none; min-height: 98px; padding: 22px 0; transition: color 220ms var(--ease-out); }
@@ -570,6 +638,7 @@ img { max-width: 100%; }
 	.faq-support { border-bottom: 1px solid var(--line); padding-bottom: 42px; position: static; }
 	.faq-count { margin-bottom: 28px; }
 	.faq-support > p:not(.faq-count) { max-width: 55ch; }
+	.tracking-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {
@@ -668,6 +737,22 @@ img { max-width: 100%; }
 	.checkout-rates label b { grid-column: 2; }
 	.checkout-summary li { grid-template-columns: 58px minmax(0, 1fr); }
 	.checkout-summary li > div { height: 58px; }
+	.tracking-hero { padding: 48px 20px 34px; }
+	.tracking-hero > h1 { font-size: 40px; }
+	.tracking-form { grid-template-columns: 1fr; margin-top: 30px; }
+	.tracking-results { padding: 30px 20px 54px; }
+	.tracking-summary { align-items: start; gap: 20px; }
+	.tracking-summary > div:last-child { text-align: right; }
+	.tracking-summary strong { font-size: 16px; }
+	.tracking-timeline-card { min-height: 0; padding: 20px; }
+	.tracking-timeline-card > header { display: block; }
+	.tracking-timeline-card header > div:last-child { border-top: 1px solid var(--line); margin-top: 20px; padding-top: 14px; text-align: left; }
+	.tracking-timeline { margin-top: 38px; }
+	.tracking-detail-card, .tracking-package-card { padding: 20px; }
+	.tracking-package-card li { display: grid; }
+	.tracking-package-card li > div:last-child { display: flex; justify-content: space-between; text-align: left; }
+	.tracking-source { align-items: flex-start; flex-direction: column; gap: 8px; }
+	.order-status-actions { align-items: stretch; flex-direction: column; }
 	.checkout-summary li > b { grid-column: 2; }
 	.payment-method { max-width: none; }
 	.review-items > p { gap: 14px; }

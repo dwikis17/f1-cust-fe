@@ -22,7 +22,7 @@ export default async function FaqPage() {
 			</nav>
 			<header className="faq-hero">
 				<div>
-					<p className="faq-register">{messages.faq.supportDesk}</p>
+					<p className="faq-register">{messages.faq.eyebrow}</p>
 					<h1>{messages.faq.title}</h1>
 				</div>
 				<p>{messages.faq.intro}</p>
@@ -32,14 +32,14 @@ export default async function FaqPage() {
 					<p className="faq-count"><span>{faqs.length}</span> {messages.faq.answerCount}</p>
 					<h2>{messages.faq.stillNeedHelp}</h2>
 					<p>{messages.faq.contactText}</p>
-					<a className="text-link" href="mailto:support@valdye.com">{messages.faq.contactSupport}</a>
+					<a className="faq-contact-link" href="mailto:support@valdye.com">{messages.faq.contactSupport}</a>
 				</aside>
 				<section className="faq-list" aria-label={messages.faq.title}>
 					{faqs.length === 0 ? (
 						<div className="faq-empty">
 							<h2>{messages.faq.emptyTitle}</h2>
 							<p>{messages.faq.emptyText}</p>
-							<a className="text-link" href="mailto:support@valdye.com">{messages.faq.contactSupport}</a>
+							<a className="faq-contact-link" href="mailto:support@valdye.com">{messages.faq.contactSupport}</a>
 						</div>
 					) : faqs.map((faq, index) => (
 						<details className="faq-item" name="faq" open={index === 0} key={faq.id}>

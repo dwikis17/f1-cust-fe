@@ -9,6 +9,7 @@ import { formatPrice } from "@/lib/catalog";
 
 type OrderReceipt = {
 	id: string;
+	orderNumber: string;
 	subtotalIdr: number;
 	discountIdr: number;
 	shippingIdr: number;
@@ -57,7 +58,7 @@ export function OrderStatusClient({ id }: { id: string }) {
 			<section className="order-status-card">
 				<p className="eyebrow">{messages.title}</p>
 				<h1>{payment}</h1>
-				<p>{messages.orderNumber}: <strong>{order.id}</strong></p>
+				<p>{messages.orderNumber}: <strong>{order.orderNumber}</strong></p>
 				<dl>
 					<div><dt>{messages.payment}</dt><dd>{payment}</dd></div>
 					<div><dt>{messages.fulfillment}</dt><dd>{fulfillment}</dd></div>
@@ -69,7 +70,7 @@ export function OrderStatusClient({ id }: { id: string }) {
 					<div><dt>{messages.total}</dt><dd>{formatPrice(order.totalIdr, locale)}</dd></div>
 				</dl>
 				{error instanceof Error ? <p className="payment-notice" role="alert">{error.message}</p> : null}
-				<Link className="button button-dark" href="/">{messages.returnHome}</Link>
+				<div className="order-status-actions"><Link className="button button-dark" href="/track-order">{messages.trackShipment}</Link><Link className="button" href="/">{messages.returnHome}</Link></div>
 			</section>
 		</main>
 	);
