@@ -3,9 +3,10 @@ import { CartClient } from "@/components/cart-client";
 import { catalog } from "@/lib/catalog";
 import { dictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
+import { noIndexMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
-	return { title: dictionary(await getLocale()).metadata.cartTitle };
+	return noIndexMetadata(dictionary(await getLocale()).metadata.cartTitle);
 }
 
 export default async function CartPage() {

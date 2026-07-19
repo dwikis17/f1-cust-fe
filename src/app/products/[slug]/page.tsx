@@ -1,23 +1,96 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CubeIcon, VerifiedIcon } from "@/components/icons";
 import { ProductGallery } from "@/components/product-gallery";
 import { PurchasePanel } from "@/components/purchase-panel";
 import { SizingGuide } from "@/components/sizing-guide";
+import { StructuredData } from "@/components/structured-data";
 import { catalog, formatPrice } from "@/lib/catalog";
 import { dictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
+import { absoluteUrl, metadataDescription, siteName } from "@/lib/seo";
 
-export default async function ProductPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<{ collection?: string }> }) {
+type ProductPageProps = {
+	params: Promise<{ slug: string }>;
+	searchParams: Promise<{ collection?: string }>;
+};
+
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+	const [{ slug }, locale] = await Promise.all([params, getLocale()]);
+	const product = await catalog.getProduct(slug, locale);
+	if (!product) return {};
+	const messages = dictionary(locale);
+	const path = `/products/${product.slug}`;
+	const description = metadataDescription(product.description, messages.metadata.description);
+	const images = product.photos.map((photo) => ({ url: photo.url, alt: photo.altText || product.name }));
+	return {
+		title: product.name,
+		description,
+		alternates: { canonical: path },
+		openGraph: {
+			type: "website",
+			title: product.name,
+			description,
+			url: path,
+			images,
+		},
+		twitter: {
+			card: "summary_large_image",
+			title: product.name,
+			description,
+			images: product.photos.map((photo) => photo.url),
+		},
+	};
+}
+
+export default async function ProductPage({ params, searchParams }: ProductPageProps) {
 	const [{ slug }, query] = await Promise.all([params, searchParams]);
 	const locale = await getLocale();
 	const messages = dictionary(locale);
 	const product = await catalog.getProduct(slug, locale);
 	if (!product) notFound();
 	const currentCollection = product.collections.find((collection) => collection.slug === query.collection) ?? product.collections[0];
+	const productUrl = absoluteUrl(`/products/${product.slug}`);
+	const available = product.variants.some((variant) => variant.available);
 
 	return (
 		<main className="page-shell product-page">
+			<StructuredData data={[
+				{
+					"@context": "https://schema.org",
+					"@type": "Product",
+					"@id": `${productUrl}#product`,
+					name: product.name,
+					description: product.description,
+					image: product.photos.map((photo) => photo.url),
+					sku: product.variants[0]?.sku,
+					category: product.category.name,
+					offers: {
+						"@type": "Offer",
+						url: productUrl,
+						priceCurrency: "IDR",
+						price: product.priceIdr,
+						availability: available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+						itemCondition: "https://schema.org/NewCondition",
+						seller: { "@type": "Organization", name: siteName, url: absoluteUrl("/") },
+					},
+				},
+				{
+					"@context": "https://schema.org",
+					"@type": "BreadcrumbList",
+					itemListElement: [
+						{ "@type": "ListItem", position: 1, name: messages.collections.homepage, item: absoluteUrl("/") },
+						{
+							"@type": "ListItem",
+							position: 2,
+							name: currentCollection?.name ?? messages.collections.title,
+							item: absoluteUrl(currentCollection ? `/collections/${currentCollection.slug}` : "/collections"),
+						},
+						{ "@type": "ListItem", position: 3, name: product.name, item: productUrl },
+					],
+				},
+			]} />
 			<nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href="/">{messages.collections.homepage}</Link><span>/</span><Link href={currentCollection ? `/collections/${currentCollection.slug}` : "/collections"}>{currentCollection?.name ?? messages.collections.title}</Link><span>/</span><strong>{product.name}</strong></nav>
 			<section className="product-top">
 				<ProductGallery photos={product.photos} />

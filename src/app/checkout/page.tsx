@@ -3,9 +3,10 @@ import { CheckoutClient } from "@/components/checkout-client";
 import { catalog } from "@/lib/catalog";
 import { dictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
+import { noIndexMetadata } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
-	return { title: dictionary(await getLocale()).metadata.checkoutTitle };
+	return noIndexMetadata(dictionary(await getLocale()).metadata.checkoutTitle);
 }
 
 export default async function CheckoutPage() {

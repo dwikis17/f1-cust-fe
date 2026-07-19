@@ -1,9 +1,27 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ProductCard } from "@/components/product-card";
 import { catalog } from "@/lib/catalog";
 import { dictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
+
+export async function generateMetadata({ searchParams }: { searchParams: SearchParams }): Promise<Metadata> {
+	const [params, locale] = await Promise.all([searchParams, getLocale()]);
+	const messages = dictionary(locale);
+	const hasQuery = Object.values(params).some((value) => value !== undefined && value !== "");
+	return {
+		title: messages.collections.title,
+		description: messages.collections.intro,
+		alternates: { canonical: "/collections" },
+		robots: hasQuery ? { index: false, follow: true } : undefined,
+		openGraph: {
+			title: messages.collections.title,
+			description: messages.collections.intro,
+			url: "/collections",
+		},
+	};
+}
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 const first = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;

@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { StructuredData } from "@/components/structured-data";
 import { getLocale } from "@/lib/locale";
+import { absoluteUrl } from "@/lib/seo";
 
 const documents = {
 	"shipping-returns": {
@@ -14,27 +16,27 @@ const documents = {
 		id: { title: "Kontak", intro: "Kami siap membantu terkait produk, pengiriman, dan pesanan.", sections: [["Dukungan pesanan", "Sertakan ID pesanan, email checkout, dan penjelasan singkat saat meminta bantuan."], ["Waktu respons", "Permintaan ditinjau pada jam kerja Indonesia. Jangan pernah mengirim nomor kartu atau kredensial pembayaran."], ["Mulai permintaan", "Kirim email ke support@valdye.com dengan subjek ‘Dukungan pesanan’."]] },
 	},
 	accessibility: {
-		en: { title: "Accessibility", intro: "VALDYE is designed to support keyboard, screen-reader, zoom, and reduced-motion use.", sections: [["Using the site", "Interactive controls have visible keyboard focus and motion respects your system preference."], ["Need assistance?", "If something prevents you from browsing or checking out, contact support and name the page, device, and assistive technology involved."]] },
-		id: { title: "Aksesibilitas", intro: "VALDYE dirancang untuk penggunaan keyboard, pembaca layar, zoom, dan pengurangan gerakan.", sections: [["Menggunakan situs", "Kontrol interaktif memiliki fokus keyboard yang terlihat dan gerakan mengikuti preferensi sistem Anda."], ["Butuh bantuan?", "Jika ada kendala saat berbelanja, hubungi dukungan dan sebutkan halaman, perangkat, serta teknologi bantu yang digunakan."]] },
+		en: { title: "Accessibility", intro: "Valyde Jersey is designed to support keyboard, screen-reader, zoom, and reduced-motion use.", sections: [["Using the site", "Interactive controls have visible keyboard focus and motion respects your system preference."], ["Need assistance?", "If something prevents you from browsing or checking out, contact support and name the page, device, and assistive technology involved."]] },
+		id: { title: "Aksesibilitas", intro: "Valyde Jersey dirancang untuk penggunaan keyboard, pembaca layar, zoom, dan pengurangan gerakan.", sections: [["Menggunakan situs", "Kontrol interaktif memiliki fokus keyboard yang terlihat dan gerakan mengikuti preferensi sistem Anda."], ["Butuh bantuan?", "Jika ada kendala saat berbelanja, hubungi dukungan dan sebutkan halaman, perangkat, serta teknologi bantu yang digunakan."]] },
 	},
 	privacy: {
 		en: { title: "Privacy policy", intro: "We collect only the information required to operate the storefront and fulfil orders.", sections: [["Information used", "Checkout details are used for payment, delivery, fraud prevention, and order communication."], ["Local storage", "Cart contents and language preference are stored in your browser so they survive a return visit."], ["Payments", "Payment information is handled by the connected payment provider and is not stored by this storefront."]] },
 		id: { title: "Kebijakan privasi", intro: "Kami hanya mengumpulkan informasi yang diperlukan untuk menjalankan toko dan memenuhi pesanan.", sections: [["Informasi yang digunakan", "Detail checkout digunakan untuk pembayaran, pengiriman, pencegahan penipuan, dan komunikasi pesanan."], ["Penyimpanan lokal", "Isi keranjang dan pilihan bahasa disimpan di browser agar tetap tersedia saat Anda kembali."], ["Pembayaran", "Informasi pembayaran diproses oleh penyedia pembayaran dan tidak disimpan oleh toko ini."]] },
 	},
 	terms: {
-		en: { title: "Terms of service", intro: "The terms that apply when browsing and ordering through VALDYE.", sections: [["Catalog", "Prices, stock, and product information may change before an order is confirmed."], ["Orders", "An order is accepted after payment confirmation. Orders may be cancelled and refunded if stock or delivery becomes unavailable."], ["Fair use", "Do not interfere with the storefront, attempt unauthorized access, or misuse checkout and promotion systems."]] },
-		id: { title: "Ketentuan layanan", intro: "Ketentuan yang berlaku saat menjelajah dan memesan melalui VALDYE.", sections: [["Katalog", "Harga, stok, dan informasi produk dapat berubah sebelum pesanan dikonfirmasi."], ["Pesanan", "Pesanan diterima setelah pembayaran terkonfirmasi. Pesanan dapat dibatalkan dan dikembalikan dananya jika stok atau pengiriman tidak tersedia."], ["Penggunaan wajar", "Jangan mengganggu toko, mencoba akses tanpa izin, atau menyalahgunakan checkout dan sistem promosi."]] },
+		en: { title: "Terms of service", intro: "The terms that apply when browsing and ordering through Valyde Jersey.", sections: [["Catalog", "Prices, stock, and product information may change before an order is confirmed."], ["Orders", "An order is accepted after payment confirmation. Orders may be cancelled and refunded if stock or delivery becomes unavailable."], ["Fair use", "Do not interfere with the storefront, attempt unauthorized access, or misuse checkout and promotion systems."]] },
+		id: { title: "Ketentuan layanan", intro: "Ketentuan yang berlaku saat menjelajah dan memesan melalui Valyde Jersey.", sections: [["Katalog", "Harga, stok, dan informasi produk dapat berubah sebelum pesanan dikonfirmasi."], ["Pesanan", "Pesanan diterima setelah pembayaran terkonfirmasi. Pesanan dapat dibatalkan dan dikembalikan dananya jika stok atau pengiriman tidak tersedia."], ["Penggunaan wajar", "Jangan mengganggu toko, mencoba akses tanpa izin, atau menyalahgunakan checkout dan sistem promosi."]] },
 	},
 } as const;
 
 type HelpSlug = keyof typeof documents;
 export function generateStaticParams() { return Object.keys(documents).map((slug) => ({ slug })); }
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> { const { slug } = await params; const locale = await getLocale(); const document = documents[slug as HelpSlug]?.[locale]; return document ? { title: document.title } : {}; }
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> { const { slug } = await params; const locale = await getLocale(); const document = documents[slug as HelpSlug]?.[locale]; return document ? { title: document.title, description: document.intro, alternates: { canonical: `/help/${slug}` } } : {}; }
 
 export default async function HelpPage({ params }: { params: Promise<{ slug: string }> }) {
 	const { slug } = await params;
 	const locale = await getLocale();
 	const document = documents[slug as HelpSlug]?.[locale];
 	if (!document) notFound();
-	return <main className="page-shell help-page"><nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">VALDYE</Link><span>/</span><strong>{document.title}</strong></nav><header><h1>{document.title}</h1><p>{document.intro}</p></header><div className="help-content">{document.sections.map(([title, body]) => <section key={title}><h2>{title}</h2><p>{body}</p>{slug === "contact" && title === (locale === "id" ? "Mulai permintaan" : "Start a request") ? <a className="text-link" href="mailto:support@valdye.com">support@valdye.com</a> : null}</section>)}</div></main>;
+	return <main className="page-shell help-page"><StructuredData data={{ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Valyde Jersey", item: absoluteUrl("/") }, { "@type": "ListItem", position: 2, name: document.title, item: absoluteUrl(`/help/${slug}`) }] }} /><nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">Valyde Jersey</Link><span>/</span><strong>{document.title}</strong></nav><header><h1>{document.title}</h1><p>{document.intro}</p></header><div className="help-content">{document.sections.map(([title, body]) => <section key={title}><h2>{title}</h2><p>{body}</p>{slug === "contact" && title === (locale === "id" ? "Mulai permintaan" : "Start a request") ? <a className="text-link" href="mailto:support@valdye.com">support@valdye.com</a> : null}</section>)}</div></main>;
 }

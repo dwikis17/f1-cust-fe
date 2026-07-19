@@ -5,15 +5,15 @@ export type Locale = (typeof locales)[number];
 
 const en = {
   metadata: {
-    title: "VALDYE | Precision F1 Collections",
-    titleTemplate: "%s | VALDYE",
-    description: "Precision-engineered Formula 1 teamwear, collectibles and technical accessories.",
+    title: "Valyde Jersey | Formula 1 Merchandise Indonesia",
+    titleTemplate: "%s | Valyde Jersey",
+    description: "Shop Formula 1 teamwear, collectibles, and accessories from Valyde Jersey in Indonesia.",
     cartTitle: "Your Cart",
     checkoutTitle: "Checkout",
     trackOrderTitle: "Track Your Shipment",
   },
   header: {
-    home: "Valdye home",
+    home: "Valyde Jersey home",
     primaryNavigation: "Primary navigation",
     shopAll: "Shop all",
     viewAll: "View all",
@@ -26,7 +26,7 @@ const en = {
     language: "Language",
   },
   footer: {
-    tagline: "A focused collection of motorsport apparel, accessories, and technical collectibles for race-day enthusiasts.",
+    tagline: "Valyde Jersey offers a focused collection of Formula 1 apparel, accessories, and technical collectibles for race-day enthusiasts.",
     shop: "Shop",
     teams: "Teams",
     drivers: "Drivers",
@@ -41,11 +41,11 @@ const en = {
     legal: "Legal",
     privacy: "Privacy policy",
     terms: "Terms of service",
-    copyright: "© 2026 Valdye Precision Engineering. All rights reserved.",
+    copyright: "© 2026 Valyde Jersey. All rights reserved.",
   },
   home: {
     bannerAlt: "Two fictional grand-prix cars racing through a floodlit corner at night",
-    performanceEngineering: "Performance engineering",
+    performanceEngineering: "Valyde Jersey / Performance engineering",
     teamwear: "2026 Teamwear",
     collection: "Collection",
     heroText: "Engineered for the paddock. Designed for the city. Experience the new era of McLaren Racing precision apparel.",
@@ -155,7 +155,7 @@ const en = {
     deliveryReturnsText: "Tracked delivery is calculated from your destination in the cart. Returns are accepted within 14 days in original condition.",
     paddockCommentary: "Paddock commentary",
     designerPerspective: "Designer perspective",
-    commentaryOne: "The VALDYE collection puts creativity in pole position. This is more than merchandise; it is an engineering study that mirrors the meticulous detail required in the actual paddock.",
+    commentaryOne: "The Valyde Jersey collection puts creativity in pole position. This is more than merchandise; it is an engineering study that mirrors the meticulous detail required in the actual paddock.",
     commentaryTwo: "Every material, line and graphic is selected to celebrate the team's competitive identity while preserving the character of the original race equipment.",
     quote: "“Built for the people who notice the final millimetre.”",
     color: "Color",
@@ -368,15 +368,15 @@ export type Dictionary = Localized<typeof en>;
 
 const id: Dictionary = {
   metadata: {
-    title: "VALDYE | Koleksi F1 Presisi",
-    titleTemplate: "%s | VALDYE",
-    description: "Pakaian tim Formula 1, barang koleksi, dan aksesori teknis yang dirancang dengan presisi.",
+    title: "Valyde Jersey | Merchandise Formula 1 Indonesia",
+    titleTemplate: "%s | Valyde Jersey",
+    description: "Belanja pakaian tim, barang koleksi, dan aksesori Formula 1 dari Valyde Jersey di Indonesia.",
     cartTitle: "Keranjang Anda",
     checkoutTitle: "Checkout",
     trackOrderTitle: "Lacak Pengiriman",
   },
   header: {
-    home: "Beranda Valdye",
+    home: "Beranda Valyde Jersey",
     primaryNavigation: "Navigasi utama",
     shopAll: "Belanja semua",
     viewAll: "Lihat semua",
@@ -389,7 +389,7 @@ const id: Dictionary = {
     language: "Bahasa",
   },
   footer: {
-    tagline: "Koleksi pilihan pakaian, aksesori, dan barang koleksi teknis motorsport untuk penggemar hari balap.",
+    tagline: "Valyde Jersey menawarkan koleksi pilihan pakaian, aksesori, dan barang koleksi Formula 1 untuk penggemar hari balap.",
     shop: "Belanja",
     teams: "Tim",
     drivers: "Pembalap",
@@ -404,11 +404,11 @@ const id: Dictionary = {
     legal: "Legal",
     privacy: "Kebijakan privasi",
     terms: "Ketentuan layanan",
-    copyright: "© 2026 Valdye Precision Engineering. Hak cipta dilindungi.",
+    copyright: "© 2026 Valyde Jersey. Hak cipta dilindungi.",
   },
   home: {
     bannerAlt: "Dua mobil grand prix fiktif melaju di tikungan bercahaya pada malam hari",
-    performanceEngineering: "Rekayasa performa",
+    performanceEngineering: "Valyde Jersey / Rekayasa performa",
     teamwear: "Pakaian Tim 2026",
     collection: "Koleksi",
     heroText: "Direkayasa untuk paddock. Dirancang untuk kota. Rasakan era baru pakaian presisi McLaren Racing.",
@@ -518,7 +518,7 @@ const id: Dictionary = {
     deliveryReturnsText: "Pengiriman terlacak dihitung dari tujuan Anda di keranjang. Pengembalian diterima dalam 14 hari dalam kondisi asli.",
     paddockCommentary: "Komentar paddock",
     designerPerspective: "Sudut pandang desainer",
-    commentaryOne: "Koleksi VALDYE menempatkan kreativitas di posisi terdepan. Ini lebih dari sekadar merchandise; ini adalah studi rekayasa yang mencerminkan ketelitian di paddock sesungguhnya.",
+    commentaryOne: "Koleksi Valyde Jersey menempatkan kreativitas di posisi terdepan. Ini lebih dari sekadar merchandise; ini adalah studi rekayasa yang mencerminkan ketelitian di paddock sesungguhnya.",
     commentaryTwo: "Setiap material, garis, dan grafis dipilih untuk merayakan identitas kompetitif tim sekaligus mempertahankan karakter perlengkapan balap aslinya.",
     quote: "“Dibuat untuk mereka yang memperhatikan milimeter terakhir.”",
     color: "Warna",

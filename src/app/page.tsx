@@ -1,11 +1,18 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRightIcon } from "@/components/icons";
 import { ProductCard } from "@/components/product-card";
 import { ResponsiveBanner } from "@/components/responsive-banner";
+import { StructuredData } from "@/components/structured-data";
 import { catalog } from "@/lib/catalog";
 import { dictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
+import { absoluteUrl, siteName } from "@/lib/seo";
+
+export const metadata: Metadata = {
+	alternates: { canonical: "/" },
+};
 
 export default async function Home() {
 	const locale = await getLocale();
@@ -16,6 +23,27 @@ export default async function Home() {
 	]);
 	return (
 		<main className="page-shell home-page">
+			<StructuredData data={{
+				"@context": "https://schema.org",
+				"@graph": [
+					{
+						"@type": "OnlineStore",
+						"@id": `${absoluteUrl("/")}#organization`,
+						name: siteName,
+						url: absoluteUrl("/"),
+						email: "support@valdye.com",
+						description: messages.metadata.description,
+					},
+					{
+						"@type": "WebSite",
+						"@id": `${absoluteUrl("/")}#website`,
+						name: siteName,
+						url: absoluteUrl("/"),
+						publisher: { "@id": `${absoluteUrl("/")}#organization` },
+						inLanguage: locale === "id" ? "id-ID" : "en",
+					},
+				],
+			}} />
 			<section className="home-hero">
 				<ResponsiveBanner alt={messages.home.bannerAlt} />
 				<div className="hero-shade" />
