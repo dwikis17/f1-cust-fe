@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { FaqCopyButton } from "@/components/faq-copy-button";
 import { listFaqs } from "@/lib/faqs";
 import { dictionary } from "@/lib/i18n";
 import { getLocale } from "@/lib/locale";
@@ -48,7 +49,10 @@ export default async function FaqPage() {
 								<span className="faq-question">{faq.question}</span>
 								<span className="faq-toggle" aria-hidden="true" />
 							</summary>
-							<div className="faq-answer"><p>{faq.answer}</p></div>
+							<div className="faq-answer">
+								<p>{faq.answer}</p>
+								<FaqCopyButton answer={faq.answer} copyLabel={messages.faq.copyAnswer} copiedLabel={messages.faq.copied} />
+							</div>
 						</details>
 					))}
 				</section>
