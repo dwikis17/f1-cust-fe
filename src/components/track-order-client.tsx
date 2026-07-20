@@ -12,6 +12,8 @@ type TrackingResponse = {
 	createdAt: string;
 	paymentStatus: "PENDING" | "PAID" | "FAILED" | "EXPIRED" | "CANCELLED" | "REFUNDED";
 	fulfillmentStatus: "UNFULFILLED" | "BOOKED" | "BOOKING_FAILED";
+	lifecycleStatus: "UNFULFILLED" | "PROCESSING" | "FULFILLED" | "CANCELLED";
+	refundState: "NONE" | "REQUIRED" | "EXTERNALLY_REFUNDED";
 	destination: { city: string; province: string };
 	courier: { name: string; serviceName: string; duration: string };
 	items: Array<{ name: string; sku: string; color: string | null; size: string | null; unitPriceIdr: number; quantity: number }>;
@@ -93,8 +95,14 @@ export function TrackOrderClient() {
 		const key = statusAliases[normalizeStatus(status) as keyof typeof statusAliases];
 		return key ? messages.statuses[key] : humanizeStatus(status);
 	};
-	const fallbackStatus = result?.paymentStatus === "PENDING"
-		? messages.waitingPayment
+	const fallbackStatus = result?.refundState === "EXTERNALLY_REFUNDED"
+		? messages.externallyRefunded
+		: result?.refundState === "REQUIRED"
+			? messages.refundRequired
+			: result?.lifecycleStatus === "CANCELLED"
+				? messages.orderCancelled
+				: result?.paymentStatus === "PENDING"
+					? messages.waitingPayment
 		: result?.fulfillmentStatus === "BOOKING_FAILED"
 			? messages.bookingIssue
 			: result?.fulfillmentStatus === "UNFULFILLED"
@@ -123,7 +131,7 @@ export function TrackOrderClient() {
 				</div>
 				<div className="tracking-grid">
 					<article className="tracking-timeline-card">
-						<header><div><span className="tracking-badge">{messages.orderActive}</span><h2>{messages.shipment} {result.orderNumber}</h2><p>{messages.destination}: {result.destination.city}, {result.destination.province}</p></div><div><span>{messages.ordered}</span><strong>{formatDate(result.createdAt, locale, false)}</strong></div></header>
+						<header><div><span className="tracking-badge">{result.lifecycleStatus === "CANCELLED" ? messages.orderCancelled : messages.orderActive}</span><h2>{messages.shipment} {result.orderNumber}</h2><p>{messages.destination}: {result.destination.city}, {result.destination.province}</p></div><div><span>{messages.ordered}</span><strong>{formatDate(result.createdAt, locale, false)}</strong></div></header>
 						{result.tracking?.history.length ? <ol className="tracking-timeline">{result.tracking.history.map((event, index) => <li className={index === result.tracking!.history.length - 1 ? "current" : "complete"} key={`${event.updatedAt}-${index}`}><span aria-hidden="true" /><div><strong>{statusLabel(event.status)}</strong><time dateTime={event.updatedAt}>{formatDate(event.updatedAt, locale)}</time><p>{event.note}</p></div></li>)}</ol> : <div className="tracking-pending"><h3>{fallbackStatus}</h3><p>{messages.notYetAvailableText}</p></div>}
 					</article>
 

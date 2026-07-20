@@ -18,6 +18,8 @@ type OrderReceipt = {
 	promoCode: string | null;
 	paymentStatus: "PENDING" | "PAID" | "FAILED" | "EXPIRED" | "CANCELLED" | "REFUNDED";
 	fulfillmentStatus: "UNFULFILLED" | "BOOKED" | "BOOKING_FAILED";
+	lifecycleStatus: "UNFULFILLED" | "PROCESSING" | "FULFILLED" | "CANCELLED";
+	refundState: "NONE" | "REQUIRED" | "EXTERNALLY_REFUNDED";
 	courier: { name: string; serviceName: string; duration: string };
 	tracking: { id: string | null; waybillId: string | null; status: string | null };
 	createdAt: string;
@@ -40,6 +42,7 @@ export function OrderStatusClient({ id }: { id: string }) {
 		refetchInterval: (query) => {
 			const receipt = query.state.data;
 			if (query.state.status === "error" || !receipt || attempts.current >= 10) return false;
+			if (receipt.lifecycleStatus === "CANCELLED") return false;
 			return receipt.paymentStatus === "PENDING" || (receipt.paymentStatus === "PAID" && receipt.fulfillmentStatus === "UNFULFILLED") ? 2_000 : false;
 		},
 		refetchIntervalInBackground: true,
@@ -54,15 +57,20 @@ export function OrderStatusClient({ id }: { id: string }) {
 	if (!order) return <main className="page-shell order-status-page"><section className="order-status-card"><p className="eyebrow">{messages.title}</p><h1>{error instanceof Error ? error.message : messages.loading}</h1></section></main>;
 	const payment = messages.paymentStatuses[order.paymentStatus];
 	const fulfillment = messages.fulfillmentStatuses[order.fulfillmentStatus];
+	const lifecycle = messages.lifecycleStatuses[order.lifecycleStatus];
+	const refund = messages.refundStatuses[order.refundState];
+	const heading = order.lifecycleStatus === "CANCELLED" ? lifecycle : payment;
 	return (
 		<main className="page-shell order-status-page">
 			<section className="order-status-card">
 				<p className="eyebrow">{messages.title}</p>
-				<h1>{payment}</h1>
+				<h1>{heading}</h1>
 				<p>{messages.orderNumber}: <strong>{order.orderNumber}</strong></p>
+				{order.refundState !== "NONE" ? <p className="payment-notice" role="status">{refund}</p> : null}
 				<dl>
 					<div><dt>{messages.payment}</dt><dd>{payment}</dd></div>
-					<div><dt>{messages.fulfillment}</dt><dd>{fulfillment}</dd></div>
+					<div><dt>{messages.fulfillment}</dt><dd>{lifecycle}</dd></div>
+					<div><dt>{messages.shipment}</dt><dd>{fulfillment}</dd></div>
 					<div><dt>{messages.courier}</dt><dd>{order.courier.name} — {order.courier.serviceName}</dd></div>
 					{order.tracking.waybillId ? <div><dt>{messages.waybill}</dt><dd>{order.tracking.waybillId}</dd></div> : null}
 					<div><dt>{messages.subtotal}</dt><dd>{formatPrice(order.subtotalIdr, locale)}</dd></div>
