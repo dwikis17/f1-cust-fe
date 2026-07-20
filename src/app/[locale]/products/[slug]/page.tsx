@@ -8,26 +8,33 @@ import { SizingGuide } from "@/components/sizing-guide";
 import { StructuredData } from "@/components/structured-data";
 import { catalog, formatPrice } from "@/lib/catalog";
 import { dictionary } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
+import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
 import { absoluteUrl, metadataDescription, siteName } from "@/lib/seo";
 
 type ProductPageProps = {
-	params: Promise<{ slug: string }>;
-	searchParams: Promise<{ collection?: string }>;
+	params: Promise<{ locale: string; slug: string }>;
 };
 
+export const dynamic = "force-static";
+export const dynamicParams = true;
+export const revalidate = 300;
+export function generateStaticParams() { return []; }
+
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-	const [{ slug }, locale] = await Promise.all([params, getLocale()]);
+	const { slug, locale: value } = await params;
+	const locale = parseLocale(value);
+	if (!locale) return {};
 	const product = await catalog.getProduct(slug, locale);
 	if (!product) return {};
 	const messages = dictionary(locale);
-	const path = `/products/${product.slug}`;
+	const basePath = `/products/${product.slug}`;
+	const path = localizedPath(locale, basePath);
 	const description = metadataDescription(product.description, messages.metadata.description);
 	const images = product.photos.map((photo) => ({ url: photo.url, alt: photo.altText || product.name }));
 	return {
 		title: product.name,
 		description,
-		alternates: { canonical: path },
+		alternates: { canonical: path, ...localeAlternates(basePath) },
 		openGraph: {
 			type: "website",
 			title: product.name,
@@ -44,14 +51,18 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 	};
 }
 
-export default async function ProductPage({ params, searchParams }: ProductPageProps) {
-	const [{ slug }, query] = await Promise.all([params, searchParams]);
-	const locale = await getLocale();
+export default async function ProductPage({ params }: ProductPageProps) {
+	const { slug, locale: value } = await params;
+	const locale = parseLocale(value);
+	if (!locale) notFound();
 	const messages = dictionary(locale);
 	const product = await catalog.getProduct(slug, locale);
 	if (!product) notFound();
-	const currentCollection = product.collections.find((collection) => collection.slug === query.collection) ?? product.collections[0];
-	const productUrl = absoluteUrl(`/products/${product.slug}`);
+	const currentCollection = product.collections[0];
+	const homePath = localizedPath(locale);
+	const collectionsPath = localizedPath(locale, "/collections");
+	const currentCollectionPath = currentCollection ? localizedPath(locale, `/collections/${currentCollection.slug}`) : collectionsPath;
+	const productUrl = absoluteUrl(localizedPath(locale, `/products/${product.slug}`));
 	const available = product.variants.some((variant) => variant.available);
 
 	return (
@@ -73,25 +84,25 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 						price: product.priceIdr,
 						availability: available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
 						itemCondition: "https://schema.org/NewCondition",
-						seller: { "@type": "Organization", name: siteName, url: absoluteUrl("/") },
+						seller: { "@type": "Organization", name: siteName, url: absoluteUrl(homePath) },
 					},
 				},
 				{
 					"@context": "https://schema.org",
 					"@type": "BreadcrumbList",
 					itemListElement: [
-						{ "@type": "ListItem", position: 1, name: messages.collections.homepage, item: absoluteUrl("/") },
+						{ "@type": "ListItem", position: 1, name: messages.collections.homepage, item: absoluteUrl(homePath) },
 						{
 							"@type": "ListItem",
 							position: 2,
 							name: currentCollection?.name ?? messages.collections.title,
-							item: absoluteUrl(currentCollection ? `/collections/${currentCollection.slug}` : "/collections"),
+							item: absoluteUrl(currentCollectionPath),
 						},
 						{ "@type": "ListItem", position: 3, name: product.name, item: productUrl },
 					],
 				},
 			]} />
-			<nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href="/">{messages.collections.homepage}</Link><span>/</span><Link href={currentCollection ? `/collections/${currentCollection.slug}` : "/collections"}>{currentCollection?.name ?? messages.collections.title}</Link><span>/</span><strong>{product.name}</strong></nav>
+			<nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href={homePath}>{messages.collections.homepage}</Link><span>/</span><Link href={currentCollectionPath}>{currentCollection?.name ?? messages.collections.title}</Link><span>/</span><strong>{product.name}</strong></nav>
 			<section className="product-top">
 				<ProductGallery photos={product.photos} />
 				<div className="product-info">
@@ -103,7 +114,7 @@ export default async function ProductPage({ params, searchParams }: ProductPageP
 					<div className="product-promises"><span><VerifiedIcon /> {messages.product.officialMerchandise}</span><span><CubeIcon /> {messages.product.liveShippingRates}</span></div>
 					<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />
 					<details><summary>{messages.product.productDetails}</summary><p>{messages.product.productDetailsText}</p></details>
-					<details><summary>{messages.product.deliveryReturns}</summary><p>{messages.product.deliveryReturnsText} <Link className="inline-link" href="/help/shipping-returns">{messages.footer.shippingReturns} →</Link></p></details>
+					<details><summary>{messages.product.deliveryReturns}</summary><p>{messages.product.deliveryReturnsText} <Link className="inline-link" href={localizedPath(locale, "/help/shipping-returns")}>{messages.footer.shippingReturns} →</Link></p></details>
 				</div>
 			</section>
 

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { StructuredData } from "@/components/structured-data";
-import { getLocale } from "@/lib/locale";
+import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
 import { absoluteUrl } from "@/lib/seo";
 
 const documents = {
@@ -31,12 +31,15 @@ const documents = {
 
 type HelpSlug = keyof typeof documents;
 export function generateStaticParams() { return Object.keys(documents).map((slug) => ({ slug })); }
-export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> { const { slug } = await params; const locale = await getLocale(); const document = documents[slug as HelpSlug]?.[locale]; return document ? { title: document.title, description: document.intro, alternates: { canonical: `/help/${slug}` } } : {}; }
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> { const { locale: value, slug } = await params; const locale = parseLocale(value); if (!locale) return {}; const document = documents[slug as HelpSlug]?.[locale]; const basePath = `/help/${slug}`; return document ? { title: document.title, description: document.intro, alternates: { canonical: localizedPath(locale, basePath), ...localeAlternates(basePath) } } : {}; }
 
-export default async function HelpPage({ params }: { params: Promise<{ slug: string }> }) {
-	const { slug } = await params;
-	const locale = await getLocale();
+export default async function HelpPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+	const { locale: value, slug } = await params;
+	const locale = parseLocale(value);
+	if (!locale) notFound();
 	const document = documents[slug as HelpSlug]?.[locale];
 	if (!document) notFound();
-	return <main className="page-shell help-page"><StructuredData data={{ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Valyde Jersey", item: absoluteUrl("/") }, { "@type": "ListItem", position: 2, name: document.title, item: absoluteUrl(`/help/${slug}`) }] }} /><nav className="breadcrumbs" aria-label="Breadcrumb"><Link href="/">Valyde Jersey</Link><span>/</span><strong>{document.title}</strong></nav><header><h1>{document.title}</h1><p>{document.intro}</p></header><div className="help-content">{document.sections.map(([title, body]) => <section key={title}><h2>{title}</h2><p>{body}</p>{slug === "contact" && title === (locale === "id" ? "Mulai permintaan" : "Start a request") ? <a className="text-link" href="mailto:support@valdye.com">support@valdye.com</a> : null}</section>)}</div></main>;
+	const homePath = localizedPath(locale);
+	const helpPath = localizedPath(locale, `/help/${slug}`);
+	return <main className="page-shell help-page"><StructuredData data={{ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Valyde Jersey", item: absoluteUrl(homePath) }, { "@type": "ListItem", position: 2, name: document.title, item: absoluteUrl(helpPath) }] }} /><nav className="breadcrumbs" aria-label="Breadcrumb"><Link href={homePath}>Valyde Jersey</Link><span>/</span><strong>{document.title}</strong></nav><header><h1>{document.title}</h1><p>{document.intro}</p></header><div className="help-content">{document.sections.map(([title, body]) => <section key={title}><h2>{title}</h2><p>{body}</p>{slug === "contact" && title === (locale === "id" ? "Mulai permintaan" : "Start a request") ? <a className="text-link" href="mailto:support@valydejersey.com">support@valydejersey.com</a> : null}</section>)}</div></main>;
 }

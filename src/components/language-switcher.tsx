@@ -1,19 +1,21 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useDictionary, useLocale } from "@/components/i18n-provider";
-import { LOCALE_COOKIE, type Locale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 
 export function LanguageSwitcher() {
   const locale = useLocale();
   const messages = useDictionary();
   const router = useRouter();
+  const pathname = usePathname();
 
   function select(next: Locale) {
     if (next === locale) return;
-    document.cookie = `${LOCALE_COOKIE}=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
-    router.refresh();
+    const segments = pathname.split("/");
+    segments[1] = next;
+    router.push(`${segments.join("/") || `/${next}`}${window.location.search}${window.location.hash}`);
   }
 
   return (

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 import { addStoredCartItem, readStoredCart, resolveCartLines, type StoredCartItem, writeStoredCart } from "./cart.ts";
-import type { PublicProduct } from "./catalog.ts";
+import type { CartItemProduct } from "./cart-catalog.ts";
 
 type CartStore = {
 	items: StoredCartItem[];
@@ -10,7 +10,7 @@ type CartStore = {
 	addItem: (item: StoredCartItem) => void;
 	setQuantity: (variantId: string, quantity: number) => void;
 	removeItem: (variantId: string) => void;
-	reconcile: (products: PublicProduct[]) => void;
+	reconcile: (products: CartItemProduct[]) => void;
 	clear: () => void;
 };
 
@@ -41,7 +41,9 @@ export const useCartStore = create<CartStore>((set, get) => {
 			currentItems();
 		},
 		addItem(item) {
-			persist(addStoredCartItem(currentItems(), item));
+			const items = currentItems();
+			if (items.length >= 50 && !items.some((candidate) => candidate.variantId === item.variantId)) return;
+			persist(addStoredCartItem(items, item));
 		},
 		setQuantity(variantId, quantity) {
 			persist(currentItems().map((item) => item.variantId === variantId

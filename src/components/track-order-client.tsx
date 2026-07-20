@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
 import { formatPrice } from "@/lib/catalog";
+import { localizedPath } from "@/lib/locale";
 
 type TrackingResponse = {
 	orderNumber: string;
@@ -129,7 +130,7 @@ export function TrackOrderClient() {
 					<aside className="tracking-sidebar">
 						<section className="tracking-detail-card"><h2>{messages.shippingDetails}</h2><dl><div><dt>{messages.carrier}</dt><dd>{result.courier.name}</dd></div><div><dt>{messages.service}</dt><dd>{result.courier.serviceName}</dd></div>{result.tracking ? <div className="wide"><dt>{messages.trackingNumber}</dt><dd><span>{result.tracking.waybillId}</span><button type="button" onClick={async () => { await navigator.clipboard.writeText(result.tracking!.waybillId); setCopied(true); }} aria-label={messages.copyTracking}>{copied ? messages.copied : messages.copy}</button></dd></div> : null}</dl>{result.tracking?.link ? <a className="text-link" href={result.tracking.link} target="_blank" rel="noreferrer">{messages.openCarrier}</a> : null}</section>
 						<section className="tracking-package-card"><h2>{messages.packageContents}</h2><ul>{result.items.map((item) => <li key={item.sku}><div><strong>{item.name}</strong><span>{[item.color, item.size, item.sku].filter(Boolean).join(" · ")}</span></div><div><span>{messages.quantity} {item.quantity}</span><strong>{formatPrice(item.unitPriceIdr * item.quantity, locale)}</strong></div></li>)}</ul></section>
-						<Link className="tracking-support" href="/help/contact"><strong>{messages.needHelp}</strong><span>{messages.supportText}</span><b>{messages.contactSupport} →</b></Link>
+						<Link className="tracking-support" href={localizedPath(locale, "/help/contact")}><strong>{messages.needHelp}</strong><span>{messages.supportText}</span><b>{messages.contactSupport} →</b></Link>
 					</aside>
 				</div>
 				<div className="tracking-source"><span>{messages.source}: Biteship</span><span>{messages.lastUpdate}: {latestUpdate ? formatDate(latestUpdate, locale) : messages.noUpdates}</span></div>

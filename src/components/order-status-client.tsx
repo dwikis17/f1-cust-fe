@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
 import { useCartStore } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/catalog";
+import { localizedPath } from "@/lib/locale";
 
 type OrderReceipt = {
 	id: string;
@@ -70,7 +71,7 @@ export function OrderStatusClient({ id }: { id: string }) {
 					<div><dt>{messages.total}</dt><dd>{formatPrice(order.totalIdr, locale)}</dd></div>
 				</dl>
 				{error instanceof Error ? <p className="payment-notice" role="alert">{error.message}</p> : null}
-				<div className="order-status-actions"><Link className="button button-dark" href="/track-order">{messages.trackShipment}</Link><Link className="button" href="/">{messages.returnHome}</Link></div>
+				<div className="order-status-actions"><Link className="button button-dark" href={localizedPath(locale, "/track-order")}>{messages.trackShipment}</Link><Link className="button" href={localizedPath(locale)}>{messages.returnHome}</Link></div>
 			</section>
 		</main>
 	);

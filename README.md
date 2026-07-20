@@ -15,7 +15,7 @@ The storefront requires `f1-be` for all catalog, collection, team, driver, and f
 API_BASE_URL=http://localhost:3000
 ```
 
-`API_BASE_URL` is required in development and production. Catalog responses are revalidated every 180 seconds, so admin changes may take up to three minutes to appear. The catalog adapter in `src/lib/catalog.ts` calls:
+`API_BASE_URL` is required in development and production. Product and collection responses use a five-minute fallback TTL, while taxonomy, FAQ, and sitemap data use one hour. Backend mutation webhooks normally invalidate affected tags earlier. The catalog adapter in `src/lib/catalog.ts` calls:
 
 - `GET /api/categories`
 - `GET /api/tags`
@@ -25,12 +25,15 @@ API_BASE_URL=http://localhost:3000
 - `GET /api/collections`
 - `GET /api/collections/:slug/products`
 - `GET /api/faqs?locale=en|id`
+- `POST /api/products/cart-items`
 
-The storefront supports English and Indonesian without locale-prefixed URLs. The header language switcher stores `en` or `id` in the `valdye-locale` cookie, and catalog requests forward that selection through the public API's `locale` query parameter. English is the default and the fallback when optional Indonesian product copy is missing.
+The storefront uses deterministic `/en` and `/id` URLs. Legacy unprefixed storefront URLs permanently redirect to English, and every indexable page publishes canonical and language-alternate URLs. Indonesian catalog requests use `locale=id`; English remains the field-level fallback for untranslated product copy.
 
 The cart posts shipping estimates to the storefront's same-origin `POST /api/shipping/rates` route, which forwards to `API_BASE_URL` without exposing backend configuration to the browser. The backend must have its Biteship key and origin postal code configured before live estimates are available.
 
-Checkout uses the same-origin `POST /api/checkout` proxy and Midtrans Snap.js. Set `NEXT_PUBLIC_MIDTRANS_ENV=sandbox` and the public `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` from `.env.example`; the Midtrans server key belongs only in `f1-be`. Payment and shipment state is displayed at `/orders/:id` from the safe public receipt endpoint.
+Checkout uses the same-origin `POST /api/checkout` proxy and Midtrans Snap.js. Set `NEXT_PUBLIC_MIDTRANS_ENV=sandbox` and the public `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` from `.env.example`; the Midtrans server key belongs only in `f1-be`. Payment and shipment state is displayed at `/:locale/orders/:id` from the safe public receipt endpoint.
+
+OpenNext stores ISR and fetch-cache entries in the `f1-cust-fe-incremental-cache` R2 bucket and uses Durable Objects for time-based and tag revalidation. Set `REVALIDATE_SECRET` to the same value as the backend's `STOREFRONT_REVALIDATE_SECRET`.
 
 ## Checks and deployment
 

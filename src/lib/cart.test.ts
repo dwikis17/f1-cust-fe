@@ -2,14 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { addStoredCartItem, CART_STORAGE_KEY, cartSubtotal, parseStoredCart, resolveCartLines, type StoredCartItem } from "./cart.ts";
 import { useCartStore } from "./cart-store.ts";
-import type { PublicProduct } from "./catalog.ts";
+import type { CartItemProduct } from "./cart-catalog.ts";
 
 const item: StoredCartItem = { productId: "product-1", productName: "Helmet", variantId: "variant-1", quantity: 2 };
 const product = {
-	id: "product-1",
-	priceIdr: 1_250_000,
-	variants: [{ id: "variant-1", available: true }],
-} as PublicProduct;
+	product: { id: "product-1", name: "Helmet", slug: "helmet", priceIdr: 1_250_000, merchandisingLabel: "Helmets", photo: null },
+	variant: { id: "variant-1", sku: "HELMET-1", size: null, color: null, available: true },
+} satisfies CartItemProduct;
 
 test("cart storage rejects malformed data and resolves authoritative product totals", () => {
 	assert.deepEqual(parseStoredCart("not-json"), []);

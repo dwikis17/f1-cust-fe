@@ -54,8 +54,17 @@ function apiUrl(path: string): string {
 	return `${apiBaseUrl}${path}`;
 }
 
-async function apiFetch<T>(path: string): Promise<T> {
-	const response = await fetch(apiUrl(path), { next: { revalidate: 180 } });
+const CATALOG_TTL_SECONDS = 300;
+const TAXONOMY_TTL_SECONDS = 3_600;
+
+async function apiFetch<T>(path: string, revalidate = CATALOG_TTL_SECONDS, tags: string[] = []): Promise<T> {
+	const response = await fetch(apiUrl(path), { next: { revalidate, tags } });
+	if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
+	return response.json() as Promise<T>;
+}
+
+async function staticApiFetch<T>(path: string, tags: string[]): Promise<T> {
+	const response = await fetch(apiUrl(path), { cache: "force-cache", next: { tags } });
 	if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
 	return response.json() as Promise<T>;
 }
@@ -72,29 +81,36 @@ function queryString(query: ProductQuery & { locale?: Locale }): string {
 }
 
 export const catalog = {
-	listProducts(query: ProductQuery = {}, locale: Locale = "en"): Promise<ProductListResponse> {
-		return apiFetch(`/api/products${queryString({ ...query, locale })}`);
+	listProducts(query: ProductQuery = {}, locale: Locale = "en", revalidate = CATALOG_TTL_SECONDS): Promise<ProductListResponse> {
+		return apiFetch(`/api/products${queryString({ ...query, locale })}`, revalidate, ["catalog:products"]);
 	},
 	async getProduct(slug: string, locale: Locale = "en"): Promise<PublicProduct | null> {
-		const response = await fetch(apiUrl(`/api/products/${encodeURIComponent(slug)}?locale=${locale}`), { next: { revalidate: 180 } });
+		const response = await fetch(apiUrl(`/api/products/${encodeURIComponent(slug)}?locale=${locale}`), {
+			next: { revalidate: CATALOG_TTL_SECONDS, tags: ["catalog:products", `catalog:product:${slug}`] },
+		});
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
 		return response.json() as Promise<PublicProduct>;
 	},
 	listCategories(): Promise<CatalogEntity[]> {
-		return apiFetch("/api/categories");
+		return apiFetch("/api/categories", TAXONOMY_TTL_SECONDS, ["catalog:products"]);
 	},
 	listTags(): Promise<CatalogEntity[]> {
-		return apiFetch("/api/tags");
+		return apiFetch("/api/tags", TAXONOMY_TTL_SECONDS, ["catalog:products"]);
 	},
 	listTeams(): Promise<Team[]> {
-		return apiFetch("/api/teams");
+		return apiFetch("/api/teams", TAXONOMY_TTL_SECONDS, ["catalog:teams"]);
 	},
-	listCollections(): Promise<CollectionNode[]> {
-		return apiFetch("/api/collections");
+	listCollections(revalidate = CATALOG_TTL_SECONDS): Promise<CollectionNode[]> {
+		return apiFetch("/api/collections", revalidate, ["catalog:collections"]);
+	},
+	listNavigationCollections(): Promise<CollectionNode[]> {
+		return staticApiFetch("/api/collections", ["catalog:collections"]);
 	},
 	async getCollection(slug: string): Promise<CollectionDetail | null> {
-		const response = await fetch(apiUrl(`/api/collections/${encodeURIComponent(slug)}`), { next: { revalidate: 180 } });
+		const response = await fetch(apiUrl(`/api/collections/${encodeURIComponent(slug)}`), {
+			next: { revalidate: CATALOG_TTL_SECONDS, tags: ["catalog:collections", `catalog:collection:${slug}`] },
+		});
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
 		return response.json() as Promise<CollectionDetail>;
@@ -102,7 +118,7 @@ export const catalog = {
 	async listCollectionProducts(slug: string, query: ProductQuery = {}, locale: Locale = "en"): Promise<CollectionProductsResponse | null> {
 		const response = await fetch(
 			apiUrl(`/api/collections/${encodeURIComponent(slug)}/products${queryString({ ...query, locale })}`),
-			{ next: { revalidate: 180 } },
+			{ next: { revalidate: CATALOG_TTL_SECONDS, tags: ["catalog:products", "catalog:collections", `catalog:collection:${slug}`] } },
 		);
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);

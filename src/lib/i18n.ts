@@ -1,5 +1,3 @@
-export const LOCALE_COOKIE = "valdye-locale";
-
 export const locales = ["en", "id"] as const;
 export type Locale = (typeof locales)[number];
 
@@ -186,6 +184,8 @@ const en = {
   },
   cart: {
     loadingGarage: "Loading your bag",
+    loadFailed: "We could not refresh your bag. Your saved items are still here.",
+    retry: "Try again",
     yourBag: "Your bag",
     emptyTitle: "Your bag is empty",
     emptyText: "Build your race-day collection from the latest technical equipment.",
@@ -549,6 +549,8 @@ const id: Dictionary = {
   },
   cart: {
     loadingGarage: "Memuat keranjang Anda",
+    loadFailed: "Kami tidak dapat memperbarui keranjang Anda. Item tersimpan tetap aman.",
+    retry: "Coba lagi",
     yourBag: "Keranjang Anda",
     emptyTitle: "Keranjang Anda kosong",
     emptyText: "Bangun koleksi hari balap Anda dari perlengkapan teknis terbaru.",

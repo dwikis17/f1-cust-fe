@@ -1,20 +1,29 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { notFound } from "next/navigation";
 import { AppProviders } from "@/components/app-providers";
 import { I18nProvider } from "@/components/i18n-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { dictionary } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
+import { localeStaticParams, parseLocale } from "@/lib/locale";
 import { siteName, siteUrl } from "@/lib/seo";
-import "./globals.css";
+import "../globals.css";
 
 const display = Space_Grotesk({ variable: "--font-display", subsets: ["latin"], display: "swap" });
 const body = Hanken_Grotesk({ variable: "--font-body", subsets: ["latin"], display: "swap" });
 const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], display: "swap" });
 
-export async function generateMetadata(): Promise<Metadata> {
-	const messages = dictionary(await getLocale());
+export const dynamicParams = true;
+export function generateStaticParams() {
+	return localeStaticParams();
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+	const { locale: value } = await params;
+	const locale = parseLocale(value);
+	if (!locale) return {};
+	const messages = dictionary(locale);
 	const googleVerification = process.env.GOOGLE_SITE_VERIFICATION;
 	return {
 		metadataBase: new URL(siteUrl),
@@ -49,8 +58,10 @@ export async function generateMetadata(): Promise<Metadata> {
 	};
 }
 
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-	const locale = await getLocale();
+export default async function RootLayout({ children, params }: Readonly<{ children: React.ReactNode; params: Promise<{ locale: string }> }>) {
+	const { locale: value } = await params;
+	const locale = parseLocale(value);
+	if (!locale) notFound();
 	return (
 		<html lang={locale} data-scroll-behavior="smooth">
 			<body className={`${display.variable} ${body.variable} ${mono.variable}`}>

@@ -1,9 +1,0 @@
-"use client";
-
-import Link from "next/link";
-import { useDictionary } from "@/components/i18n-provider";
-
-export default function CollectionError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
-	const messages = useDictionary();
-	return <main className="page-shell collection-page"><section className="empty-state collection-error"><p className="eyebrow">{messages.collections.unavailable}</p><h1>{messages.collections.loadFailed}</h1><p>{messages.collections.retainedFilters}</p><div className="hero-actions"><button className="button button-dark" type="button" onClick={reset}>{messages.collections.retry}</button><Link className="button" href="/collections">{messages.collections.allCollections}</Link></div></section></main>;
-}

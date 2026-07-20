@@ -5,11 +5,13 @@ import Link from "next/link";
 import Script from "next/script";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
+import { useCartCatalog } from "@/components/use-cart-catalog";
 import { cartSubtotal, resolveCartLines, type CartLine } from "@/lib/cart";
 import { useCartStore } from "@/lib/cart-store";
-import { formatPrice, type PublicProduct } from "@/lib/catalog";
+import { formatPrice } from "@/lib/catalog";
+import { localizedPath } from "@/lib/locale";
 
 type Step = "shipping" | "review";
 type ShippingRate = {
@@ -60,36 +62,32 @@ declare global {
 }
 
 const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
-const midtransSnapUrl = process.env.NEXT_PUBLIC_MIDTRANS_ENV === "production"
+const midtransSnapUrl = String(process.env.NEXT_PUBLIC_MIDTRANS_ENV) === "production"
 	? "https://app.midtrans.com/snap/snap.js"
 	: "https://app.sandbox.midtrans.com/snap/snap.js";
 
 const emptyDetails: ShippingDetails = { email: "", firstName: "", lastName: "", address: "", province: "", city: "", postalCode: "", phone: "" };
 
-export function CheckoutClient({ products }: { products: PublicProduct[] }) {
+export function CheckoutClient() {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const locale = useLocale();
 	const messages = useDictionary();
 	const items = useCartStore((state) => state.items);
 	const ready = useCartStore((state) => state.hydrated);
-	const reconcile = useCartStore((state) => state.reconcile);
+	const { products, error: catalogError, loading: catalogLoading, retry: retryCatalog } = useCartCatalog();
 	const [step, setStep] = useState<Step>("shipping");
 	const [details, setDetails] = useState<ShippingDetails>(emptyDetails);
 	const [selectedRateKey, setSelectedRateKey] = useState("");
-	const [idempotencyKey, setIdempotencyKey] = useState("");
+	const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 	const [paymentError, setPaymentError] = useState("");
 	const [snapReady, setSnapReady] = useState(false);
 	const [promoInput, setPromoInput] = useState("");
-	const [appliedPromo, setAppliedPromo] = useState<PromoPreview | null>(null);
-
-	useEffect(() => {
-		if (ready) reconcile(products);
-	}, [products, ready, reconcile]);
-
-	useEffect(() => setIdempotencyKey(crypto.randomUUID()), []);
+	const [appliedPromoState, setAppliedPromoState] = useState<{ cartKey: string; promo: PromoPreview } | null>(null);
 
 	const lines = useMemo(() => resolveCartLines(items, products), [items, products]);
+	const cartKey = lines.map((line) => `${line.variantId}:${line.quantity}`).join("|");
+	const appliedPromo = appliedPromoState?.cartKey === cartKey ? appliedPromoState.promo : null;
 	const subtotal = cartSubtotal(lines);
 	const shippingMutation = useMutation({
 		mutationFn: (request: ShippingRequest) => queryClient.fetchQuery({
@@ -141,12 +139,10 @@ export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 			return body;
 		},
 		onSuccess: (promo) => {
-			setAppliedPromo(promo);
+			setAppliedPromoState({ cartKey, promo });
 			setPromoInput(promo.code);
 		},
 	});
-	const cartKey = lines.map((line) => `${line.variantId}:${line.quantity}`).join("|");
-	useEffect(() => setAppliedPromo(null), [cartKey]);
 	const checkoutMutation = useMutation({
 		mutationFn: async () => {
 			if (!selectedRate || !idempotencyKey) throw new Error(messages.checkout.paymentFailed);
@@ -205,8 +201,8 @@ export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 			return;
 		}
 		window.snap.pay(payment.snapToken, {
-			onSuccess: () => router.push(`/orders/${payment.orderId}`),
-			onPending: () => router.push(`/orders/${payment.orderId}`),
+			onSuccess: () => router.push(localizedPath(locale, `/orders/${payment.orderId}`)),
+			onPending: () => router.push(localizedPath(locale, `/orders/${payment.orderId}`)),
 			onError: () => setPaymentError(messages.checkout.paymentFailed),
 			onClose: () => setPaymentError(messages.checkout.paymentClosed),
 		});
@@ -222,8 +218,9 @@ export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 		checkoutMutation.mutate();
 	}
 
-	if (!ready) return <main className="page-shell checkout-page"><div className="checkout-empty"><p className="eyebrow">{messages.checkout.loading}</p></div></main>;
-	if (!lines.length) return <main className="page-shell checkout-page"><div className="checkout-empty"><p className="eyebrow">{messages.checkout.checkout}</p><h1>{messages.checkout.emptyTitle}</h1><p>{messages.checkout.emptyText}</p><Link className="button button-dark" href="/cart">{messages.checkout.returnCart}</Link></div></main>;
+	if (!ready || catalogLoading) return <main className="page-shell checkout-page"><div className="checkout-empty"><p className="eyebrow">{messages.checkout.loading}</p></div></main>;
+	if (catalogError) return <main className="page-shell checkout-page"><div className="checkout-empty"><h1>{messages.cart.loadFailed}</h1><button className="button button-dark" type="button" onClick={retryCatalog}>{messages.cart.retry}</button></div></main>;
+	if (!lines.length) return <main className="page-shell checkout-page"><div className="checkout-empty"><p className="eyebrow">{messages.checkout.checkout}</p><h1>{messages.checkout.emptyTitle}</h1><p>{messages.checkout.emptyText}</p><Link className="button button-dark" href={localizedPath(locale, "/cart")}>{messages.checkout.returnCart}</Link></div></main>;
 
 	return (
 		<main className="page-shell checkout-page">
@@ -245,7 +242,7 @@ export function CheckoutClient({ products }: { products: PublicProduct[] }) {
 					appliedPromo={appliedPromo}
 					applyPromo={() => promoMutation.mutate()}
 					removePromo={() => {
-						setAppliedPromo(null);
+						setAppliedPromoState(null);
 						setPromoInput("");
 						promoMutation.reset();
 					}}
@@ -301,7 +298,7 @@ function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelect
 				<Field label={checkout.postcode} autoComplete="postal-code" inputMode="numeric" pattern="[0-9]{5}" minLength={5} maxLength={5} value={details.postalCode} update={(value) => updateDetail("postalCode", value)} />
 				<Field className="full" label={checkout.phone} type="tel" autoComplete="tel" value={details.phone} update={(value) => updateDetail("phone", value)} />
 			</div></fieldset>
-			<div className="shipping-actions"><Link href="/cart">← {checkout.returnCart}</Link><button className="button button-dark" type="submit" disabled={loading}>{loading ? checkout.checking : checkout.getDeliveryOptions}</button></div>
+			<div className="shipping-actions"><Link href={localizedPath(locale, "/cart")}>← {checkout.returnCart}</Link><button className="button button-dark" type="submit" disabled={loading}>{loading ? checkout.checking : checkout.getDeliveryOptions}</button></div>
 		</form>
 		<div className="checkout-rates" aria-live="polite">
 			{error ? <p className="checkout-error">{error}</p> : null}
@@ -344,5 +341,5 @@ function CheckoutSummary({ lines, subtotal, discount, selectedRate, total, promo
 	messages: ReturnType<typeof useDictionary>["checkout"];
 	locale: "en" | "id";
 }) {
-	return <aside className="checkout-summary"><h2>{messages.orderSummary}</h2><ul>{lines.map((line) => <li key={line.variantId}><div>{line.product.photos[0] ? <Image src={line.product.photos[0].url} alt="" fill sizes="72px" /> : <span className="cart-image-placeholder">V</span>}<span className="checkout-item-quantity">{line.quantity}</span></div><p><strong>{line.product.name}</strong><small>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</small></p><b>{formatPrice(line.product.priceIdr * line.quantity, locale)}</b></li>)}</ul><div className="promo-code"><label htmlFor="promo-code">{messages.promoCode}</label><form onSubmit={(event) => { event.preventDefault(); applyPromo(); }}><input id="promo-code" value={promoInput} placeholder={messages.promoPlaceholder} disabled={promoLoading || locked || Boolean(appliedPromo)} onChange={(event) => setPromoInput(event.target.value.toUpperCase())} /><button type="submit" disabled={promoLoading || locked || Boolean(appliedPromo) || promoInput.trim().length < 3}>{promoLoading ? messages.applyingPromo : messages.applyPromo}</button></form>{appliedPromo ? <p><span>{appliedPromo.code} · {appliedPromo.discountPercentage}%</span><button type="button" disabled={locked} onClick={removePromo}>{messages.removePromo}</button></p> : null}{promoError ? <small role="alert">{promoError}</small> : null}</div><dl><div><dt>{messages.subtotal}</dt><dd>{formatPrice(subtotal, locale)}</dd></div>{appliedPromo ? <div className="promo-discount"><dt>{messages.discount}</dt><dd>-{formatPrice(discount, locale)}</dd></div> : null}<div><dt>{messages.shipping}</dt><dd>{selectedRate ? formatPrice(selectedRate.price, locale) : messages.calculatedAfterSelection}</dd></div><div><dt>{messages.total}</dt><dd>{formatPrice(total, locale)}</dd></div></dl><p className="secure-note">◇ {messages.secureCheckout}</p></aside>;
+	return <aside className="checkout-summary"><h2>{messages.orderSummary}</h2><ul>{lines.map((line) => <li key={line.variantId}><div>{line.product.photo ? <Image src={line.product.photo.url} alt="" fill sizes="72px" /> : <span className="cart-image-placeholder">V</span>}<span className="checkout-item-quantity">{line.quantity}</span></div><p><strong>{line.product.name}</strong><small>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</small></p><b>{formatPrice(line.product.priceIdr * line.quantity, locale)}</b></li>)}</ul><div className="promo-code"><label htmlFor="promo-code">{messages.promoCode}</label><form onSubmit={(event) => { event.preventDefault(); applyPromo(); }}><input id="promo-code" value={promoInput} placeholder={messages.promoPlaceholder} disabled={promoLoading || locked || Boolean(appliedPromo)} onChange={(event) => setPromoInput(event.target.value.toUpperCase())} /><button type="submit" disabled={promoLoading || locked || Boolean(appliedPromo) || promoInput.trim().length < 3}>{promoLoading ? messages.applyingPromo : messages.applyPromo}</button></form>{appliedPromo ? <p><span>{appliedPromo.code} · {appliedPromo.discountPercentage}%</span><button type="button" disabled={locked} onClick={removePromo}>{messages.removePromo}</button></p> : null}{promoError ? <small role="alert">{promoError}</small> : null}</div><dl><div><dt>{messages.subtotal}</dt><dd>{formatPrice(subtotal, locale)}</dd></div>{appliedPromo ? <div className="promo-discount"><dt>{messages.discount}</dt><dd>-{formatPrice(discount, locale)}</dd></div> : null}<div><dt>{messages.shipping}</dt><dd>{selectedRate ? formatPrice(selectedRate.price, locale) : messages.calculatedAfterSelection}</dd></div><div><dt>{messages.total}</dt><dd>{formatPrice(total, locale)}</dd></div></dl><p className="secure-note">◇ {messages.secureCheckout}</p></aside>;
 }

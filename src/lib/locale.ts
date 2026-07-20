@@ -1,10 +1,26 @@
-import "server-only";
+import { isLocale, locales, type Locale } from "./i18n.ts";
 
-import { cookies } from "next/headers";
+export type LocaleParams = { params: Promise<{ locale: string }> };
 
-import { isLocale, LOCALE_COOKIE, type Locale } from "./i18n";
+export function parseLocale(value: string): Locale | null {
+	return isLocale(value) ? value : null;
+}
 
-export async function getLocale(): Promise<Locale> {
-  const value = (await cookies()).get(LOCALE_COOKIE)?.value;
-  return isLocale(value) ? value : "en";
+export function localizedPath(locale: Locale, path = "/"): string {
+	const normalized = path.startsWith("/") ? path : `/${path}`;
+	return normalized === "/" ? `/${locale}` : `/${locale}${normalized}`;
+}
+
+export function localeAlternates(path = "/") {
+	return {
+		languages: {
+			en: localizedPath("en", path),
+			id: localizedPath("id", path),
+			"x-default": localizedPath("en", path),
+		},
+	};
+}
+
+export function localeStaticParams() {
+	return locales.map((locale) => ({ locale }));
 }

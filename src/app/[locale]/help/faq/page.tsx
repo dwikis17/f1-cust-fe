@@ -5,18 +5,25 @@ import { FaqCopyButton } from "@/components/faq-copy-button";
 import { StructuredData } from "@/components/structured-data";
 import { listFaqs } from "@/lib/faqs";
 import { dictionary } from "@/lib/i18n";
-import { getLocale } from "@/lib/locale";
+import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
 import { absoluteUrl } from "@/lib/seo";
 
-export async function generateMetadata(): Promise<Metadata> {
-	const messages = dictionary(await getLocale());
-	return { title: messages.faq.title, description: messages.faq.intro, alternates: { canonical: "/help/faq" } };
+export const revalidate = 3_600;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+	const locale = parseLocale((await params).locale);
+	if (!locale) return {};
+	const messages = dictionary(locale);
+	return { title: messages.faq.title, description: messages.faq.intro, alternates: { canonical: localizedPath(locale, "/help/faq"), ...localeAlternates("/help/faq") } };
 }
 
-export default async function FaqPage() {
-	const locale = await getLocale();
+export default async function FaqPage({ params }: { params: Promise<{ locale: string }> }) {
+	const locale = parseLocale((await params).locale);
+	if (!locale) return null;
 	const messages = dictionary(locale);
 	const faqs = await listFaqs(locale);
+	const homePath = localizedPath(locale);
+	const faqPath = localizedPath(locale, "/help/faq");
 
 	return (
 		<main className="page-shell help-page faq-page">
@@ -24,12 +31,12 @@ export default async function FaqPage() {
 				"@context": "https://schema.org",
 				"@type": "BreadcrumbList",
 				itemListElement: [
-					{ "@type": "ListItem", position: 1, name: "Valyde Jersey", item: absoluteUrl("/") },
-					{ "@type": "ListItem", position: 2, name: messages.faq.title, item: absoluteUrl("/help/faq") },
+					{ "@type": "ListItem", position: 1, name: "Valyde Jersey", item: absoluteUrl(homePath) },
+					{ "@type": "ListItem", position: 2, name: messages.faq.title, item: absoluteUrl(faqPath) },
 				],
 			}} />
 			<nav className="breadcrumbs" aria-label={messages.faq.breadcrumb}>
-				<Link href="/">Valyde Jersey</Link><span>/</span><strong>{messages.faq.title}</strong>
+				<Link href={homePath}>Valyde Jersey</Link><span>/</span><strong>{messages.faq.title}</strong>
 			</nav>
 			<header className="faq-hero">
 				<div>

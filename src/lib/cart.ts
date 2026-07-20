@@ -1,4 +1,4 @@
-import type { ProductVariant, PublicProduct } from "./catalog";
+import type { CartItemProduct } from "./cart-catalog";
 
 export const CART_STORAGE_KEY = "valdye-cart";
 
@@ -11,8 +11,8 @@ export type StoredCartItem = {
 
 export type CartLine = StoredCartItem & {
 	index: number;
-	product: PublicProduct;
-	variant: ProductVariant;
+	product: CartItemProduct["product"];
+	variant: CartItemProduct["variant"];
 };
 
 type CartStorage = Pick<Storage, "getItem" | "setItem">;
@@ -54,11 +54,10 @@ export function addStoredCartItem(items: StoredCartItem[], item: StoredCartItem)
 		: candidate);
 }
 
-export function resolveCartLines(items: StoredCartItem[], products: PublicProduct[]): CartLine[] {
+export function resolveCartLines(items: StoredCartItem[], products: CartItemProduct[]): CartLine[] {
 	return items.flatMap((item, index) => {
-		const product = products.find((candidate) => candidate.id === item.productId);
-		const variant = product?.variants.find((candidate) => candidate.id === item.variantId);
-		return product && variant ? [{ ...item, index, product, variant }] : [];
+		const value = products.find((candidate) => candidate.product.id === item.productId && candidate.variant.id === item.variantId);
+		return value ? [{ ...item, index, product: value.product, variant: value.variant }] : [];
 	});
 }
 
