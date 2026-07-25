@@ -34,7 +34,7 @@ async function listAllProducts(): Promise<PublicProduct[]> {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-	const [collectionTree, products] = await Promise.all([catalog.listCollections(3_600), listAllProducts()]);
+	const [collectionTree, products] = await Promise.all([catalog.listCollections("en", 3_600), listAllProducts()]);
 	const collections = flattenCollections(collectionTree);
 
 	return [

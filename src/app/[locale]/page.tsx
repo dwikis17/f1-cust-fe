@@ -23,10 +23,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 	const messages = dictionary(locale);
 	const homePath = localizedPath(locale);
 	const collectionsPath = localizedPath(locale, "/collections");
-	const [{ data: products }, teams] = await Promise.all([
+	const [{ data: products }, collectionTree] = await Promise.all([
 		catalog.listProducts({ limit: 4 }, locale),
-		catalog.listTeams(),
+		catalog.listCollections(locale),
 	]);
+	const teams = collectionTree.flatMap((parent) => parent.children).filter((collection) => collection.kind === "TEAM");
 	return (
 		<main className="page-shell home-page">
 			<StructuredData data={{
@@ -62,7 +63,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 			</section>
 
 			<section className="team-strip" aria-label={messages.home.teamsLabel}>
-				{teams.map((team) => <Link href={localizedPath(locale, `/collections/${team.slug}`)} aria-label={team.name} key={team.id}>{team.logoUrl ? <Image src={team.logoUrl} alt={team.name} fill sizes="(max-width: 640px) 104px, 12vw" /> : <span>{team.name}</span>}</Link>)}
+				{teams.map((team) => <Link href={localizedPath(locale, `/collections/${team.slug}`)} aria-label={team.name} key={team.id}>{team.imageUrl ? <Image src={team.imageUrl} alt={team.name} fill sizes="(max-width: 640px) 104px, 12vw" /> : <span>{team.name}</span>}</Link>)}
 			</section>
 
 			<section className="section selected-products">

@@ -102,14 +102,14 @@ export const catalog = {
 	listTeams(): Promise<Team[]> {
 		return apiFetch("/api/teams", TAXONOMY_TTL_SECONDS, ["catalog:teams"]);
 	},
-	listCollections(revalidate = CATALOG_TTL_SECONDS): Promise<CollectionNode[]> {
-		return apiFetch("/api/collections", revalidate, ["catalog:collections"]);
+	listCollections(locale: Locale = "en", revalidate = CATALOG_TTL_SECONDS): Promise<CollectionNode[]> {
+		return apiFetch(`/api/collections?locale=${locale}`, revalidate, ["catalog:collections"]);
 	},
-	listNavigationCollections(): Promise<CollectionNode[]> {
-		return staticApiFetch("/api/collections", ["catalog:collections"]);
+	listNavigationCollections(locale: Locale = "en"): Promise<CollectionNode[]> {
+		return staticApiFetch(`/api/collections?locale=${locale}`, ["catalog:collections"]);
 	},
-	async getCollection(slug: string): Promise<CollectionDetail | null> {
-		const response = await fetch(apiUrl(`/api/collections/${encodeURIComponent(slug)}`), {
+	async getCollection(slug: string, locale: Locale = "en"): Promise<CollectionDetail | null> {
+		const response = await fetch(apiUrl(`/api/collections/${encodeURIComponent(slug)}?locale=${locale}`), {
 			next: { revalidate: CATALOG_TTL_SECONDS, tags: ["catalog:collections", `catalog:collection:${slug}`] },
 		});
 		if (response.status === 404) return null;

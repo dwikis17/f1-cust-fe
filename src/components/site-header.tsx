@@ -7,7 +7,7 @@ import { localizedPath } from "@/lib/locale";
 import { MenuIcon } from "./icons";
 
 export async function SiteHeader({ locale }: { locale: Locale }) {
-	const collections = await catalog.listNavigationCollections();
+	const collections = await catalog.listNavigationCollections(locale);
 	const messages = dictionary(locale);
 	return (
 		<header className="site-header">

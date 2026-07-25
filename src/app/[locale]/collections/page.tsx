@@ -31,7 +31,7 @@ export default async function CollectionsPage({ params }: PageProps) {
 	const locale = parseLocale(value);
 	if (!locale) return null;
 	const messages = dictionary(locale);
-	const parents = (await catalog.listCollections()).filter((collection) => collection.children.length > 0);
+	const parents = (await catalog.listCollections(locale)).filter((collection) => collection.children.length > 0);
 
 	return (
 		<main className="page-shell collection-page">
