@@ -113,7 +113,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 						<p className="eyebrow">{product.team?.name ?? product.productType.name}{product.drivers.length ? ` / ${product.drivers.map((driver) => driver.name).join(" + ")}` : ""}</p>
 						<h1>{product.name}</h1>
 						<p className="product-price">{formatPrice(product.priceIdr, locale)}</p>
-						<p className="product-condition"><span>{messages.product.condition}</span><strong>{messages.conditions[product.condition].label}</strong></p>
+						{product.condition ? <p className="product-condition"><span>{messages.product.condition}</span><strong>{messages.conditions[product.condition].label}</strong></p> : null}
 						<SizingGuide variants={product.variants} note={product.sizingNote} />
 						<div className="product-promises"><span><VerifiedIcon /> {messages.product.officialMerchandise}</span><span><CubeIcon /> {messages.product.liveShippingRates}</span></div>
 						<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />
