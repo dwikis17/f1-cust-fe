@@ -110,10 +110,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
 					<h1>{product.name}</h1>
 					<p className="product-price">{formatPrice(product.priceIdr, locale)}</p>
 					<SizingGuide variants={product.variants} note={product.sizingNote} />
-					<p className="product-description">{product.description}</p>
 					<div className="product-promises"><span><VerifiedIcon /> {messages.product.officialMerchandise}</span><span><CubeIcon /> {messages.product.liveShippingRates}</span></div>
 					<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />
-					<details><summary>{messages.product.productDetails}</summary><p>{messages.product.productDetailsText}</p></details>
+					<details><summary>{messages.product.productDetails}</summary><p>{product.description}</p><p>{messages.product.productDetailsText}</p></details>
 					<details><summary>{messages.product.deliveryReturns}</summary><p>{messages.product.deliveryReturnsText} <Link className="inline-link" href={localizedPath(locale, "/help/shipping-returns")}>{messages.footer.shippingReturns} →</Link></p></details>
 				</div>
 			</section>
