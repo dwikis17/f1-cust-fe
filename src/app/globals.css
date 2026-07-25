@@ -52,9 +52,30 @@ img { max-width: 100%; }
 .header-actions a:hover, .icon-button:hover { color: var(--apex); transform: translateY(-1px); }
 .cart-link { position: relative; }
 .cart-link > span { align-items: center; background: var(--apex); border: 2px solid var(--black); border-radius: 999px; color: white; display: flex; font-family: var(--font-mono), monospace; font-size: 10px; font-weight: 700; height: 21px; justify-content: center; min-width: 21px; padding: 0 4px; position: absolute; right: -1px; top: -1px; }
-.language-switcher { border: 1px solid #555; display: flex; }
-.language-switcher button { background: transparent; border: 0; color: #aaa; cursor: pointer; font-family: var(--font-mono), monospace; font-size: 11px; height: 44px; min-width: 44px; padding: 0; transition: background 140ms ease, color 140ms ease, transform 140ms var(--ease-out); }
-.language-switcher button[aria-pressed="true"] { background: white; color: black; }
+.language-switcher-header { align-items: center; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 999px; display: flex; gap: 2px; padding: 3px; backdrop-filter: blur(8px); transition: border-color 200ms ease, box-shadow 200ms ease; }
+.language-switcher-header:hover { border-color: rgba(255, 255, 255, 0.3); }
+.language-header-btn { align-items: center; background: transparent; border: 0; border-radius: 999px; color: #a0a0a0; cursor: pointer; display: flex; font-family: var(--font-mono), monospace; font-size: 11px; font-weight: 600; gap: 6px; height: 32px; letter-spacing: .05em; padding: 0 10px; transition: background 180ms ease, color 180ms ease, transform 140ms var(--ease-out), box-shadow 180ms ease; }
+.language-header-btn .flag-icon { border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,.3); flex-shrink: 0; transition: transform 180ms ease; }
+.language-header-btn:hover { color: white; }
+.language-header-btn:hover .flag-icon { transform: scale(1.08); }
+.language-header-btn.active { background: white; box-shadow: 0 2px 8px rgba(0,0,0,.25); color: black; }
+.language-header-btn.active .flag-icon { box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+.language-header-btn:active { transform: scale(.96); }
+
+.language-switcher-mobile { border-top: 1px solid rgba(255, 255, 255, 0.12); display: flex; flex-direction: column; gap: 12px; margin-top: 16px; padding-top: 20px; }
+.language-switcher-title { color: #888; font-family: var(--font-mono), monospace; font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.language-switcher-options { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; }
+.language-option-card { align-items: center; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; color: #ccc; cursor: pointer; display: flex; justify-content: space-between; padding: 12px 14px; text-align: left; transition: background 180ms ease, border-color 180ms ease, transform 140ms var(--ease-out), color 180ms ease; }
+.language-option-card:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.25); color: white; }
+.language-option-left { align-items: center; display: flex; gap: 10px; }
+.language-option-left .flag-icon { border-radius: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.3); flex-shrink: 0; }
+.language-option-text { display: flex; flex-direction: column; gap: 2px; }
+.language-name { font-family: var(--font-sans), sans-serif; font-size: 13px; font-weight: 600; line-height: 1.2; }
+.language-code { color: #777; font-family: var(--font-mono), monospace; font-size: 10px; letter-spacing: .08em; }
+.language-option-card.active { background: rgba(225, 6, 0, 0.12); border-color: var(--apex); color: white; }
+.language-option-card.active .language-code { color: var(--apex); font-weight: 700; }
+.language-option-card.active .active-check { color: var(--apex); flex-shrink: 0; }
+.language-option-card:active { transform: scale(.98); }
 .mobile-menu { display: none; }
 .mobile-menu summary { list-style: none; }
 .mobile-menu summary::-webkit-details-marker { display: none; }
@@ -618,6 +639,7 @@ img { max-width: 100%; }
 @media (max-width: 900px) {
 	.desktop-nav { display: none; }
 	.mobile-menu { display: flex; }
+	.language-switcher-header { display: none; }
 	.desktop-account { display: none; }
 	.site-header { height: 64px; padding: 0 20px; }
 	.page-shell { padding-top: 64px; }

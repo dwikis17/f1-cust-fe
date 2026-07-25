@@ -19,9 +19,16 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
 				</nav>
 			</div>
 			<div className="header-actions">
-				<LanguageSwitcher />
+				<LanguageSwitcher variant="header" />
 				<CartLink label={messages.header.shoppingBag} locale={locale} />
-				<details className="mobile-menu"><summary aria-label={messages.header.openMenu}><MenuIcon /></summary><nav aria-label={messages.header.mobileNavigation}>{collections.map((root) => <div key={root.id}><NavLink href={localizedPath(locale, `/collections/${root.slug}`)}>{root.name}</NavLink>{root.children.slice(0, 4).map((child) => <NavLink key={child.id} href={localizedPath(locale, `/collections/${child.slug}`)}>{child.name}</NavLink>)}<NavLink className="nav-view-all" href={localizedPath(locale, `/collections/${root.slug}`)}>{messages.header.viewAll} {root.name}</NavLink></div>)}<NavLink href={localizedPath(locale, "/collections")}>{messages.header.shopAll}</NavLink></nav></details>
+				<details className="mobile-menu">
+					<summary aria-label={messages.header.openMenu}><MenuIcon /></summary>
+					<nav aria-label={messages.header.mobileNavigation}>
+						{collections.map((root) => <div key={root.id}><NavLink href={localizedPath(locale, `/collections/${root.slug}`)}>{root.name}</NavLink>{root.children.slice(0, 4).map((child) => <NavLink key={child.id} href={localizedPath(locale, `/collections/${child.slug}`)}>{child.name}</NavLink>)}<NavLink className="nav-view-all" href={localizedPath(locale, `/collections/${root.slug}`)}>{messages.header.viewAll} {root.name}</NavLink></div>)}
+						<NavLink href={localizedPath(locale, "/collections")}>{messages.header.shopAll}</NavLink>
+						<LanguageSwitcher variant="mobile" />
+					</nav>
+				</details>
 			</div>
 		</header>
 	);

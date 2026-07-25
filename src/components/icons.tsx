@@ -35,3 +35,7 @@ export function VerifiedIcon(props: IconProps) {
 export function CubeIcon(props: IconProps) {
 	return <svg {...base} {...props}><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z" /><path d="m4.5 7.7 7.5 4.2 7.5-4.2M12 12v9" /></svg>;
 }
+
+export function CheckIcon(props: IconProps) {
+	return <svg {...base} {...props}><path d="m5 12 5 5L20 7" /></svg>;
+}
