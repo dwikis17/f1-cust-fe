@@ -44,22 +44,23 @@ function pageHref(path: string, params: CollectionSearchParams, page: number) {
 	const next = urlParams(params); next.set("page", String(page)); return `${path}?${next}`;
 }
 
-function facetLabel(items: NamedFacet[], value: string) { return items.find((item) => item.slug === value)?.name ?? value.replaceAll("-", " "); }
+function facetLabel(items: NamedFacet[] = [], value: string) { return items?.find((item) => item.slug === value)?.name ?? value.replaceAll("-", " "); }
 
 export function CollectionResults({ path, params, response, locale }: { path: string; params: CollectionSearchParams; response: CollectionProductsResponse; locale: Locale }) {
 	const messages = dictionary(locale);
 	const query = collectionQuery(params);
 	const pages = Math.max(1, Math.ceil(response.total / response.limit));
+	const facets = response.facets ?? {};
 	const active = [
-		...(query.team ?? []).map((value) => ({ key: "team", value, label: facetLabel(response.facets.teams, value) })),
-		...(query.driver ?? []).map((value) => ({ key: "driver", value, label: facetLabel(response.facets.drivers, value) })),
-		...(query.productType ?? []).map((value) => ({ key: "productType", value, label: facetLabel(response.facets.productTypes, value) })),
-		...(query.audience ?? []).map((value) => ({ key: "audience", value, label: messages.audiences[value] })),
-		...(query.condition ?? []).map((value) => ({ key: "condition", value, label: messages.conditions[value].label })),
+		...(query.team ?? []).map((value) => ({ key: "team", value, label: facetLabel(facets.teams, value) })),
+		...(query.driver ?? []).map((value) => ({ key: "driver", value, label: facetLabel(facets.drivers, value) })),
+		...(query.productType ?? []).map((value) => ({ key: "productType", value, label: facetLabel(facets.productTypes, value) })),
+		...(query.audience ?? []).map((value) => ({ key: "audience", value, label: messages.audiences[value] ?? value })),
+		...(query.condition ?? []).map((value) => ({ key: "condition", value, label: messages.conditions[value]?.label ?? value })),
 		...(query.availability ? [{ key: "availability", value: query.availability, label: messages.filters.inStock }] : []),
 	];
-	const audienceFacets = [...response.facets.audiences];
-	const conditionFacets = [...response.facets.conditions];
+	const audienceFacets = [...(facets.audiences ?? [])];
+	const conditionFacets = [...(facets.conditions ?? [])];
 	const sortOptions = [
 		{ value: "featured", label: messages.filters.featured },
 		...(query.search ? [{ value: "relevance", label: messages.filters.relevance }] : []),
@@ -82,13 +83,13 @@ export function CollectionResults({ path, params, response, locale }: { path: st
 				<summary>{messages.filters.filters} {active.length ? `(${active.length})` : ""}</summary>
 				<form className="filters" action={path}>
 					{query.search ? <input type="hidden" name="search" value={query.search} /> : null}
-					<FacetGroup title={messages.filters.team} name="team" items={response.facets.teams} selected={query.team ?? []} />
-					<FacetGroup title={messages.filters.driver} name="driver" items={response.facets.drivers} selected={query.driver ?? []} />
-					<FacetGroup title={messages.filters.productType} name="productType" items={response.facets.productTypes} selected={query.productType ?? []} />
-					<div className="filter-group"><h2>{messages.filters.genderAudience}</h2><ul>{audienceFacets.map((item) => <li key={item.value}><label><input type="checkbox" name="audience" value={item.value} defaultChecked={query.audience?.includes(item.value)} /><span>{messages.audiences[item.value]}</span><small>{item.count}</small></label></li>)}</ul></div>
-					<div className="filter-group"><h2>{messages.filters.condition}</h2><ul>{conditionFacets.map((item) => <li key={item.value}><label><input type="checkbox" name="condition" value={item.value} defaultChecked={query.condition?.includes(item.value)} /><span>{messages.conditions[item.value].label}</span><small>{item.count}</small></label></li>)}</ul></div>
-					<div className="filter-group"><h2>{messages.filters.availability}</h2><ul><li><label><input type="checkbox" name="availability" value="in_stock" defaultChecked={query.availability === "in_stock"} /><span>{messages.filters.inStock}</span><small>{response.facets.availability.inStock}</small></label></li></ul></div>
-					<div className="filter-group"><h2>{messages.filters.priceRange}</h2><div className="price-inputs"><label>{messages.filters.from}<input name="minPrice" type="number" min="0" step="1000" defaultValue={query.minPrice} placeholder={formatPrice(response.facets.price.min, locale)} /></label><label>{messages.filters.to}<input name="maxPrice" type="number" min="0" step="1000" defaultValue={query.maxPrice} placeholder={formatPrice(response.facets.price.max, locale)} /></label></div></div>
+					<FacetGroup title={messages.filters.team} name="team" items={facets.teams ?? []} selected={query.team ?? []} />
+					<FacetGroup title={messages.filters.driver} name="driver" items={facets.drivers ?? []} selected={query.driver ?? []} />
+					<FacetGroup title={messages.filters.productType} name="productType" items={facets.productTypes ?? []} selected={query.productType ?? []} />
+					<div className="filter-group"><h2>{messages.filters.genderAudience}</h2><ul>{audienceFacets.map((item) => <li key={item.value}><label><input type="checkbox" name="audience" value={item.value} defaultChecked={query.audience?.includes(item.value)} /><span>{messages.audiences[item.value] ?? item.value}</span><small>{item.count}</small></label></li>)}</ul></div>
+					<div className="filter-group"><h2>{messages.filters.condition}</h2><ul>{conditionFacets.map((item) => <li key={item.value}><label><input type="checkbox" name="condition" value={item.value} defaultChecked={query.condition?.includes(item.value)} /><span>{messages.conditions[item.value]?.label ?? item.value}</span><small>{item.count}</small></label></li>)}</ul></div>
+					<div className="filter-group"><h2>{messages.filters.availability}</h2><ul><li><label><input type="checkbox" name="availability" value="in_stock" defaultChecked={query.availability === "in_stock"} /><span>{messages.filters.inStock}</span><small>{facets.availability?.inStock ?? 0}</small></label></li></ul></div>
+					<div className="filter-group"><h2>{messages.filters.priceRange}</h2><div className="price-inputs"><label>{messages.filters.from}<input name="minPrice" type="number" min="0" step="1000" defaultValue={query.minPrice} placeholder={formatPrice(facets.price?.min ?? 0, locale)} /></label><label>{messages.filters.to}<input name="maxPrice" type="number" min="0" step="1000" defaultValue={query.maxPrice} placeholder={formatPrice(facets.price?.max ?? 0, locale)} /></label></div></div>
 					<div className="filter-actions"><PendingSubmitButton className="button button-dark" idle={messages.filters.applyFilters} pending={messages.filters.updating} /><Link href={path}>{messages.filters.clearAll}</Link></div>
 				</form>
 			</details>
@@ -103,7 +104,7 @@ export function CollectionResults({ path, params, response, locale }: { path: st
 }
 
 function FacetGroup({ title, name, items, selected }: { title: string; name: string; items: NamedFacet[]; selected: string[] }) {
-	const visible = [...items];
+	const visible = [...(items ?? [])];
 	for (const slug of selected) if (!visible.some((item) => item.slug === slug)) visible.push({ id: slug, slug, name: slug.replaceAll("-", " "), count: 0 });
 	return <div className="filter-group"><h2>{title}</h2><ul>{visible.map((item) => <li key={item.slug}><label><input type="checkbox" name={name} value={item.slug} defaultChecked={selected.includes(item.slug)} /><span>{item.name}</span><small>{item.count}</small></label></li>)}</ul></div>;
 }
