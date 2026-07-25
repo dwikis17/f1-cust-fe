@@ -11,22 +11,24 @@ export function CollectionGallery({
 	locale,
 	id,
 	priority = false,
+	showTitle = true,
 }: {
 	title: string;
 	collections: CollectionSummary[];
 	locale: Locale;
 	id: string;
 	priority?: boolean;
+	showTitle?: boolean;
 }) {
 	const messages = dictionary(locale);
 	return (
-		<section className="collection-gallery" aria-labelledby={`collection-gallery-${id}`}>
+		<section className="collection-gallery" aria-labelledby={showTitle && title ? `collection-gallery-${id}` : undefined}>
 			<header className="collection-gallery-heading">
 				<div>
 					<p className="eyebrow">
 						{String(collections.length).padStart(2, "0")} {messages.collections.collectionCount}
 					</p>
-					<h2 id={`collection-gallery-${id}`}>{title}</h2>
+					{showTitle && title ? <h2 id={`collection-gallery-${id}`}>{title}</h2> : null}
 				</div>
 			</header>
 			<div className="collection-gallery-grid">
