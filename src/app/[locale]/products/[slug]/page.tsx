@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CubeIcon, VerifiedIcon } from "@/components/icons";
 import { ProductGallery } from "@/components/product-gallery";
+import { ProductSelection } from "@/components/product-selection";
 import { PurchasePanel } from "@/components/purchase-panel";
 import { SizingGuide } from "@/components/sizing-guide";
 import { StructuredData } from "@/components/structured-data";
@@ -103,7 +104,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 				},
 			]} />
 			<nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href={homePath}>{messages.collections.homepage}</Link><span>/</span><Link href={currentCollectionPath}>{currentCollection?.name ?? messages.collections.title}</Link><span>/</span><strong>{product.name}</strong></nav>
-			<section className="product-top">
+			<ProductSelection photos={product.photos}><section className="product-top">
 				<ProductGallery photos={product.photos} />
 				<div className="product-info">
 					<p className="eyebrow">{product.team?.name ?? product.productType.name}{product.drivers.length ? ` / ${product.drivers.map((driver) => driver.name).join(" + ")}` : ""}</p>
@@ -115,7 +116,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 					<details><summary>{messages.product.productDetails}</summary><p>{product.description}</p><p>{messages.product.productDetailsText}</p></details>
 					<details><summary>{messages.product.deliveryReturns}</summary><p>{messages.product.deliveryReturnsText} <Link className="inline-link" href={localizedPath(locale, "/help/shipping-returns")}>{messages.footer.shippingReturns} →</Link></p></details>
 				</div>
-			</section>
+			</section></ProductSelection>
 
 			<section className="commentary-block">
 				<div><span>{messages.product.paddockCommentary}</span><strong>{messages.product.designerPerspective}</strong></div>

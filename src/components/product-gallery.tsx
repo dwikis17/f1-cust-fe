@@ -1,21 +1,21 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
 import { useDictionary } from "@/components/i18n-provider";
+import { useProductSelection } from "@/components/product-selection";
 import type { ProductPhoto } from "@/lib/catalog";
 
 export function ProductGallery({ photos }: { photos: ProductPhoto[] }) {
 	const messages = useDictionary();
-	const [active, setActive] = useState(0);
-	const current = photos[active] ?? photos[0];
+	const { activePhoto, setActivePhoto } = useProductSelection();
+	const current = photos[activePhoto] ?? photos[0];
 	if (!current) return null;
 
 	return (
 		<div className="gallery">
 			<div className="gallery-thumbs" aria-label={messages.product.productPhotos}>
 				{photos.map((photo, index) => (
-					<button className={active === index ? "active" : ""} key={photo.id} type="button" onClick={() => setActive(index)} aria-label={`${messages.product.viewImage} ${index + 1}`}>
+					<button className={activePhoto === index ? "active" : ""} key={photo.id} type="button" onClick={() => setActivePhoto(index)} aria-label={`${messages.product.viewImage} ${index + 1}`}>
 						<Image src={photo.url} alt="" fill sizes="76px" />
 					</button>
 				))}

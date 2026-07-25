@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { useDictionary } from "@/components/i18n-provider";
+import { useProductSelection } from "@/components/product-selection";
 import { useCartStore } from "@/lib/cart-store";
 import type { ProductVariant } from "@/lib/catalog";
 
@@ -10,6 +11,7 @@ type Props = { productId: string; productName: string; variants: ProductVariant[
 
 export function PurchasePanel({ productId, productName, variants }: Props) {
 	const messages = useDictionary();
+	const { selectColor } = useProductSelection();
 	const addItem = useCartStore((state) => state.addItem);
 	const firstAvailable = variants.find((variant) => variant.available) ?? variants[0];
 	const [variantId, setVariantId] = useState(firstAvailable?.id ?? "");
@@ -28,7 +30,10 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 	function chooseOption(kind: "size" | "color", value: string) {
 		const match = variants.find((variant) => variant[kind] === value && variant.available && (kind === "size" ? colors.length < 2 || variant.color === selected?.color : sizes.length < 2 || variant.size === selected?.size))
 			?? variants.find((variant) => variant[kind] === value && variant.available);
-		if (match) setVariantId(match.id);
+		if (match) {
+			setVariantId(match.id);
+			if (kind === "color") selectColor(match.color);
+		}
 	}
 
 	function addToBag() {
