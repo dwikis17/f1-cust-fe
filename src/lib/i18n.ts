@@ -142,6 +142,7 @@ const en = {
     MANUAL: "Manual",
   },
   product: {
+    sale: "Sale",
     productPhotos: "Product photos",
     viewImage: "View image",
     lastStock: "Last stock",
@@ -516,6 +517,7 @@ const id: Dictionary = {
     MANUAL: "Manual",
   },
   product: {
+    sale: "Diskon",
     productPhotos: "Foto produk",
     viewImage: "Lihat gambar",
     lastStock: "Stok terakhir",

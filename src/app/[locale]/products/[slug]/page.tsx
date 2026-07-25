@@ -105,11 +105,18 @@ export default async function ProductPage({ params }: ProductPageProps) {
 			]} />
 			<nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href={homePath}>{messages.collections.homepage}</Link><span>/</span><Link href={currentCollectionPath}>{currentCollection?.name ?? messages.collections.title}</Link><span>/</span><strong>{product.name}</strong></nav>
 			<ProductSelection photos={product.photos}><section className="product-top">
-				<ProductGallery photos={product.photos} />
+				<ProductGallery photos={product.photos} onSale={product.originalPriceIdr !== null} />
 				<div className="product-info">
 					<p className="eyebrow">{product.team?.name ?? product.productType.name}{product.drivers.length ? ` / ${product.drivers.map((driver) => driver.name).join(" + ")}` : ""}</p>
 					<h1>{product.name}</h1>
-					<p className="product-price">{formatPrice(product.priceIdr, locale)}</p>
+					<p className="product-price">
+						{product.originalPriceIdr !== null ? (
+							<>
+								<ins>{formatPrice(product.priceIdr, locale)}</ins>
+								<del>{formatPrice(product.originalPriceIdr, locale)}</del>
+							</>
+						) : formatPrice(product.priceIdr, locale)}
+					</p>
 					<SizingGuide variants={product.variants} note={product.sizingNote} />
 					<div className="product-promises"><span><VerifiedIcon /> {messages.product.officialMerchandise}</span><span><CubeIcon /> {messages.product.liveShippingRates}</span></div>
 					<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />
