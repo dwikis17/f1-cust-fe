@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useDictionary } from "@/components/i18n-provider";
 import { useCartStore } from "@/lib/cart-store";
@@ -14,10 +14,16 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 	const firstAvailable = variants.find((variant) => variant.available) ?? variants[0];
 	const [variantId, setVariantId] = useState(firstAvailable?.id ?? "");
 	const [quantity, setQuantity] = useState(1);
-	const [message, setMessage] = useState("");
+	const [added, setAdded] = useState(0);
 	const selected = variants.find((variant) => variant.id === variantId) ?? firstAvailable;
 	const sizes = useMemo(() => [...new Set(variants.flatMap((variant) => variant.size ? [variant.size] : []))], [variants]);
 	const colors = useMemo(() => [...new Set(variants.flatMap((variant) => variant.color ? [variant.color] : []))], [variants]);
+
+	useEffect(() => {
+		if (!added) return;
+		const timeout = window.setTimeout(() => setAdded(0), 2200);
+		return () => window.clearTimeout(timeout);
+	}, [added]);
 
 	function chooseOption(kind: "size" | "color", value: string) {
 		const match = variants.find((variant) => variant[kind] === value && variant.available && (kind === "size" ? colors.length < 2 || variant.color === selected?.color : sizes.length < 2 || variant.size === selected?.size))
@@ -28,15 +34,15 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 	function addToBag() {
 		if (!selected?.available) return;
 		addItem({ productId, productName, variantId: selected.id, quantity });
-		setMessage(`${quantity} ${messages.product.addedToBag}`);
+		setAdded((count) => count + 1);
 	}
 
 	return <>
 		<div className="purchase-panel">
 			{colors.length > 1 ? <OptionButtons label={messages.product.color} values={colors} selected={selected?.color} available={(value) => variants.some((variant) => variant.color === value && variant.available)} choose={(value) => chooseOption("color", value)} /> : null}
 			{sizes.length > 0 ? <OptionButtons label={messages.product.size} values={sizes} selected={selected?.size} available={(value) => variants.some((variant) => variant.size === value && variant.available && (colors.length < 2 || variant.color === selected?.color))} choose={(value) => chooseOption("size", value)} /> : null}
-			<div className="purchase-row"><div className="quantity" aria-label={messages.product.quantitySelector}><button type="button" aria-label={`${messages.product.quantitySelector}: −`} disabled={quantity <= 1} onClick={() => setQuantity((value) => Math.max(1, value - 1))}>−</button><span>{quantity}</span><button type="button" aria-label={`${messages.product.quantitySelector}: +`} disabled={quantity >= 9} onClick={() => setQuantity((value) => Math.min(9, value + 1))}>+</button></div><button className="button button-dark add-button" type="button" onClick={addToBag} disabled={!selected?.available}>{selected?.available ? messages.product.addToCart : messages.product.outOfStock}</button></div>
-			<p className="payment-note" aria-live="polite">{message || (selected?.available ? messages.product.readyToDispatch : messages.product.optionUnavailable)}</p>
+			<div className="purchase-row"><div className="quantity" aria-label={messages.product.quantitySelector}><button type="button" aria-label={`${messages.product.quantitySelector}: −`} disabled={quantity <= 1} onClick={() => setQuantity((value) => Math.max(1, value - 1))}>−</button><span>{quantity}</span><button type="button" aria-label={`${messages.product.quantitySelector}: +`} disabled={quantity >= 9} onClick={() => setQuantity((value) => Math.min(9, value + 1))}>+</button></div><button className="button button-dark add-button" type="button" onClick={addToBag} disabled={!selected?.available}>{selected?.available ? messages.product.addToCart : messages.product.outOfStock}</button>{added ? <span className="add-confirmation" key={added} role="status">✓ {quantity} {messages.product.addedToBag}</span> : null}</div>
+			<p className="payment-note" aria-live="polite">{selected?.available ? messages.product.readyToDispatch : messages.product.optionUnavailable}</p>
 		</div>
 		<section className="technical-data" aria-live="polite">
 			<div className="data-heading"><span>{messages.product.technicalData}</span><strong>{messages.product.selectedSpecification}</strong></div>
