@@ -4,10 +4,6 @@ type IconProps = SVGProps<SVGSVGElement>;
 
 const base = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7 };
 
-export function SearchIcon(props: IconProps) {
-	return <svg {...base} {...props}><circle cx="11" cy="11" r="6.5" /><path d="m16 16 4 4" /></svg>;
-}
-
 export function BagIcon(props: IconProps) {
 	return <svg {...base} {...props}><path d="M5.5 8.5h13l-.6 12h-11.8l-.6-12Z" /><path d="M9 9V6.5a3 3 0 0 1 6 0V9" /></svg>;
 }

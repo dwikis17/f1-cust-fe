@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { CollectionGallery } from "@/components/collection-gallery";
 import { CollectionResults, collectionQuery, type CollectionSearchParams } from "@/components/collection-results";
 import { StructuredData } from "@/components/structured-data";
 import { catalog } from "@/lib/catalog";
+import { domainCollectionChildren } from "@/lib/collection-page";
 import { dictionary } from "@/lib/i18n";
 import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
 import { absoluteUrl, metadataDescription } from "@/lib/seo";
@@ -60,6 +62,12 @@ export default async function CollectionPage({ params, searchParams }: Collectio
 	const path = localizedPath(locale, `/collections/${response.collection.slug}`);
 	const collectionsPath = localizedPath(locale, "/collections");
 	const homePath = localizedPath(locale);
+	const galleryCollections = domainCollectionChildren(response.collection);
+	const galleryTitle = response.collection.children[0]?.kind === "TEAM"
+		? messages.collections.teams
+		: response.collection.children[0]?.kind === "DRIVER"
+			? messages.collections.drivers
+			: response.collection.name;
 	return <main className="page-shell collection-page">
 		<StructuredData data={{
 			"@context": "https://schema.org",
@@ -71,7 +79,9 @@ export default async function CollectionPage({ params, searchParams }: Collectio
 				{ "@type": "ListItem", position: response.collection.parent ? 4 : 3, name: response.collection.name, item: absoluteUrl(path) },
 			],
 		}} />
-		<section className="collection-title"><nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href={homePath}>{messages.collections.homepage}</Link><span>/</span><Link href={collectionsPath}>{messages.collections.title}</Link>{response.collection.parent ? <><span>/</span><Link href={localizedPath(locale, `/collections/${response.collection.parent.slug}`)}>{response.collection.parent.name}</Link></> : null}</nav><p className="eyebrow">{messages.kinds[response.collection.kind]}</p><h1>{response.collection.name}</h1><p>{response.collection.description}</p>{response.collection.children.length ? <div className="child-collections">{response.collection.children.map((child) => <Link key={child.id} href={localizedPath(locale, `/collections/${child.slug}`)}>{child.name}</Link>)}</div> : null}</section>
-		<CollectionResults path={path} params={currentParams} response={response} locale={locale} />
+		<section className="collection-title"><nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href={homePath}>{messages.collections.homepage}</Link><span>/</span><Link href={collectionsPath}>{messages.collections.title}</Link>{response.collection.parent ? <><span>/</span><Link href={localizedPath(locale, `/collections/${response.collection.parent.slug}`)}>{response.collection.parent.name}</Link></> : null}</nav><p className="eyebrow">{messages.kinds[response.collection.kind]}</p><h1>{response.collection.name}</h1><p>{response.collection.description}</p>{!galleryCollections && response.collection.children.length ? <div className="child-collections">{response.collection.children.map((child) => <Link key={child.id} href={localizedPath(locale, `/collections/${child.slug}`)}>{child.name}</Link>)}</div> : null}</section>
+		{galleryCollections
+			? <CollectionGallery id={response.collection.slug} title={galleryTitle} collections={galleryCollections} locale={locale} priority />
+			: <CollectionResults path={path} params={currentParams} response={response} locale={locale} />}
 	</main>;
 }
