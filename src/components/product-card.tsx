@@ -14,6 +14,7 @@ export function ProductCard({ product, locale, priority = false }: { product: Pu
 			<Link href={localizedPath(locale, `/products/${product.slug}`)} aria-label={product.name}>
 				<div className="product-image">
 					{photo ? <Image src={photo.url} alt={photo.altText} fill sizes="(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 25vw" loading={priority ? "eager" : "lazy"} /> : <span className="product-image-placeholder"><b aria-hidden="true">V</b><span>{messages.product.imageUnavailable}</span></span>}
+					<span className="condition-badge">{messages.conditions[product.condition].short}</span>
 					{onSale ? <span className="sale-badge">{messages.product.sale}</span> : null}
 				</div>
 				<div className="product-meta">

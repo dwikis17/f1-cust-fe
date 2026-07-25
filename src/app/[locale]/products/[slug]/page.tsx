@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CubeIcon, VerifiedIcon } from "@/components/icons";
 import { ProductGallery } from "@/components/product-gallery";
+import { ProductSelection } from "@/components/product-selection";
 import { PurchasePanel } from "@/components/purchase-panel";
 import { SizingGuide } from "@/components/sizing-guide";
 import { StructuredData } from "@/components/structured-data";
@@ -83,7 +84,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
 						priceCurrency: "IDR",
 						price: product.priceIdr,
 						availability: available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-						itemCondition: "https://schema.org/NewCondition",
+						itemCondition: product.condition === "PRE_OWNED"
+							? "https://schema.org/UsedCondition"
+							: "https://schema.org/NewCondition",
 						seller: { "@type": "Organization", name: siteName, url: absoluteUrl(homePath) },
 					},
 				},
@@ -103,20 +106,22 @@ export default async function ProductPage({ params }: ProductPageProps) {
 				},
 			]} />
 			<nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href={homePath}>{messages.collections.homepage}</Link><span>/</span><Link href={currentCollectionPath}>{currentCollection?.name ?? messages.collections.title}</Link><span>/</span><strong>{product.name}</strong></nav>
-			<section className="product-top">
-				<ProductGallery photos={product.photos} />
-				<div className="product-info">
-					<p className="eyebrow">{product.team?.name ?? product.productType.name}{product.drivers.length ? ` / ${product.drivers.map((driver) => driver.name).join(" + ")}` : ""}</p>
-					<h1>{product.name}</h1>
-					<p className="product-price">{formatPrice(product.priceIdr, locale)}</p>
-					<SizingGuide variants={product.variants} note={product.sizingNote} />
-					<p className="product-description">{product.description}</p>
-					<div className="product-promises"><span><VerifiedIcon /> {messages.product.officialMerchandise}</span><span><CubeIcon /> {messages.product.liveShippingRates}</span></div>
-					<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />
-					<details><summary>{messages.product.productDetails}</summary><p>{messages.product.productDetailsText}</p></details>
-					<details><summary>{messages.product.deliveryReturns}</summary><p>{messages.product.deliveryReturnsText} <Link className="inline-link" href={localizedPath(locale, "/help/shipping-returns")}>{messages.footer.shippingReturns} →</Link></p></details>
-				</div>
-			</section>
+			<ProductSelection photos={product.photos}>
+				<section className="product-top">
+					<ProductGallery photos={product.photos} />
+					<div className="product-info">
+						<p className="eyebrow">{product.team?.name ?? product.productType.name}{product.drivers.length ? ` / ${product.drivers.map((driver) => driver.name).join(" + ")}` : ""}</p>
+						<h1>{product.name}</h1>
+						<p className="product-price">{formatPrice(product.priceIdr, locale)}</p>
+						<p className="product-condition"><span>{messages.product.condition}</span><strong>{messages.conditions[product.condition].label}</strong></p>
+						<SizingGuide variants={product.variants} note={product.sizingNote} />
+						<div className="product-promises"><span><VerifiedIcon /> {messages.product.officialMerchandise}</span><span><CubeIcon /> {messages.product.liveShippingRates}</span></div>
+						<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />
+						<details><summary>{messages.product.productDetails}</summary><p>{product.description}</p></details>
+						<details><summary>{messages.product.deliveryReturns}</summary><p>{messages.product.deliveryReturnsText} <Link className="inline-link" href={localizedPath(locale, "/help/shipping-returns")}>{messages.footer.shippingReturns} →</Link></p></details>
+					</div>
+				</section>
+			</ProductSelection>
 
 			<section className="commentary-block">
 				<div><span>{messages.product.paddockCommentary}</span><strong>{messages.product.designerPerspective}</strong></div>

@@ -2,6 +2,7 @@ import type { Locale } from "./i18n";
 
 export type CatalogEntity = { id: string; name: string; slug: string; createdAt: string; updatedAt: string };
 export type ProductAudience = "MEN" | "WOMEN" | "KIDS" | "UNISEX";
+export type ProductCondition = "BNIB" | "BNWT" | "BNWOT" | "PRE_OWNED";
 export type CollectionKind = "DOMAIN" | "TEAM" | "DRIVER" | "MERCHANDISE" | "BRAND" | "PROMOTION" | "MANUAL";
 export type Team = CatalogEntity & { logoUrl: string | null };
 export type Driver = CatalogEntity & { racingNumber: number; photoUrl: string | null; teamId: string | null; team: Team | null };
@@ -30,13 +31,14 @@ export type PublicProduct = {
 	id: string; name: string; slug: string; description: string; sizingNote: string | null; priceIdr: number;
 	originalPriceIdr: number | null;
 	category: CatalogEntity; productType: CatalogEntity; team: Team | null; drivers: Driver[];
-	audience: ProductAudience | null; collections: CollectionSummary[]; tags: CatalogEntity[];
+	audience: ProductAudience | null; condition: ProductCondition; collections: CollectionSummary[]; tags: CatalogEntity[];
 	variants: ProductVariant[]; photos: ProductPhoto[]; createdAt: string; updatedAt: string;
 };
 export type NamedFacet = { id: string; name: string; slug: string; count: number };
 export type ProductFacets = {
 	teams: NamedFacet[]; drivers: NamedFacet[]; productTypes: NamedFacet[];
 	audiences: Array<{ value: ProductAudience; count: number }>;
+	conditions: Array<{ value: ProductCondition; count: number }>;
 	availability: { inStock: number }; price: { min: number; max: number };
 };
 export type ProductListResponse = { data: PublicProduct[]; page: number; limit: number; total: number };
@@ -45,7 +47,7 @@ export type ProductSort = "featured" | "relevance" | "name_asc" | "name_desc" | 
 export type ProductQuery = {
 	page?: number; limit?: number; search?: string; productType?: string[]; category?: string[]; tag?: string[];
 	team?: string[]; driver?: string[]; size?: string[]; color?: string[]; audience?: ProductAudience[];
-	availability?: "in_stock"; minPrice?: number; maxPrice?: number; sort?: ProductSort;
+	condition?: ProductCondition[]; availability?: "in_stock"; minPrice?: number; maxPrice?: number; sort?: ProductSort;
 };
 
 const apiBaseUrl = process.env.API_BASE_URL?.replace(/\/$/, "");

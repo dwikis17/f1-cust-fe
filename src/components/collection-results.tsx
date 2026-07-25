@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { AutoSubmitSelect, PendingSubmitButton } from "@/components/form-controls";
 import { ProductCard } from "@/components/product-card";
-import { formatPrice, type CollectionProductsResponse, type NamedFacet, type ProductAudience, type ProductQuery, type ProductSort } from "@/lib/catalog";
+import { formatPrice, type CollectionProductsResponse, type NamedFacet, type ProductAudience, type ProductCondition, type ProductQuery, type ProductSort } from "@/lib/catalog";
 import { dictionary, type Locale } from "@/lib/i18n";
 
 export type CollectionSearchParams = Record<string, string | string[] | undefined>;
@@ -17,6 +17,7 @@ export function collectionQuery(params: CollectionSearchParams): ProductQuery {
 		page: Math.max(1, Number(firstValue(params.page)) || 1), limit: 12, search: firstValue(params.search),
 		team: arrayValue(params.team), driver: arrayValue(params.driver), productType: arrayValue(params.productType),
 		audience: arrayValue(params.audience) as ProductAudience[], availability: firstValue(params.availability) === "in_stock" ? "in_stock" : undefined,
+		condition: arrayValue(params.condition) as ProductCondition[],
 		minPrice: Number.isFinite(minPrice) && firstValue(params.minPrice) ? minPrice : undefined,
 		maxPrice: Number.isFinite(maxPrice) && firstValue(params.maxPrice) ? maxPrice : undefined,
 		sort: (firstValue(params.sort) as ProductSort | undefined) ?? "featured",
@@ -54,9 +55,11 @@ export function CollectionResults({ path, params, response, locale }: { path: st
 		...(query.driver ?? []).map((value) => ({ key: "driver", value, label: facetLabel(response.facets.drivers, value) })),
 		...(query.productType ?? []).map((value) => ({ key: "productType", value, label: facetLabel(response.facets.productTypes, value) })),
 		...(query.audience ?? []).map((value) => ({ key: "audience", value, label: messages.audiences[value] })),
+		...(query.condition ?? []).map((value) => ({ key: "condition", value, label: messages.conditions[value].label })),
 		...(query.availability ? [{ key: "availability", value: query.availability, label: messages.filters.inStock }] : []),
 	];
 	const audienceFacets = [...response.facets.audiences];
+	const conditionFacets = [...response.facets.conditions];
 	const sortOptions = [
 		{ value: "featured", label: messages.filters.featured },
 		...(query.search ? [{ value: "relevance", label: messages.filters.relevance }] : []),
@@ -70,6 +73,9 @@ export function CollectionResults({ path, params, response, locale }: { path: st
 	for (const value of query.audience ?? []) {
 		if (!audienceFacets.some((item) => item.value === value)) audienceFacets.push({ value, count: 0 });
 	}
+	for (const value of query.condition ?? []) {
+		if (!conditionFacets.some((item) => item.value === value)) conditionFacets.push({ value, count: 0 });
+	}
 	return (
 		<section className="catalog-layout" id="catalog">
 			<details className="filters-drawer" open>
@@ -80,6 +86,7 @@ export function CollectionResults({ path, params, response, locale }: { path: st
 					<FacetGroup title={messages.filters.driver} name="driver" items={response.facets.drivers} selected={query.driver ?? []} />
 					<FacetGroup title={messages.filters.productType} name="productType" items={response.facets.productTypes} selected={query.productType ?? []} />
 					<div className="filter-group"><h2>{messages.filters.genderAudience}</h2><ul>{audienceFacets.map((item) => <li key={item.value}><label><input type="checkbox" name="audience" value={item.value} defaultChecked={query.audience?.includes(item.value)} /><span>{messages.audiences[item.value]}</span><small>{item.count}</small></label></li>)}</ul></div>
+					<div className="filter-group"><h2>{messages.filters.condition}</h2><ul>{conditionFacets.map((item) => <li key={item.value}><label><input type="checkbox" name="condition" value={item.value} defaultChecked={query.condition?.includes(item.value)} /><span>{messages.conditions[item.value].label}</span><small>{item.count}</small></label></li>)}</ul></div>
 					<div className="filter-group"><h2>{messages.filters.availability}</h2><ul><li><label><input type="checkbox" name="availability" value="in_stock" defaultChecked={query.availability === "in_stock"} /><span>{messages.filters.inStock}</span><small>{response.facets.availability.inStock}</small></label></li></ul></div>
 					<div className="filter-group"><h2>{messages.filters.priceRange}</h2><div className="price-inputs"><label>{messages.filters.from}<input name="minPrice" type="number" min="0" step="1000" defaultValue={query.minPrice} placeholder={formatPrice(response.facets.price.min, locale)} /></label><label>{messages.filters.to}<input name="maxPrice" type="number" min="0" step="1000" defaultValue={query.maxPrice} placeholder={formatPrice(response.facets.price.max, locale)} /></label></div></div>
 					<div className="filter-actions"><PendingSubmitButton className="button button-dark" idle={messages.filters.applyFilters} pending={messages.filters.updating} /><Link href={path}>{messages.filters.clearAll}</Link></div>
