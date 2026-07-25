@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+	env: {
+		NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "0x4AAAAAAD9MetDQNU4y3PHR",
+	},
 	async redirects() {
 		return [
 			{ source: "/", destination: "/en", permanent: true },
@@ -17,6 +20,7 @@ const nextConfig: NextConfig = {
 		remotePatterns: [
 			{ protocol: "https", hostname: "media.valydejersey.com" },
 			{ protocol: "https", hostname: "f1-store-api.dwikis17.workers.dev" },
+			{ protocol: "https", hostname: "media.formula1.com" },
 	
 		],
 	},

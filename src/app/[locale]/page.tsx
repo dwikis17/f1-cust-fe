@@ -37,7 +37,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 						"@id": `${absoluteUrl(homePath)}#organization`,
 						name: siteName,
 						url: absoluteUrl(homePath),
-						email: "support@valdye.com",
+						email: "support@valyde.com",
 						description: messages.metadata.description,
 					},
 					{

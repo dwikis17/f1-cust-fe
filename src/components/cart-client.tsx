@@ -57,7 +57,7 @@ export function CartClient() {
 				</header>
 				{lines.map((line) => (
 					<article className="cart-line" key={line.variantId}>
-						<Link className="cart-line-image" href={localizedPath(locale, `/products/${line.product.slug}`)}>{line.product.photo ? <Image src={line.product.photo.url} alt={line.product.photo.altText} fill sizes="(max-width: 600px) 96px, 150px" /> : <span className="cart-image-placeholder">VALDYE</span>}</Link>
+						<Link className="cart-line-image" href={localizedPath(locale, `/products/${line.product.slug}`)}>{line.product.photo ? <Image src={line.product.photo.url} alt={line.product.photo.altText} fill sizes="(max-width: 600px) 96px, 150px" /> : <span className="cart-image-placeholder">VALYDE</span>}</Link>
 						<div className="cart-line-copy">
 							<p>{line.product.merchandisingLabel}</p>
 							<h2><Link href={localizedPath(locale, `/products/${line.product.slug}`)}>{line.product.name}</Link></h2>

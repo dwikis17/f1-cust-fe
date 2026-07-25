@@ -12,7 +12,7 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
 	return (
 		<header className="site-header">
 			<div className="header-left">
-				<NavLink className="brand" href={localizedPath(locale)}>VALDYE</NavLink>
+				<NavLink className="brand" href={localizedPath(locale)}>VALYDE</NavLink>
 				<nav className="desktop-nav" aria-label={messages.header.primaryNavigation}>
 					{collections.map((root) => <div className="nav-group" key={root.id}><NavLink href={localizedPath(locale, `/collections/${root.slug}`)}>{root.name}</NavLink>{root.children.length ? <div className="nav-dropdown">{root.children.slice(0, 5).map((child) => <NavLink key={child.id} href={localizedPath(locale, `/collections/${child.slug}`)}>{child.name}</NavLink>)}<NavLink className="nav-view-all" href={localizedPath(locale, `/collections/${root.slug}`)}>{messages.header.viewAll} {root.name}</NavLink></div> : null}</div>)}
 					<NavLink href={localizedPath(locale, "/collections")}>{messages.header.shopAll}</NavLink><NavLink href={`${localizedPath(locale)}#editorial`}>{messages.header.editorial}</NavLink>

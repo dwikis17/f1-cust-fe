@@ -1,4 +1,4 @@
-# VALDYE Storefront
+# VALYDE Storefront
 
 Customer-facing Formula 1 ecommerce storefront built with Next.js and OpenNext for Cloudflare.
 
@@ -31,7 +31,7 @@ The storefront uses deterministic `/en` and `/id` URLs. Legacy unprefixed storef
 
 The cart posts shipping estimates to the storefront's same-origin `POST /api/shipping/rates` route, which forwards to `API_BASE_URL` without exposing backend configuration to the browser. The backend must have its Biteship key and origin postal code configured before live estimates are available.
 
-Checkout uses the same-origin `POST /api/checkout` proxy and Midtrans Snap.js. Set `NEXT_PUBLIC_MIDTRANS_ENV=sandbox` and the public `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` from `.env.example`; the Midtrans server key belongs only in `f1-be`. Payment and shipment state is displayed at `/:locale/orders/:id` from the safe public receipt endpoint.
+Checkout uses the same-origin `POST /api/checkout` proxy, Cloudflare Turnstile, and Midtrans Snap.js. Set `NEXT_PUBLIC_MIDTRANS_ENV=sandbox`, `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY`, and `NEXT_PUBLIC_TURNSTILE_SITE_KEY` from `.env.example`; production must replace the Turnstile test sitekey with a managed widget restricted to `valydejersey.com`. The Midtrans and Turnstile secret keys belong only in `f1-be`. Payment and shipment state is displayed at `/:locale/orders/:id` from the safe public receipt endpoint.
 
 OpenNext stores ISR and fetch-cache entries in the `f1-cust-fe-incremental-cache` R2 bucket and uses Durable Objects for time-based and tag revalidation. Set `REVALIDATE_SECRET` to the same value as the backend's `STOREFRONT_REVALIDATE_SECRET`.
 

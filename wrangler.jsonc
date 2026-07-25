@@ -59,6 +59,7 @@
 	"vars": {
 		"API_BASE_URL": "https://api.valydejersey.com",
 		"NEXT_PUBLIC_SITE_URL": "https://valydejersey.com",
+		"NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAD9MetDQNU4y3PHR",
 		"NEXT_PUBLIC_MIDTRANS_ENV": "sandbox",
 		"NEXT_PUBLIC_MIDTRANS_CLIENT_KEY": "Mid-client-cwkRE-SgbQ93Ylht"
 	}

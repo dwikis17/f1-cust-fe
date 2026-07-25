@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useMemo, useState } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
+import { TurnstileWidget } from "@/components/turnstile-widget";
 import { useCartCatalog } from "@/components/use-cart-catalog";
 import { cartSubtotal, resolveCartLines, type CartLine } from "@/lib/cart";
 import { useCartStore } from "@/lib/cart-store";
@@ -62,6 +63,7 @@ declare global {
 }
 
 const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
+const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 const midtransSnapUrl = String(process.env.NEXT_PUBLIC_MIDTRANS_ENV) === "production"
 	? "https://app.midtrans.com/snap/snap.js"
 	: "https://app.sandbox.midtrans.com/snap/snap.js";
@@ -82,6 +84,9 @@ export function CheckoutClient() {
 	const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 	const [paymentError, setPaymentError] = useState("");
 	const [snapReady, setSnapReady] = useState(false);
+	const [turnstileToken, setTurnstileToken] = useState("");
+	const [turnstileError, setTurnstileError] = useState("");
+	const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 	const [promoInput, setPromoInput] = useState("");
 	const [appliedPromoState, setAppliedPromoState] = useState<{ cartKey: string; promo: PromoPreview } | null>(null);
 
@@ -145,7 +150,7 @@ export function CheckoutClient() {
 	});
 	const checkoutMutation = useMutation({
 		mutationFn: async () => {
-			if (!selectedRate || !idempotencyKey) throw new Error(messages.checkout.paymentFailed);
+			if (!selectedRate || !idempotencyKey || !turnstileToken) throw new Error(messages.checkout.humanVerificationFailed);
 			const response = await fetch("/api/checkout", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
@@ -155,6 +160,7 @@ export function CheckoutClient() {
 					items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })),
 					courierCode: selectedRate.courierCode,
 					serviceCode: selectedRate.serviceCode,
+					turnstileToken,
 					...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
 				}),
 			});
@@ -167,13 +173,19 @@ export function CheckoutClient() {
 					PROMO_CODE_UNAVAILABLE: messages.checkout.promoUnavailable,
 					PAYMENT_NOT_CONFIGURED: messages.checkout.paymentUnavailable,
 					PAYMENT_UPSTREAM_ERROR: messages.checkout.paymentFailed,
+					HUMAN_VERIFICATION_FAILED: messages.checkout.humanVerificationFailed,
+					HUMAN_VERIFICATION_UNAVAILABLE: messages.checkout.humanVerificationUnavailable,
 				};
 				throw new Error(errors[body.error?.code ?? ""] ?? messages.checkout.paymentFailed);
 			}
 			return body;
 		},
 		onSuccess: (checkout) => openSnap(checkout),
-		onError: (error) => setPaymentError(error instanceof Error ? error.message : messages.checkout.paymentFailed),
+		onError: (error) => {
+			setPaymentError(error instanceof Error ? error.message : messages.checkout.paymentFailed);
+			setTurnstileToken("");
+			setTurnstileResetKey((value) => value + 1);
+		},
 	});
 
 	function updateDetail(field: keyof ShippingDetails, value: string) {
@@ -213,7 +225,7 @@ export function CheckoutClient() {
 			openSnap(checkoutMutation.data);
 			return;
 		}
-		if (!selectedRate || !idempotencyKey) return;
+		if (!selectedRate || !idempotencyKey || !turnstileToken) return;
 		setPaymentError("");
 		checkoutMutation.mutate();
 	}
@@ -225,11 +237,42 @@ export function CheckoutClient() {
 	return (
 		<main className="page-shell checkout-page">
 			{midtransClientKey ? <Script src={midtransSnapUrl} data-client-key={midtransClientKey} strategy="afterInteractive" onReady={() => setSnapReady(Boolean(window.snap))} onError={() => setPaymentError(messages.checkout.paymentUnavailable)} /> : null}
-			<CheckoutSteps step={step} setStep={setStep} canOpenPayment={Boolean(selectedRate)} messages={messages.checkout} />
+			<CheckoutSteps step={step} setStep={(nextStep) => {
+				if (nextStep === "shipping") {
+					setTurnstileToken("");
+					setTurnstileResetKey((value) => value + 1);
+				}
+				setStep(nextStep);
+			}} canOpenPayment={Boolean(selectedRate)} messages={messages.checkout} />
 			<div className="checkout-layout">
 				<section className="checkout-main">
 					{step === "shipping" ? <ShippingStep details={details} updateDetail={updateDetail} rates={rates} selectedRateKey={selectedRateKey} setSelectedRateKey={setSelectedRateKey} error={shippingMutation.error instanceof Error ? shippingMutation.error.message : ""} loading={shippingMutation.isPending} checkShipping={checkShipping} continueToReview={() => setStep("review")} messages={messages} locale={locale} /> : null}
-					{step === "review" && selectedRate ? <ReviewStep lines={lines} details={details} selectedRate={selectedRate} editShipping={() => setStep("shipping")} locked={Boolean(checkoutMutation.data)} startPayment={startPayment} paymentLoading={checkoutMutation.isPending} paymentReady={snapReady && Boolean(midtransClientKey)} paymentError={paymentError} messages={messages.checkout} locale={locale} /> : null}
+					{step === "review" && selectedRate ? <ReviewStep
+						lines={lines}
+						details={details}
+						selectedRate={selectedRate}
+						editShipping={() => {
+							setTurnstileToken("");
+							setTurnstileResetKey((value) => value + 1);
+							setStep("shipping");
+						}}
+						locked={Boolean(checkoutMutation.data)}
+						startPayment={startPayment}
+						paymentLoading={checkoutMutation.isPending}
+						paymentReady={snapReady && Boolean(midtransClientKey) && Boolean(turnstileSiteKey) && Boolean(turnstileToken)}
+						paymentError={paymentError}
+						turnstileVerified={Boolean(turnstileToken)}
+						turnstileSiteKey={turnstileSiteKey}
+						turnstileResetKey={turnstileResetKey}
+						turnstileError={turnstileSiteKey ? turnstileError : messages.checkout.humanVerificationUnavailable}
+						onTurnstileToken={(token) => {
+							setTurnstileToken(token);
+							if (token) setTurnstileError("");
+						}}
+						onTurnstileError={() => setTurnstileError(messages.checkout.humanVerificationUnavailable)}
+						messages={messages.checkout}
+						locale={locale}
+					/> : null}
 				</section>
 				<CheckoutSummary
 					lines={lines}
@@ -313,12 +356,33 @@ function Field({ label, value, update, className, type = "text", autoComplete, i
 	return <label className={className}><span>{label}</span><input type={type} autoComplete={autoComplete} inputMode={inputMode} pattern={pattern} minLength={minLength} maxLength={maxLength} required value={value} onChange={(event) => update(event.target.value)} /></label>;
 }
 
-function ReviewStep({ lines, details, selectedRate, editShipping, locked, startPayment, paymentLoading, paymentReady, paymentError, messages, locale }: { lines: CartLine[]; details: ShippingDetails; selectedRate: ShippingRate; editShipping: () => void; locked: boolean; startPayment: () => void; paymentLoading: boolean; paymentReady: boolean; paymentError: string; messages: ReturnType<typeof useDictionary>["checkout"]; locale: "en" | "id" }) {
+function ReviewStep({ lines, details, selectedRate, editShipping, locked, startPayment, paymentLoading, paymentReady, paymentError, turnstileVerified, turnstileSiteKey, turnstileResetKey, turnstileError, onTurnstileToken, onTurnstileError, messages, locale }: {
+	lines: CartLine[];
+	details: ShippingDetails;
+	selectedRate: ShippingRate;
+	editShipping: () => void;
+	locked: boolean;
+	startPayment: () => void;
+	paymentLoading: boolean;
+	paymentReady: boolean;
+	paymentError: string;
+	turnstileVerified: boolean;
+	turnstileSiteKey?: string;
+	turnstileResetKey: number;
+	turnstileError: string;
+	onTurnstileToken: (token: string) => void;
+	onTurnstileError: () => void;
+	messages: ReturnType<typeof useDictionary>["checkout"];
+	locale: "en" | "id";
+}) {
 	return <>
 		<header className="checkout-heading"><p className="eyebrow">{messages.reviewStep}</p><h1>{messages.reviewTitle}</h1><p>{messages.reviewIntro}</p></header>
 		<div className="review-block"><div><h2>{messages.shippingAddress}</h2>{locked ? null : <button type="button" onClick={editShipping}>{messages.edit}</button>}</div><p>{details.firstName} {details.lastName}<br />{details.address}<br />{details.city}, {details.province} {details.postalCode}<br />Indonesia<br />{details.phone}</p></div>
 		<div className="review-block"><div><h2>{messages.delivery}</h2>{locked ? null : <button type="button" onClick={editShipping}>{messages.edit}</button>}</div><p>{selectedRate.courierName} — {selectedRate.serviceName}<br />{selectedRate.duration || messages.etaUnavailable} · {formatPrice(selectedRate.price, locale)}</p></div>
 		<div className="review-block review-items"><div><h2>{messages.items}</h2></div>{lines.map((line) => <p key={line.variantId}><span>{line.quantity} × {line.product.name}</span><strong>{formatPrice(line.product.priceIdr * line.quantity, locale)}</strong></p>)}</div>
+		{turnstileSiteKey && !locked ? <TurnstileWidget siteKey={turnstileSiteKey} language={locale} resetKey={turnstileResetKey} onToken={onTurnstileToken} onError={onTurnstileError} /> : null}
+		{!locked && !turnstileVerified && !turnstileError ? <p className="verification-status" role="status">{messages.verifyingHuman}</p> : null}
+		{turnstileError ? <p className="payment-notice" role="alert">{turnstileError}</p> : null}
 		{paymentError ? <p className="payment-notice" role="alert">{paymentError}</p> : null}
 		<div className="checkout-nav">{locked ? <span /> : <button type="button" onClick={editShipping}>← {messages.backShipping}</button>}<button className="button button-dark" type="button" disabled={paymentLoading || !paymentReady} onClick={startPayment}>{paymentLoading ? messages.startingPayment : messages.placeOrder}</button></div>
 	</>;

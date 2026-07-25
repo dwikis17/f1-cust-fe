@@ -213,7 +213,7 @@ img { max-width: 100%; }
 .display-button svg { height: 16px; width: 16px; }
 .catalog-toolbar { align-items: center; border-bottom: 1px solid #e5e5e5; display: flex; gap: 24px; justify-content: space-between; margin-bottom: 36px; min-height: 56px; padding-bottom: 12px; }
 .catalog-toolbar span, .catalog-toolbar button, .catalog-toolbar label { background: none; border: 0; color: #5f5f5f; display: flex; font-family: var(--font-mono), monospace; font-size: 11px; gap: 8px; letter-spacing: .08em; padding: 0; text-transform: uppercase; }
-.catalog-toolbar button { color: var(--ink); cursor: pointer; min-height: var(--control-height); padding: 0 12px; }
+.catalog-toolbar button { align-items: center; color: var(--ink); cursor: pointer; height: var(--control-height); justify-content: center; min-height: var(--control-height); padding: 0 12px; }
 .catalog-toolbar form { align-items: center; display: flex; gap: 0; }
 .catalog-search label, .catalog-sort label { align-items: center; background: var(--white); border: 1px solid var(--line); gap: 12px; min-height: var(--control-height); padding-left: 12px; transition: border-color 160ms ease, outline-color 160ms ease; }
 .catalog-search label:focus-within, .catalog-sort label:focus-within { border-color: var(--ink); outline: 2px solid var(--apex); outline-offset: 2px; }

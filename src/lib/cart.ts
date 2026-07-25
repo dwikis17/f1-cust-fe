@@ -1,6 +1,6 @@
 import type { CartItemProduct } from "./cart-catalog";
 
-export const CART_STORAGE_KEY = "valdye-cart";
+export const CART_STORAGE_KEY = "valyde-cart";
 
 export type StoredCartItem = {
 	productId: string;

@@ -7,7 +7,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
 	return (
 		<footer className="site-footer">
 			<div className="footer-brand">
-				<Link className="brand" href={localizedPath(locale)}>VALDYE</Link>
+				<Link className="brand" href={localizedPath(locale)}>VALYDE</Link>
 				<p>{messages.footer.tagline}</p>
 			</div>
 			<div className="footer-column"><strong>{messages.footer.shop}</strong><Link href={localizedPath(locale, "/collections/formula-1")}>{messages.footer.teams}</Link><Link href={localizedPath(locale, "/collections/drivers")}>{messages.footer.drivers}</Link><Link href={`${localizedPath(locale, "/collections/formula-1")}?productType=helmets-replicas`}>{messages.footer.replicas}</Link><Link href={`${localizedPath(locale, "/collections/formula-1")}?productType=headwear`}>{messages.footer.headwear}</Link></div>

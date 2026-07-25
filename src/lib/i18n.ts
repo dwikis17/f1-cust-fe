@@ -292,6 +292,9 @@ const en = {
 		paymentUnavailable: "Payment is not configured or Snap could not be loaded.",
 		paymentFailed: "Payment could not be started. Please try again.",
 		paymentClosed: "Payment was not completed. You can reopen it when ready.",
+		verifyingHuman: "Completing security verification…",
+		humanVerificationFailed: "Security verification failed. Please try again.",
+		humanVerificationUnavailable: "Security verification is temporarily unavailable. Please try again.",
   },
 	order: {
 		title: "Order status",
@@ -663,6 +666,9 @@ const id: Dictionary = {
 		paymentUnavailable: "Pembayaran belum dikonfigurasi atau Snap tidak dapat dimuat.",
 		paymentFailed: "Pembayaran tidak dapat dimulai. Silakan coba lagi.",
 		paymentClosed: "Pembayaran belum selesai. Anda dapat membukanya kembali saat siap.",
+		verifyingHuman: "Menyelesaikan verifikasi keamanan…",
+		humanVerificationFailed: "Verifikasi keamanan gagal. Silakan coba lagi.",
+		humanVerificationUnavailable: "Verifikasi keamanan sementara tidak tersedia. Silakan coba lagi.",
   },
 	order: {
 		title: "Status pesanan",
