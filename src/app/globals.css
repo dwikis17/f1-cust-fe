@@ -173,12 +173,14 @@ img { max-width: 100%; }
 .product-image { aspect-ratio: 4/5; background: var(--soft); overflow: hidden; position: relative; }
 .condition-badge { background: var(--ink); color: var(--white); font-family: var(--font-mono), monospace; font-size: 11px; left: 16px; letter-spacing: .08em; padding: 7px 14px; position: absolute; text-transform: uppercase; top: 16px; z-index: 2; }
 .sale-badge { background: #c8102e; color: white; font-family: var(--font-mono), monospace; font-size: 11px; letter-spacing: .08em; padding: 7px 14px; position: absolute; right: 16px; text-transform: uppercase; top: 16px; z-index: 2; }
-.product-image img { object-fit: cover; transition: filter 420ms ease, transform 520ms var(--ease-out); }
+.product-image img { object-fit: cover; transition: filter 420ms ease, transform 520ms var(--ease-out), opacity 420ms ease; }
+.product-image-secondary { opacity: 0; z-index: 1; }
 .product-image-placeholder { align-items: center; color: var(--muted); display: flex; flex-direction: column; gap: 12px; height: 100%; justify-content: center; text-align: center; }
 .product-image-placeholder b { color: var(--ink); font-family: var(--font-display), sans-serif; font-size: 36px; }
 .product-image-placeholder span { font-family: var(--font-mono), monospace; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; }
 @media (hover: hover) and (pointer: fine) {
 	.product-card:hover .product-image img { filter: saturate(1.05) contrast(1.02); transform: scale(1.045); }
+	.product-card:hover .product-image-secondary { opacity: 1; }
 	.product-card:hover .product-meta h3 { transform: translateX(4px); }
 }
 .product-meta { padding-top: 14px; }

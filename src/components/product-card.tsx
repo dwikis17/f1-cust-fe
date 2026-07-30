@@ -6,6 +6,7 @@ import { localizedPath } from "@/lib/locale";
 
 export function ProductCard({ product, locale, priority = false }: { product: PublicProduct; locale: Locale; priority?: boolean }) {
 	const photo = product.photos[0];
+	const hoverPhoto = product.photos[1];
 	const messages = dictionary(locale);
 	const originalPrice = product.originalPriceIdr;
 	const onSale = originalPrice !== null;
@@ -13,7 +14,33 @@ export function ProductCard({ product, locale, priority = false }: { product: Pu
 		<article className="product-card">
 			<Link href={localizedPath(locale, `/products/${product.slug}`)} aria-label={product.name}>
 				<div className="product-image">
-					{photo ? <Image src={photo.url} alt={photo.altText} fill sizes="(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 25vw" loading={priority ? "eager" : "lazy"} /> : <span className="product-image-placeholder"><b aria-hidden="true">V</b><span>{messages.product.imageUnavailable}</span></span>}
+					{photo ? (
+						<>
+							<Image
+								src={photo.url}
+								alt={photo.altText}
+								fill
+								className="product-image-primary"
+								sizes="(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 25vw"
+								loading={priority ? "eager" : "lazy"}
+							/>
+							{hoverPhoto ? (
+								<Image
+									src={hoverPhoto.url}
+									alt={hoverPhoto.altText || photo.altText}
+									fill
+									className="product-image-secondary"
+									sizes="(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 25vw"
+									loading="lazy"
+								/>
+							) : null}
+						</>
+					) : (
+						<span className="product-image-placeholder">
+							<b aria-hidden="true">V</b>
+							<span>{messages.product.imageUnavailable}</span>
+						</span>
+					)}
 					{product.condition ? <span className="condition-badge">{messages.conditions[product.condition].short}</span> : null}
 					{onSale ? <span className="sale-badge">{messages.product.sale}</span> : null}
 				</div>
