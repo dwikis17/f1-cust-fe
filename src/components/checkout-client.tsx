@@ -36,7 +36,7 @@ type ShippingDetails = {
 	postalCode: string;
 	phone: string;
 };
-type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }> };
+type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }>; turnstileToken: string };
 type PromoPreview = {
 	code: string;
 	discountPercentage: number;
@@ -109,6 +109,8 @@ export function CheckoutClient() {
 						INVALID_DESTINATION: messages.cart.invalidDestination,
 						NO_COURIER_AVAILABLE: messages.cart.noServices,
 						CART_CHANGED: messages.cart.unavailableItem,
+						HUMAN_VERIFICATION_FAILED: messages.checkout.humanVerificationFailed,
+						HUMAN_VERIFICATION_UNAVAILABLE: messages.checkout.humanVerificationUnavailable,
 						SHIPPING_NOT_CONFIGURED: messages.cart.shippingNotConfigured,
 						SHIPPING_TIMEOUT: messages.cart.shippingUnavailable,
 						SHIPPING_UPSTREAM_ERROR: messages.cart.shippingUnavailable,
@@ -119,6 +121,10 @@ export function CheckoutClient() {
 				return body.rates ?? [];
 			},
 		}),
+		onSettled: () => {
+			setTurnstileToken("");
+			setTurnstileResetKey((value) => value + 1);
+		},
 	});
 	const rates = shippingMutation.data ?? [];
 	const selectedRate = rates.find((rate) => rateKey(rate) === selectedRateKey);
@@ -199,11 +205,17 @@ export function CheckoutClient() {
 
 	function checkShipping(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		if (!turnstileToken) {
+			setTurnstileError(turnstileSiteKey ? messages.checkout.humanVerificationFailed : messages.checkout.humanVerificationUnavailable);
+			return;
+		}
+		setTurnstileError("");
 		setSelectedRateKey("");
 		shippingMutation.reset();
 		shippingMutation.mutate({
 			destinationPostalCode: details.postalCode,
 			items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })),
+			turnstileToken,
 		});
 	}
 
@@ -247,7 +259,33 @@ export function CheckoutClient() {
 			{stockAdjusted ? <p className="payment-notice" role="status">{messages.cart.stockAdjusted}</p> : null}
 			<div className="checkout-layout">
 				<section className="checkout-main">
-					{step === "shipping" ? <ShippingStep details={details} updateDetail={updateDetail} rates={rates} selectedRateKey={selectedRateKey} setSelectedRateKey={setSelectedRateKey} error={shippingMutation.error instanceof Error ? shippingMutation.error.message : ""} loading={shippingMutation.isPending} checkShipping={checkShipping} continueToReview={() => setStep("review")} messages={messages} locale={locale} /> : null}
+					{step === "shipping" ? <ShippingStep
+						details={details}
+						updateDetail={updateDetail}
+						rates={rates}
+						selectedRateKey={selectedRateKey}
+						setSelectedRateKey={setSelectedRateKey}
+						error={shippingMutation.error instanceof Error ? shippingMutation.error.message : ""}
+						loading={shippingMutation.isPending}
+						checkShipping={checkShipping}
+						continueToReview={() => {
+							setTurnstileToken("");
+							setTurnstileError("");
+							setTurnstileResetKey((value) => value + 1);
+							setStep("review");
+						}}
+						turnstileVerified={Boolean(turnstileToken)}
+						turnstileSiteKey={turnstileSiteKey}
+						turnstileResetKey={turnstileResetKey}
+						turnstileError={turnstileSiteKey ? turnstileError : messages.checkout.humanVerificationUnavailable}
+						onTurnstileToken={(token) => {
+							setTurnstileToken(token);
+							if (token) setTurnstileError("");
+						}}
+						onTurnstileError={() => setTurnstileError(messages.checkout.humanVerificationUnavailable)}
+						messages={messages}
+						locale={locale}
+					/> : null}
 					{step === "review" && selectedRate ? <ReviewStep
 						lines={lines}
 						details={details}
@@ -313,7 +351,7 @@ function CheckoutSteps({ step, setStep, canOpenPayment, messages }: { step: Step
 	})}</nav>;
 }
 
-function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelectedRateKey, error, loading, checkShipping, continueToReview, messages, locale }: {
+function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelectedRateKey, error, loading, checkShipping, continueToReview, turnstileVerified, turnstileSiteKey, turnstileResetKey, turnstileError, onTurnstileToken, onTurnstileError, messages, locale }: {
 	details: ShippingDetails;
 	updateDetail: (field: keyof ShippingDetails, value: string) => void;
 	rates: ShippingRate[];
@@ -323,6 +361,12 @@ function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelect
 	loading: boolean;
 	checkShipping: (event: FormEvent<HTMLFormElement>) => void;
 	continueToReview: () => void;
+	turnstileVerified: boolean;
+	turnstileSiteKey?: string;
+	turnstileResetKey: number;
+	turnstileError: string;
+	onTurnstileToken: (token: string) => void;
+	onTurnstileError: () => void;
 	messages: ReturnType<typeof useDictionary>;
 	locale: "en" | "id";
 }) {
@@ -342,7 +386,10 @@ function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelect
 				<Field label={checkout.postcode} autoComplete="postal-code" inputMode="numeric" pattern="[0-9]{5}" minLength={5} maxLength={5} value={details.postalCode} update={(value) => updateDetail("postalCode", value)} />
 				<Field className="full" label={checkout.phone} type="tel" autoComplete="tel" value={details.phone} update={(value) => updateDetail("phone", value)} />
 			</div></fieldset>
-			<div className="shipping-actions"><Link href={localizedPath(locale, "/cart")}>← {checkout.returnCart}</Link><button className="button button-dark" type="submit" disabled={loading}>{loading ? checkout.checking : checkout.getDeliveryOptions}</button></div>
+			{turnstileSiteKey ? <TurnstileWidget siteKey={turnstileSiteKey} action="shipping-rates" language={locale} resetKey={turnstileResetKey} onToken={onTurnstileToken} onError={onTurnstileError} /> : null}
+			{!turnstileVerified && !turnstileError ? <p className="verification-status" role="status">{checkout.verifyingHuman}</p> : null}
+			{turnstileError ? <p className="payment-notice" role="alert">{turnstileError}</p> : null}
+			<div className="shipping-actions"><Link href={localizedPath(locale, "/cart")}>← {checkout.returnCart}</Link><button className="button button-dark" type="submit" disabled={loading || !turnstileVerified}>{loading ? checkout.checking : checkout.getDeliveryOptions}</button></div>
 		</form>
 		<div className="checkout-rates" aria-live="polite">
 			{error ? <p className="checkout-error">{error}</p> : null}
@@ -381,7 +428,7 @@ function ReviewStep({ lines, details, selectedRate, editShipping, locked, startP
 		<div className="review-block"><div><h2>{messages.shippingAddress}</h2>{locked ? null : <button type="button" onClick={editShipping}>{messages.edit}</button>}</div><p>{details.firstName} {details.lastName}<br />{details.address}<br />{details.city}, {details.province} {details.postalCode}<br />Indonesia<br />{details.phone}</p></div>
 		<div className="review-block"><div><h2>{messages.delivery}</h2>{locked ? null : <button type="button" onClick={editShipping}>{messages.edit}</button>}</div><p>{selectedRate.courierName} — {selectedRate.serviceName}<br />{selectedRate.duration || messages.etaUnavailable} · {formatPrice(selectedRate.price, locale)}</p></div>
 		<div className="review-block review-items"><div><h2>{messages.items}</h2></div>{lines.map((line) => <p key={line.variantId}><span>{line.quantity} × {line.product.name}</span><strong>{formatPrice(line.product.priceIdr * line.quantity, locale)}</strong></p>)}</div>
-		{turnstileSiteKey && !locked ? <TurnstileWidget siteKey={turnstileSiteKey} language={locale} resetKey={turnstileResetKey} onToken={onTurnstileToken} onError={onTurnstileError} /> : null}
+		{turnstileSiteKey && !locked ? <TurnstileWidget siteKey={turnstileSiteKey} action="checkout" language={locale} resetKey={turnstileResetKey} onToken={onTurnstileToken} onError={onTurnstileError} /> : null}
 		{!locked && !turnstileVerified && !turnstileError ? <p className="verification-status" role="status">{messages.verifyingHuman}</p> : null}
 		{turnstileError ? <p className="payment-notice" role="alert">{turnstileError}</p> : null}
 		{paymentError ? <p className="payment-notice" role="alert">{paymentError}</p> : null}

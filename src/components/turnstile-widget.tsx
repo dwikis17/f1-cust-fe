@@ -26,8 +26,9 @@ declare global {
 	}
 }
 
-export function TurnstileWidget({ siteKey, language, resetKey, onToken, onError }: {
+export function TurnstileWidget({ siteKey, action, language, resetKey, onToken, onError }: {
 	siteKey: string;
+	action: "shipping-rates" | "checkout";
 	language: "en" | "id";
 	resetKey: number;
 	onToken: (token: string) => void;
@@ -51,7 +52,7 @@ export function TurnstileWidget({ siteKey, language, resetKey, onToken, onError 
 		};
 		const widgetId = window.turnstile.render(containerRef.current, {
 			sitekey: siteKey,
-			action: "checkout",
+			action,
 			appearance: "interaction-only",
 			size: "flexible",
 			language,
@@ -63,7 +64,7 @@ export function TurnstileWidget({ siteKey, language, resetKey, onToken, onError 
 			"unsupported-callback": fail,
 		});
 		return () => window.turnstile?.remove(widgetId);
-	}, [language, ready, resetKey, siteKey]);
+	}, [action, language, ready, resetKey, siteKey]);
 
 	return <>
 		<Script
