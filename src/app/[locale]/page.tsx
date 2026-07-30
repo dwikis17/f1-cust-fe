@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { HomeCarousel } from "@/components/home-carousel";
 import { ArrowRightIcon, RouteIcon, ShieldIcon, TruckIcon, VerifiedIcon } from "@/components/icons";
 import { ProductCard } from "@/components/product-card";
-import { ResponsiveBanner } from "@/components/responsive-banner";
 import { StructuredData } from "@/components/structured-data";
 import { catalog } from "@/lib/catalog";
-import { resolveHomeHero } from "@/lib/home";
+import { resolveHomeHeroes } from "@/lib/home";
 import { dictionary } from "@/lib/i18n";
 import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
 import { absoluteUrl, siteName } from "@/lib/seo";
@@ -24,13 +24,14 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 	const messages = dictionary(locale);
 	const homePath = localizedPath(locale);
 	const collectionsPath = localizedPath(locale, "/collections");
-	const [{ data: products }, collectionTree, managedHero] = await Promise.all([
+	const [{ data: products }, collectionTree, managedHeroes] = await Promise.all([
 		catalog.listProducts({ limit: 4 }, locale),
 		catalog.listCollections(locale),
-		catalog.getHomeHero(locale),
+		catalog.getHomeHeroes(locale),
 	]);
 	const teams = collectionTree.flatMap((parent) => parent.children).filter((collection) => collection.kind === "TEAM");
-	const hero = resolveHomeHero(managedHero, {
+	const heroes = resolveHomeHeroes(managedHeroes, {
+		id: "fallback",
 		eyebrow: messages.home.performanceEngineering,
 		title: messages.home.teamwear,
 		outlinedTitle: messages.home.collection,
@@ -70,19 +71,17 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 					},
 				],
 			}} />
-			<section className="home-hero">
-				<ResponsiveBanner alt={hero.imageAlt} desktopSrc={hero.desktopImageUrl} mobileSrc={hero.mobileImageUrl} />
-				<div className="hero-shade" />
-				<div className="hero-copy">
-					<p className="eyebrow light">{hero.eyebrow}</p>
-					<h1>{hero.title}<br /><span>{hero.outlinedTitle}</span></h1>
-					<p>{hero.body}</p>
-					<div className="hero-actions">
-						<Link className="button button-light" href={localizedPath(locale, hero.ctaPath)}>{hero.ctaLabel}</Link>
-						{hero.managed ? null : <a className="button button-outline-light" href="#editorial">{messages.home.viewCampaign}</a>}
-					</div>
-				</div>
-			</section>
+			<HomeCarousel
+				slides={heroes}
+				locale={locale}
+				labels={{
+					carousel: messages.home.carouselLabel,
+					previous: messages.home.previousCampaign,
+					next: messages.home.nextCampaign,
+					show: messages.home.showCampaign,
+					editorial: messages.home.viewCampaign,
+				}}
+			/>
 
 			<section className="trust-bar" aria-label={messages.home.trustLabel}>
 				<ul>

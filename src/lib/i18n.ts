@@ -66,6 +66,10 @@ const en = {
     securePayment: "Secure payment",
     indonesiaDelivery: "Delivery across Indonesia",
     orderTracking: "Order tracking",
+    carouselLabel: "Featured campaigns",
+    previousCampaign: "Previous campaign",
+    nextCampaign: "Next campaign",
+    showCampaign: "Show campaign",
   },
   faq: {
     title: "Shopping FAQs",
@@ -455,6 +459,10 @@ const id: Dictionary = {
     securePayment: "Pembayaran aman",
     indonesiaDelivery: "Pengiriman ke seluruh Indonesia",
     orderTracking: "Pelacakan pesanan",
+    carouselLabel: "Kampanye unggulan",
+    previousCampaign: "Kampanye sebelumnya",
+    nextCampaign: "Kampanye berikutnya",
+    showCampaign: "Tampilkan kampanye",
   },
   faq: {
     title: "FAQ Belanja",

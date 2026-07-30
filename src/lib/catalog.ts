@@ -111,13 +111,16 @@ export const catalog = {
 	listNavigationCollections(locale: Locale = "en"): Promise<CollectionNode[]> {
 		return staticApiFetch(`/api/collections?locale=${locale}`, ["catalog:collections"]);
 	},
-	async getHomeHero(locale: Locale = "en"): Promise<PublicHomeHero | null> {
-		const response = await fetch(apiUrl(`/api/home?locale=${locale}`), {
-			next: { revalidate: TAXONOMY_TTL_SECONDS, tags: ["content:home"] },
-		});
-		if (response.status === 404) return null;
-		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
-		return response.json() as Promise<PublicHomeHero | null>;
+	async getHomeHeroes(locale: Locale = "en"): Promise<PublicHomeHero[]> {
+		try {
+			const response = await fetch(apiUrl(`/api/home?locale=${locale}`), {
+				next: { revalidate: TAXONOMY_TTL_SECONDS, tags: ["content:home"] },
+			});
+			if (!response.ok) return [];
+			return response.json() as Promise<PublicHomeHero[]>;
+		} catch {
+			return [];
+		}
 	},
 	async getCollection(slug: string, locale: Locale = "en"): Promise<CollectionDetail | null> {
 		const response = await fetch(apiUrl(`/api/collections/${encodeURIComponent(slug)}?locale=${locale}`), {

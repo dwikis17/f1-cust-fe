@@ -1,4 +1,5 @@
 export type PublicHomeHero = {
+	id: string;
 	eyebrow: string;
 	title: string;
 	outlinedTitle: string;
@@ -15,16 +16,23 @@ export type ResolvedHomeHero = Omit<PublicHomeHero, "collection"> & {
 	ctaPath: string;
 };
 
-export function resolveHomeHero(
-	hero: PublicHomeHero | null,
+export function resolveHomeHeroes(
+	heroes: PublicHomeHero[],
 	fallback: Omit<ResolvedHomeHero, "managed">,
-): ResolvedHomeHero {
-	if (!hero) return { ...fallback, managed: false };
-	const { collection, ...content } = hero;
-	return {
+): ResolvedHomeHero[] {
+	if (!heroes.length) return [{ ...fallback, managed: false }];
+	return heroes.map(({ collection, ...content }) => ({
 		...content,
 		managed: true,
 		imageAlt: "",
 		ctaPath: `/collections/${collection.slug}`,
-	};
+	}));
+}
+
+export function nextSlideIndex(current: number, offset: -1 | 1, count: number): number {
+	return count > 0 ? (current + offset + count) % count : 0;
+}
+
+export function shouldAutoplay(count: number, paused: boolean, reducedMotion: boolean, visible: boolean): boolean {
+	return count > 1 && !paused && !reducedMotion && visible;
 }
