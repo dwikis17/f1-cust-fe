@@ -1,4 +1,4 @@
-const exactTags = new Set(["catalog:products", "catalog:collections", "catalog:teams"]);
+const exactTags = new Set(["catalog:products", "catalog:collections", "catalog:teams", "content:home"]);
 const scopedTag = /^(?:catalog:(?:product|collection):[a-z0-9]+(?:-[a-z0-9]+)*|content:faqs:(?:en|id))$/;
 
 export function parseRevalidationTags(value: unknown): string[] | null {

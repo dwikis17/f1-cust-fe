@@ -39,3 +39,15 @@ export function CubeIcon(props: IconProps) {
 export function CheckIcon(props: IconProps) {
 	return <svg {...base} {...props}><path d="m5 12 5 5L20 7" /></svg>;
 }
+
+export function ShieldIcon(props: IconProps) {
+	return <svg {...base} {...props}><path d="M12 3 5 6v5c0 4.6 2.8 8 7 10 4.2-2 7-5.4 7-10V6l-7-3Z" /><path d="m9 12 2 2 4-4" /></svg>;
+}
+
+export function TruckIcon(props: IconProps) {
+	return <svg {...base} {...props}><path d="M3 6h11v11H3zM14 10h4l3 3v4h-7z" /><circle cx="7" cy="18" r="2" /><circle cx="18" cy="18" r="2" /></svg>;
+}
+
+export function RouteIcon(props: IconProps) {
+	return <svg {...base} {...props}><circle cx="6" cy="18" r="2" /><circle cx="18" cy="6" r="2" /><path d="M8 18h3a3 3 0 0 0 3-3v-6a3 3 0 0 1 3-3" /></svg>;
+}

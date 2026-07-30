@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRightIcon } from "@/components/icons";
+import { ArrowRightIcon, RouteIcon, ShieldIcon, TruckIcon, VerifiedIcon } from "@/components/icons";
 import { ProductCard } from "@/components/product-card";
 import { ResponsiveBanner } from "@/components/responsive-banner";
 import { StructuredData } from "@/components/structured-data";
 import { catalog } from "@/lib/catalog";
+import { resolveHomeHero } from "@/lib/home";
 import { dictionary } from "@/lib/i18n";
 import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
 import { absoluteUrl, siteName } from "@/lib/seo";
@@ -23,11 +24,29 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 	const messages = dictionary(locale);
 	const homePath = localizedPath(locale);
 	const collectionsPath = localizedPath(locale, "/collections");
-	const [{ data: products }, collectionTree] = await Promise.all([
+	const [{ data: products }, collectionTree, managedHero] = await Promise.all([
 		catalog.listProducts({ limit: 4 }, locale),
 		catalog.listCollections(locale),
+		catalog.getHomeHero(locale),
 	]);
 	const teams = collectionTree.flatMap((parent) => parent.children).filter((collection) => collection.kind === "TEAM");
+	const hero = resolveHomeHero(managedHero, {
+		eyebrow: messages.home.performanceEngineering,
+		title: messages.home.teamwear,
+		outlinedTitle: messages.home.collection,
+		body: messages.home.heroText,
+		ctaLabel: messages.home.shopNow,
+		desktopImageUrl: "/images/generated/banner-desktop.webp",
+		mobileImageUrl: "/images/generated/banner-mobile.webp",
+		imageAlt: messages.home.bannerAlt,
+		ctaPath: "/collections",
+	});
+	const trustItems = [
+		{ label: messages.home.conditionClear, Icon: VerifiedIcon },
+		{ label: messages.home.securePayment, Icon: ShieldIcon },
+		{ label: messages.home.indonesiaDelivery, Icon: TruckIcon },
+		{ label: messages.home.orderTracking, Icon: RouteIcon },
+	];
 	return (
 		<main className="page-shell home-page">
 			<StructuredData data={{
@@ -52,14 +71,23 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 				],
 			}} />
 			<section className="home-hero">
-				<ResponsiveBanner alt={messages.home.bannerAlt} />
+				<ResponsiveBanner alt={hero.imageAlt} desktopSrc={hero.desktopImageUrl} mobileSrc={hero.mobileImageUrl} />
 				<div className="hero-shade" />
 				<div className="hero-copy">
-					<p className="eyebrow light">{messages.home.performanceEngineering}</p>
-					<h1>{messages.home.teamwear}<br /><span>{messages.home.collection}</span></h1>
-					<p>{messages.home.heroText}</p>
-					<div className="hero-actions"><Link className="button button-light" href={collectionsPath}>{messages.home.shopNow}</Link><a className="button button-outline-light" href="#editorial">{messages.home.viewCampaign}</a></div>
+					<p className="eyebrow light">{hero.eyebrow}</p>
+					<h1>{hero.title}<br /><span>{hero.outlinedTitle}</span></h1>
+					<p>{hero.body}</p>
+					<div className="hero-actions">
+						<Link className="button button-light" href={localizedPath(locale, hero.ctaPath)}>{hero.ctaLabel}</Link>
+						{hero.managed ? null : <a className="button button-outline-light" href="#editorial">{messages.home.viewCampaign}</a>}
+					</div>
 				</div>
+			</section>
+
+			<section className="trust-bar" aria-label={messages.home.trustLabel}>
+				<ul>
+					{trustItems.map(({ label, Icon }) => <li key={label}><Icon aria-hidden="true" /><span>{label}</span></li>)}
+				</ul>
 			</section>
 
 			<section className="team-strip" aria-label={messages.home.teamsLabel}>

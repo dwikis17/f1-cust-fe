@@ -61,6 +61,11 @@ const en = {
     racingAlt: "Grand-prix cars racing at night",
     detailAlt: "Detailed carbon-fibre racing helmet visor hardware",
     playFilm: "Play film",
+    trustLabel: "Why shop with Valyde",
+    conditionClear: "Condition clearly stated",
+    securePayment: "Secure payment",
+    indonesiaDelivery: "Delivery across Indonesia",
+    orderTracking: "Order tracking",
   },
   faq: {
     title: "Shopping FAQs",
@@ -445,6 +450,11 @@ const id: Dictionary = {
     racingAlt: "Mobil grand prix berlomba pada malam hari",
     detailAlt: "Detail perangkat visor helm balap berbahan serat karbon",
     playFilm: "Putar film",
+    trustLabel: "Mengapa belanja di Valyde",
+    conditionClear: "Kondisi produk jelas",
+    securePayment: "Pembayaran aman",
+    indonesiaDelivery: "Pengiriman ke seluruh Indonesia",
+    orderTracking: "Pelacakan pesanan",
   },
   faq: {
     title: "FAQ Belanja",

@@ -1,4 +1,5 @@
 import type { Locale } from "./i18n";
+import type { PublicHomeHero } from "./home";
 
 export type CatalogEntity = { id: string; name: string; slug: string; createdAt: string; updatedAt: string };
 export type ProductAudience = "MEN" | "WOMEN" | "KIDS" | "UNISEX";
@@ -109,6 +110,14 @@ export const catalog = {
 	},
 	listNavigationCollections(locale: Locale = "en"): Promise<CollectionNode[]> {
 		return staticApiFetch(`/api/collections?locale=${locale}`, ["catalog:collections"]);
+	},
+	async getHomeHero(locale: Locale = "en"): Promise<PublicHomeHero | null> {
+		const response = await fetch(apiUrl(`/api/home?locale=${locale}`), {
+			next: { revalidate: TAXONOMY_TTL_SECONDS, tags: ["content:home"] },
+		});
+		if (response.status === 404) return null;
+		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
+		return response.json() as Promise<PublicHomeHero | null>;
 	},
 	async getCollection(slug: string, locale: Locale = "en"): Promise<CollectionDetail | null> {
 		const response = await fetch(apiUrl(`/api/collections/${encodeURIComponent(slug)}?locale=${locale}`), {
