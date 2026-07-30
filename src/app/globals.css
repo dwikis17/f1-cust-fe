@@ -87,18 +87,21 @@ body:has(.race-ticker-bar) .page-shell { padding-top: 118px; }
 }
 
 @media (max-width: 640px) {
-	.race-ticker-content { padding-inline: 10px; }
-	.race-ticker-identity { gap: 8px; }
-	.race-ticker-badge .ticker-badge-text { font-size: 0; }
-	.race-ticker-badge .ticker-badge-text::after { content: "GP"; font-size: 10px; }
-	.race-ticker-title { gap: 5px; }
-	.race-name { max-width: 92px; }
-	.race-ticker-clock { margin-inline: 10px; padding-inline: 10px; }
+	.race-ticker-content { height: 40px; padding-inline: 12px; }
+	.race-ticker-badge { display: none; }
+	.race-ticker-cta { display: none; }
+	.race-name { display: none; }
+	.race-flag { font-size: 18px; }
+	.race-ticker-identity { gap: 0; }
+	.race-ticker-title { gap: 0; }
+	.race-ticker-clock { border-inline: none; margin-inline: 0; padding-inline: 0; }
+	.clock-digits { gap: 4px; }
+	.clock-unit { gap: 1px; }
+	.clock-unit strong { font-size: 12px; }
 	.clock-unit small { font-size: 8px; }
-	.race-ticker-cta span:first-child { display: none; }
-	.race-ticker-cta { border: 0; padding: 8px; }
-	.race-ticker-dismiss { width: 28px; }
-	body:has(.race-ticker-bar) .page-shell { padding-top: 118px; }
+	.clock-sep { display: none; }
+	.race-ticker-dismiss { height: 28px; width: 28px; }
+	body:has(.race-ticker-bar) .page-shell { padding-top: 110px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
