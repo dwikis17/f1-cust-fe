@@ -110,17 +110,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 				</div>
 				<div className="home-product-grid">{products.slice(0, 4).map((product, index) => <ProductCard product={product} locale={locale} key={product.id} priority={index < 2} />)}</div>
 			</section>
-
-			<section className="editorial-section" id="editorial">
-				<article className="editorial-feature">
-					<Image src="/images/generated/banner-desktop.webp" alt={messages.home.racingAlt} fill sizes="(max-width: 800px) 100vw, 65vw" />
-					<div className="editorial-copy"><p className="eyebrow light">{messages.home.editorial}</p><h2>{messages.home.silentSeconds}</h2><p>{messages.home.silentText}</p><Link href={collectionsPath}>{messages.home.shopNow}</Link></div>
-				</article>
-				<div className="editorial-side">
-					<div className="engineering-card"><h3>{messages.home.engineeringBrief}</h3><p>{messages.home.engineeringText}</p><Link className="text-link light" href={collectionsPath}>{messages.home.exploreShop} <ArrowRightIcon /></Link></div>
-					<div className="wheel-card"><Link href={collectionsPath} aria-label={messages.home.shopNow}><Image src="/images/generated/product-04-detail.webp" alt={messages.home.detailAlt} fill sizes="(max-width: 600px) 100vw, 35vw" /><span aria-hidden="true"><ArrowRightIcon /></span></Link></div>
-				</div>
-			</section>
 		</main>
 	);
 }
