@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, JetBrains_Mono, Space_Grotesk } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
 import { AppProviders } from "@/components/app-providers";
 import { I18nProvider } from "@/components/i18n-provider";
@@ -10,9 +10,7 @@ import { localeStaticParams, parseLocale } from "@/lib/locale";
 import { siteName, siteUrl } from "@/lib/seo";
 import "../globals.css";
 
-const display = Space_Grotesk({ variable: "--font-display", subsets: ["latin"], display: "swap" });
-const body = Hanken_Grotesk({ variable: "--font-body", subsets: ["latin"], display: "swap" });
-const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"], display: "swap" });
+const plusJakarta = Plus_Jakarta_Sans({ variable: "--font-plus-jakarta", subsets: ["latin"], display: "swap" });
 
 export const dynamicParams = true;
 export function generateStaticParams() {
@@ -64,7 +62,7 @@ export default async function RootLayout({ children, params }: Readonly<{ childr
 	if (!locale) notFound();
 	return (
 		<html lang={locale} data-scroll-behavior="smooth">
-			<body className={`${display.variable} ${body.variable} ${mono.variable}`}>
+			<body className={plusJakarta.variable}>
 				<I18nProvider locale={locale}>
 					<AppProviders>
 						<SiteHeader locale={locale} />
