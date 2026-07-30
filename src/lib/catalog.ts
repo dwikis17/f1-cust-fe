@@ -1,5 +1,5 @@
 import type { Locale } from "./i18n";
-import type { PublicHomeHero } from "./home";
+import type { PublicHomeCollectionBlock, PublicHomeHero } from "./home";
 
 export type CatalogEntity = { id: string; name: string; slug: string; createdAt: string; updatedAt: string };
 export type ProductAudience = "MEN" | "WOMEN" | "KIDS" | "UNISEX";
@@ -118,6 +118,17 @@ export const catalog = {
 			});
 			if (!response.ok) return [];
 			return response.json() as Promise<PublicHomeHero[]>;
+		} catch {
+			return [];
+		}
+	},
+	async getHomeCollectionBlocks(locale: Locale = "en"): Promise<PublicHomeCollectionBlock[]> {
+		try {
+			const response = await fetch(apiUrl(`/api/home/collection-blocks?locale=${locale}`), {
+				next: { revalidate: TAXONOMY_TTL_SECONDS, tags: ["content:home", "catalog:collections", "catalog:products"] },
+			});
+			if (!response.ok) return [];
+			return response.json() as Promise<PublicHomeCollectionBlock[]>;
 		} catch {
 			return [];
 		}

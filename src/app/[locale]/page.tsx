@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { HomeCarousel } from "@/components/home-carousel";
+import { HomeCollectionBlock } from "@/components/home-collection-block";
 import { ArrowRightIcon, RouteIcon, ShieldIcon, TruckIcon, VerifiedIcon } from "@/components/icons";
 import { ProductCard } from "@/components/product-card";
 import { StructuredData } from "@/components/structured-data";
@@ -24,10 +25,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 	const messages = dictionary(locale);
 	const homePath = localizedPath(locale);
 	const collectionsPath = localizedPath(locale, "/collections");
-	const [{ data: products }, collectionTree, managedHeroes] = await Promise.all([
+	const [{ data: products }, collectionTree, managedHeroes, collectionBlocks] = await Promise.all([
 		catalog.listProducts({ limit: 4 }, locale),
 		catalog.listCollections(locale),
 		catalog.getHomeHeroes(locale),
+		catalog.getHomeCollectionBlocks(locale),
 	]);
 	const teams = collectionTree.flatMap((parent) => parent.children).filter((collection) => collection.kind === "TEAM");
 	const heroes = resolveHomeHeroes(managedHeroes, {
@@ -110,6 +112,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 				</div>
 				<div className="home-product-grid">{products.slice(0, 4).map((product, index) => <ProductCard product={product} locale={locale} key={product.id} priority={index < 2} />)}</div>
 			</section>
+
+			{collectionBlocks.map((block) => <HomeCollectionBlock block={block} locale={locale} key={block.id} />)}
 		</main>
 	);
 }

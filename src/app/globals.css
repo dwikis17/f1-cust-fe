@@ -231,6 +231,20 @@ body:has(.race-ticker-bar) .page-shell { padding-top: 118px; }
 }
 .team-strip a:active { transform: scale(.98); }
 .home-product-grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fill, minmax(190px, 240px)); }
+.home-collection-block { border-top: 1px solid var(--line); }
+.collection-block-gallery { display: grid; gap: 16px; grid-template-columns: 2fr 1fr 1fr; }
+.collection-block-gallery a { background: var(--soft); overflow: hidden; position: relative; }
+.collection-block-image-lead { aspect-ratio: 16/7; }
+.collection-block-image-side { aspect-ratio: 8/7; }
+.collection-block-gallery img { object-fit: cover; transition: filter 420ms ease, transform 520ms var(--ease-out); }
+.collection-block-heading { align-items: end; display: flex; gap: 32px; justify-content: space-between; padding: 46px 12px 34px; }
+.collection-block-heading h2 { font-family: var(--font-display), sans-serif; font-size: 32px; letter-spacing: -.04em; line-height: 1; margin: 0 0 12px; }
+.collection-block-heading p { color: var(--muted); line-height: 1.5; margin: 0; max-width: 70ch; }
+.collection-block-products { display: grid; gap: 24px; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.collection-block-products .product-card { min-width: 0; }
+@media (hover: hover) and (pointer: fine) {
+	.collection-block-gallery a:hover img { filter: contrast(1.03) saturate(1.04); transform: scale(1.025); }
+}
 .product-card a { display: block; }
 .product-image { aspect-ratio: 4/5; background: var(--soft); overflow: hidden; position: relative; }
 .condition-badge { background: var(--ink); color: var(--white); font-family: var(--font-mono), monospace; font-size: 11px; left: 16px; letter-spacing: .08em; padding: 7px 14px; position: absolute; text-transform: uppercase; top: 16px; z-index: 2; }
@@ -759,6 +773,9 @@ body:has(.race-ticker-bar) .page-shell { padding-top: 118px; }
 	.team-strip { gap: 6px; grid-auto-columns: 104px; padding: 14px 16px; }
 	.team-strip a { min-width: 104px; }
 	.home-product-grid { grid-template-columns: repeat(2, 1fr); }
+	.collection-block-products { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+	.collection-block-products::-webkit-scrollbar { display: none; }
+	.collection-block-products .product-card { flex: 0 0 44vw; scroll-snap-align: start; }
 	.editorial-section { grid-template-columns: 1fr; }
 	.editorial-feature { min-height: 560px; }
 	.editorial-side { grid-template-columns: 1fr 1fr; grid-template-rows: 260px; }
@@ -825,6 +842,14 @@ body:has(.race-ticker-bar) .page-shell { padding-top: 118px; }
 	.section-heading .text-link svg { height: 22px; width: 22px; }
 	.section-heading h2 { font-size: 25px; }
 	.home-product-grid { gap: 24px 12px; }
+	.collection-block-gallery { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+	.collection-block-gallery::-webkit-scrollbar { display: none; }
+	.collection-block-gallery a { aspect-ratio: 16/10; flex: 0 0 84vw; scroll-snap-align: start; }
+	.collection-block-heading { align-items: flex-start; gap: 20px; padding: 34px 0 28px; }
+	.collection-block-heading h2 { font-size: 26px; }
+	.collection-block-heading .text-link { flex: 0 0 auto; }
+	.collection-block-products { gap: 12px; }
+	.collection-block-products .product-card { flex-basis: 76vw; }
 	.product-image { aspect-ratio: 1/1.12; }
 	.product-meta > div { display: block; }
 	.product-meta h3 { font-size: 14px; }
@@ -1234,7 +1259,7 @@ body:has(.race-ticker-bar) .page-shell { padding-top: 118px; }
 	.home-carousel-slide { transition: none; }
 	.nav-dropdown { transform: none; transition: opacity 120ms var(--ease-out), visibility 0s linear 120ms; }
 	.nav-group:focus-within .nav-dropdown, .nav-group:hover .nav-dropdown { transform: none; transition-delay: 0s; }
-	.product-card:hover .product-image img, .product-card:hover .product-meta h3, .button:hover, .button:active, .variant-options button:active, .quantity button:active, .language-switcher button:active, .icon-button:hover, .icon-button:active, .gallery-thumbs button:active, .display-button:active, .pagination > a:active { transform: none; }
+	.product-card:hover .product-image img, .product-card:hover .product-meta h3, .collection-block-gallery a:hover img, .button:hover, .button:active, .variant-options button:active, .quantity button:active, .language-switcher button:active, .icon-button:hover, .icon-button:active, .gallery-thumbs button:active, .display-button:active, .pagination > a:active { transform: none; }
 	.team-strip a:hover, .team-strip a:hover img, .team-strip a:active { transform: none; }
 	.collection-gallery-card:hover .collection-gallery-image, .collection-gallery-card:hover .collection-gallery-copy h3, .collection-gallery-card:hover .collection-gallery-copy b { transform: none; }
 	.editorial-feature:hover > img, .wheel-card:hover > img, .wheel-card > a:hover > img, .wheel-card > a:hover > span { transform: none; }
