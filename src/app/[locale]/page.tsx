@@ -43,10 +43,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 		ctaPath: "/collections",
 	});
 	const trustItems = [
-		{ label: messages.home.conditionClear, Icon: VerifiedIcon },
-		{ label: messages.home.securePayment, Icon: ShieldIcon },
-		{ label: messages.home.indonesiaDelivery, Icon: TruckIcon },
-		{ label: messages.home.orderTracking, Icon: RouteIcon },
+		{ id: "01", label: messages.home.conditionClear, Icon: VerifiedIcon },
+		{ id: "02", label: messages.home.securePayment, Icon: ShieldIcon },
+		{ id: "03", label: messages.home.indonesiaDelivery, Icon: TruckIcon },
+		{ id: "04", label: messages.home.orderTracking, Icon: RouteIcon },
 	];
 	return (
 		<main className="page-shell home-page">
@@ -85,7 +85,17 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
 			<section className="trust-bar" aria-label={messages.home.trustLabel}>
 				<ul>
-					{trustItems.map(({ label, Icon }) => <li key={label}><Icon aria-hidden="true" /><span>{label}</span></li>)}
+					{trustItems.map(({ id, label, Icon }) => (
+						<li className="trust-item group" key={label}>
+							<div className="trust-icon-box">
+								<Icon aria-hidden="true" />
+							</div>
+							<div className="trust-content">
+								<span className="trust-code">{id}</span>
+								<span className="trust-label">{label}</span>
+							</div>
+						</li>
+					))}
 				</ul>
 			</section>
 
