@@ -22,6 +22,16 @@ const en = {
     mobileNavigation: "Mobile navigation",
     language: "Language",
   },
+  raceCountdown: {
+    nextRace: "Next Grand Prix",
+    liveWeekend: "Race Weekend Live",
+    shopGear: "Shop Race Gear",
+    days: "d",
+    hours: "h",
+    minutes: "m",
+    seconds: "s",
+    closeBanner: "Dismiss announcement",
+  },
   footer: {
     tagline: "Valyde Jersey offers a focused collection of Formula 1 apparel, accessories, and technical collectibles for race-day enthusiasts.",
     shop: "Shop",
@@ -414,6 +424,16 @@ const id: Dictionary = {
     openMenu: "Buka menu",
     mobileNavigation: "Navigasi seluler",
     language: "Bahasa",
+  },
+  raceCountdown: {
+    nextRace: "Grand Prix Berikutnya",
+    liveWeekend: "Akhir Pekan Balapan Live",
+    shopGear: "Belanja Gear Balap",
+    days: "h",
+    hours: "j",
+    minutes: "m",
+    seconds: "d",
+    closeBanner: "Tutup pengumuman",
   },
   footer: {
     tagline: "Valyde Jersey menawarkan koleksi pilihan pakaian, aksesori, dan barang koleksi Formula 1 untuk penggemar hari balap.",
