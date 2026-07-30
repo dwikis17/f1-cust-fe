@@ -77,7 +77,7 @@ export function CheckoutClient() {
 	const messages = useDictionary();
 	const items = useCartStore((state) => state.items);
 	const ready = useCartStore((state) => state.hydrated);
-	const { products, error: catalogError, loading: catalogLoading, retry: retryCatalog } = useCartCatalog();
+	const { products, error: catalogError, loading: catalogLoading, stockAdjusted, retry: retryCatalog } = useCartCatalog();
 	const [step, setStep] = useState<Step>("shipping");
 	const [details, setDetails] = useState<ShippingDetails>(emptyDetails);
 	const [selectedRateKey, setSelectedRateKey] = useState("");
@@ -244,6 +244,7 @@ export function CheckoutClient() {
 				}
 				setStep(nextStep);
 			}} canOpenPayment={Boolean(selectedRate)} messages={messages.checkout} />
+			{stockAdjusted ? <p className="payment-notice" role="status">{messages.cart.stockAdjusted}</p> : null}
 			<div className="checkout-layout">
 				<section className="checkout-main">
 					{step === "shipping" ? <ShippingStep details={details} updateDetail={updateDetail} rates={rates} selectedRateKey={selectedRateKey} setSelectedRateKey={setSelectedRateKey} error={shippingMutation.error instanceof Error ? shippingMutation.error.message : ""} loading={shippingMutation.isPending} checkShipping={checkShipping} continueToReview={() => setStep("review")} messages={messages} locale={locale} /> : null}

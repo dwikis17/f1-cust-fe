@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
 import { useCartCatalog } from "@/components/use-cart-catalog";
-import { cartSubtotal, resolveCartLines } from "@/lib/cart";
+import { cartSubtotal, maxPurchasableQuantity, resolveCartLines } from "@/lib/cart";
 import { useCartStore } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/catalog";
 import { localizedPath } from "@/lib/locale";
@@ -18,8 +18,8 @@ export function CartClient() {
 	const setQuantity = useCartStore((state) => state.setQuantity);
 	const removeItem = useCartStore((state) => state.removeItem);
 	const addItem = useCartStore((state) => state.addItem);
-	const { products, error, loading, retry } = useCartCatalog();
-	const [removed, setRemoved] = useState<{ productId: string; productName: string; variantId: string; quantity: number } | null>(null);
+	const { products, error, loading, stockAdjusted, retry } = useCartCatalog();
+	const [removed, setRemoved] = useState<{ productId: string; productName: string; variantId: string; quantity: number; maximum: number } | null>(null);
 
 	const lines = useMemo(() => resolveCartLines(items, products), [items, products]);
 	const subtotal = cartSubtotal(lines);
@@ -32,13 +32,20 @@ export function CartClient() {
 	}, [removed]);
 
 	function removeLine(line: (typeof lines)[number]) {
-		setRemoved({ productId: line.productId, productName: line.productName, variantId: line.variantId, quantity: line.quantity });
+		setRemoved({
+			productId: line.productId,
+			productName: line.productName,
+			variantId: line.variantId,
+			quantity: line.quantity,
+			maximum: maxPurchasableQuantity(line.variant.stockQuantity),
+		});
 		removeItem(line.variantId);
 	}
 
 	function undoRemove() {
 		if (!removed) return;
-		addItem(removed);
+		const { maximum, ...item } = removed;
+		addItem(item, maximum);
 		setRemoved(null);
 	}
 
@@ -55,6 +62,7 @@ export function CartClient() {
 					<div><p className="eyebrow">{messages.cart.yourBag} / {itemCount.toString().padStart(2, "0")}</p><h1>{messages.cart.selectedEquipment}</h1></div>
 					<Link href={localizedPath(locale, "/collections")}>{messages.cart.continueShopping}</Link>
 				</header>
+				{stockAdjusted ? <p className="payment-notice" role="status">{messages.cart.stockAdjusted}</p> : null}
 				{lines.map((line) => (
 					<article className="cart-line" key={line.variantId}>
 						<Link className="cart-line-image" href={localizedPath(locale, `/products/${line.product.slug}`)}>{line.product.photo ? <Image src={line.product.photo.url} alt={line.product.photo.altText} fill sizes="(max-width: 600px) 96px, 150px" /> : <span className="cart-image-placeholder">VALYDE</span>}</Link>
@@ -68,9 +76,9 @@ export function CartClient() {
 						<div className="cart-line-end">
 							<strong>{formatPrice(line.product.priceIdr * line.quantity, locale)}</strong>
 							<div className="quantity" aria-label={`${line.product.name} ${messages.product.quantitySelector}`}>
-								<button type="button" aria-label={`${messages.product.quantitySelector}: ${line.product.name}, −`} disabled={line.quantity <= 1} onClick={() => setQuantity(line.variantId, line.quantity - 1)}>−</button>
+								<button type="button" aria-label={`${messages.product.quantitySelector}: ${line.product.name}, −`} disabled={line.quantity <= 1} onClick={() => setQuantity(line.variantId, line.quantity - 1, maxPurchasableQuantity(line.variant.stockQuantity))}>−</button>
 								<span aria-live="polite">{line.quantity}</span>
-								<button type="button" aria-label={`${messages.product.quantitySelector}: ${line.product.name}, +`} disabled={line.quantity >= 9} onClick={() => setQuantity(line.variantId, line.quantity + 1)}>+</button>
+								<button type="button" aria-label={`${messages.product.quantitySelector}: ${line.product.name}, +`} disabled={line.quantity >= maxPurchasableQuantity(line.variant.stockQuantity)} onClick={() => setQuantity(line.variantId, line.quantity + 1, maxPurchasableQuantity(line.variant.stockQuantity))}>+</button>
 							</div>
 						</div>
 					</article>

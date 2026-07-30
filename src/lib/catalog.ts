@@ -13,7 +13,7 @@ export type SizingGuide = {
 export type ProductVariant = {
 	id: string; productId: string; sku: string; size: string | null; color: string | null;
 	packageLengthMm: number; packageWidthMm: number; packageHeightMm: number; packageWeightG: number;
-	sizingGuide: SizingGuide | null; createdAt: string; updatedAt: string; available: boolean;
+	sizingGuide: SizingGuide | null; createdAt: string; updatedAt: string; stockQuantity: number; available: boolean;
 };
 export type ProductPhoto = {
 	id: string; productId: string; color: string | null; path: string; altText: string; position: number;

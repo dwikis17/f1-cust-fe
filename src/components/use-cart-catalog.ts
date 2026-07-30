@@ -13,6 +13,7 @@ export function useCartCatalog() {
 	const variantIds = useMemo(() => [...new Set(items.map((item) => item.variantId))], [items]);
 	const requestKey = variantIds.join("|");
 	const [attempt, setAttempt] = useState(0);
+	const [stockAdjusted, setStockAdjusted] = useState(false);
 	const loadKey = `${locale}:${requestKey}:${attempt}`;
 	const [result, setResult] = useState<{ key: string; products: CartItemProduct[]; error: boolean }>({ key: "", products: [], error: false });
 
@@ -30,7 +31,7 @@ export function useCartCatalog() {
 			if (!response.ok) throw new Error("Cart catalog request failed");
 			const result = await response.json() as CartItemsResponse;
 			setResult({ key: loadKey, products: result.data, error: false });
-			reconcile(result.data);
+			if (reconcile(result.data)) setStockAdjusted(true);
 		}).catch((requestError) => {
 			if ((requestError as Error).name !== "AbortError") setResult({ key: loadKey, products: [], error: true });
 		});
@@ -43,6 +44,7 @@ export function useCartCatalog() {
 		products: requestKey && settled ? result.products : [],
 		error: Boolean(requestKey && settled && result.error),
 		loading: !hydrated || Boolean(requestKey && !settled),
+		stockAdjusted,
 		retry,
 	};
 }

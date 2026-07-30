@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { useDictionary } from "@/components/i18n-provider";
+import { useDictionary, useLocale } from "@/components/i18n-provider";
 import { useProductSelection } from "@/components/product-selection";
+import type { CartItemsResponse } from "@/lib/cart-catalog";
+import { maxPurchasableQuantity } from "@/lib/cart";
 import { useCartStore } from "@/lib/cart-store";
 import type { ProductVariant } from "@/lib/catalog";
 
@@ -11,43 +13,83 @@ type Props = { productId: string; productName: string; variants: ProductVariant[
 
 export function PurchasePanel({ productId, productName, variants }: Props) {
 	const messages = useDictionary();
+	const locale = useLocale();
 	const { selectColor } = useProductSelection();
 	const addItem = useCartStore((state) => state.addItem);
+	const cartItems = useCartStore((state) => state.items);
 	const firstAvailable = variants.find((variant) => variant.available) ?? variants[0];
 	const [variantId, setVariantId] = useState(firstAvailable?.id ?? "");
 	const [quantity, setQuantity] = useState(1);
-	const [added, setAdded] = useState(0);
+	const [added, setAdded] = useState<{ key: number; quantity: number } | null>(null);
+	const [inventory, setInventory] = useState<Record<string, number>>(() =>
+		Object.fromEntries(variants.map((variant) => [variant.id, variant.stockQuantity])));
 	const selected = variants.find((variant) => variant.id === variantId) ?? firstAvailable;
 	const sizes = useMemo(() => [...new Set(variants.flatMap((variant) => variant.size ? [variant.size] : []))], [variants]);
 	const colors = useMemo(() => [...new Set(variants.flatMap((variant) => variant.color ? [variant.color] : []))], [variants]);
+	const stockFor = (variant: ProductVariant) => inventory[variant.id] ?? variant.stockQuantity;
+	const selectedStock = selected ? stockFor(selected) : 0;
+	const orderLimit = maxPurchasableQuantity(selectedStock);
+	const cartQuantity = cartItems.find((item) => item.variantId === selected?.id)?.quantity ?? 0;
+	const remaining = Math.max(0, orderLimit - cartQuantity);
+	const selectedQuantity = Math.min(quantity, Math.max(1, remaining));
 
 	useEffect(() => {
 		if (!added) return;
-		const timeout = window.setTimeout(() => setAdded(0), 2200);
+		const timeout = window.setTimeout(() => setAdded(null), 2200);
 		return () => window.clearTimeout(timeout);
 	}, [added]);
 
+	useEffect(() => {
+		const controller = new AbortController();
+		const variantIds = variants.map((variant) => variant.id);
+		const batches = Array.from({ length: Math.ceil(variantIds.length / 50) }, (_, index) =>
+			variantIds.slice(index * 50, index * 50 + 50));
+		void Promise.all(batches.map(async (ids) => {
+			const response = await fetch("/api/cart-items", {
+				method: "POST",
+				headers: { "content-type": "application/json" },
+				body: JSON.stringify({ variantIds: ids, locale }),
+				cache: "no-store",
+				signal: controller.signal,
+			});
+			if (!response.ok) throw new Error("Inventory refresh failed");
+			return response.json() as Promise<CartItemsResponse>;
+		})).then((results) => {
+			const fresh = new Map(results.flatMap((result) =>
+				result.data.map((item) => [item.variant.id, item.variant.stockQuantity] as const)));
+			setInventory(Object.fromEntries(variantIds.map((id) => [id, fresh.get(id) ?? 0])));
+		}).catch((error) => {
+			if ((error as Error).name !== "AbortError") return;
+		});
+		return () => controller.abort();
+	}, [locale, variants]);
+
 	function chooseOption(kind: "size" | "color", value: string) {
-		const match = variants.find((variant) => variant[kind] === value && variant.available && (kind === "size" ? colors.length < 2 || variant.color === selected?.color : sizes.length < 2 || variant.size === selected?.size))
-			?? variants.find((variant) => variant[kind] === value && variant.available);
+		const match = variants.find((variant) => variant[kind] === value && stockFor(variant) > 0 && (kind === "size" ? colors.length < 2 || variant.color === selected?.color : sizes.length < 2 || variant.size === selected?.size))
+			?? variants.find((variant) => variant[kind] === value && stockFor(variant) > 0);
 		if (match) {
 			setVariantId(match.id);
+			setQuantity(1);
 			if (kind === "color") selectColor(match.color);
 		}
 	}
 
 	function addToBag() {
-		if (!selected?.available) return;
-		addItem({ productId, productName, variantId: selected.id, quantity });
-		setAdded((count) => count + 1);
+		if (!selected || remaining < selectedQuantity) return;
+		addItem({ productId, productName, variantId: selected.id, quantity: selectedQuantity }, orderLimit);
+		setAdded((current) => ({ key: (current?.key ?? 0) + 1, quantity: selectedQuantity }));
 	}
 
 	return <>
 		<div className="purchase-panel">
-			{colors.length > 1 ? <OptionButtons label={messages.product.color} values={colors} selected={selected?.color} available={(value) => variants.some((variant) => variant.color === value && variant.available)} choose={(value) => chooseOption("color", value)} /> : null}
-			{sizes.length > 0 ? <OptionButtons label={messages.product.size} values={sizes} selected={selected?.size} available={(value) => variants.some((variant) => variant.size === value && variant.available && (colors.length < 2 || variant.color === selected?.color))} choose={(value) => chooseOption("size", value)} /> : null}
-			<div className="purchase-row"><div className="quantity" aria-label={messages.product.quantitySelector}><button type="button" aria-label={`${messages.product.quantitySelector}: −`} disabled={quantity <= 1} onClick={() => setQuantity((value) => Math.max(1, value - 1))}>−</button><span>{quantity}</span><button type="button" aria-label={`${messages.product.quantitySelector}: +`} disabled={quantity >= 9} onClick={() => setQuantity((value) => Math.min(9, value + 1))}>+</button></div><button className="button button-dark add-button" type="button" onClick={addToBag} disabled={!selected?.available}>{selected?.available ? messages.product.addToCart : messages.product.outOfStock}</button>{added ? <span className="add-confirmation" key={added} role="status">✓ {quantity} {messages.product.addedToBag}</span> : null}</div>
-			<p className="payment-note" aria-live="polite">{selected?.available ? messages.product.readyToDispatch : messages.product.optionUnavailable}</p>
+			{colors.length > 1 ? <OptionButtons label={messages.product.color} values={colors} selected={selected?.color} available={(value) => variants.some((variant) => variant.color === value && stockFor(variant) > 0)} choose={(value) => chooseOption("color", value)} /> : null}
+			{sizes.length > 0 ? <OptionButtons label={messages.product.size} values={sizes} selected={selected?.size} available={(value) => variants.some((variant) => variant.size === value && stockFor(variant) > 0 && (colors.length < 2 || variant.color === selected?.color))} choose={(value) => chooseOption("size", value)} /> : null}
+			<div className="purchase-row"><div className="quantity" aria-label={messages.product.quantitySelector}><button type="button" aria-label={`${messages.product.quantitySelector}: −`} disabled={selectedQuantity <= 1} onClick={() => setQuantity(Math.max(1, selectedQuantity - 1))}>−</button><span>{selectedQuantity}</span><button type="button" aria-label={`${messages.product.quantitySelector}: +`} disabled={remaining === 0 || selectedQuantity >= remaining} onClick={() => setQuantity(Math.min(remaining, selectedQuantity + 1))}>+</button></div><button className="button button-dark add-button" type="button" onClick={addToBag} disabled={!selectedStock || !remaining}>{selectedStock ? messages.product.addToCart : messages.product.outOfStock}</button>{added ? <span className="add-confirmation" key={added.key} role="status">✓ {added.quantity} {messages.product.addedToBag}</span> : null}</div>
+			<p className="payment-note" aria-live="polite">{!selectedStock
+				? messages.product.optionUnavailable
+				: !remaining
+					? messages.product.maximumInCart
+					: `${selectedStock} ${messages.product.unitsAvailable}${selectedStock > 9 ? ` · ${messages.product.maximumPerOrder}` : ""}`}</p>
 		</div>
 		<section className="technical-data" aria-live="polite">
 			<div className="data-heading"><span>{messages.product.technicalData}</span><strong>{messages.product.selectedSpecification}</strong></div>
@@ -56,7 +98,7 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 			<div><span>{messages.product.modelNumber}</span><strong>{selected?.sku ?? "—"}</strong></div>
 			{selected?.size ? <div><span>{messages.product.size}</span><strong>{selected.size}</strong></div> : null}
 			{colors.length > 1 && selected?.color ? <div><span>{messages.product.color}</span><strong>{selected.color}</strong></div> : null}
-			<div><span>{messages.product.availability}</span><strong>{selected?.available ? messages.product.readyToDispatch : messages.product.outOfStock}</strong></div>
+			<div><span>{messages.product.availability}</span><strong>{selectedStock ? `${selectedStock} ${messages.product.unitsAvailable}` : messages.product.outOfStock}</strong></div>
 			<div><span>{messages.product.authenticity}</span><strong>{messages.product.verified}</strong></div>
 		</section>
 	</>;

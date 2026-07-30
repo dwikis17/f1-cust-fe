@@ -46,12 +46,34 @@ export function writeStoredCart(storage: CartStorage, items: StoredCartItem[]) {
 	storage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
 }
 
-export function addStoredCartItem(items: StoredCartItem[], item: StoredCartItem): StoredCartItem[] {
+export function maxPurchasableQuantity(stockQuantity: number) {
+	return Math.min(9, Math.max(0, stockQuantity));
+}
+
+export function addStoredCartItem(items: StoredCartItem[], item: StoredCartItem, maximum = 9): StoredCartItem[] {
+	const limit = Math.min(9, Math.max(0, maximum));
+	if (!limit) return items;
 	const index = items.findIndex((candidate) => candidate.variantId === item.variantId);
-	if (index === -1) return [...items, item];
+	if (index === -1) return [...items, { ...item, quantity: Math.min(item.quantity, limit) }];
 	return items.map((candidate, candidateIndex) => candidateIndex === index
-		? { ...candidate, quantity: Math.min(9, candidate.quantity + item.quantity) }
+		? { ...candidate, quantity: Math.min(limit, candidate.quantity + item.quantity) }
 		: candidate);
+}
+
+export function reconcileStoredCart(items: StoredCartItem[], products: CartItemProduct[]) {
+	const byVariant = new Map(products.map((product) => [product.variant.id, product]));
+	let stockAdjusted = false;
+	const reconciled = items.flatMap((item) => {
+		const product = byVariant.get(item.variantId);
+		if (!product || product.product.id !== item.productId) return [];
+		const maximum = maxPurchasableQuantity(product.variant.stockQuantity);
+		if (maximum > 0 && item.quantity > maximum) {
+			stockAdjusted = true;
+			return [{ ...item, quantity: maximum }];
+		}
+		return [item];
+	});
+	return { items: reconciled, stockAdjusted };
 }
 
 export function resolveCartLines(items: StoredCartItem[], products: CartItemProduct[]): CartLine[] {

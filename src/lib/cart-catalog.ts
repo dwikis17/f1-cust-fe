@@ -12,6 +12,7 @@ export type CartItemProduct = {
 		sku: string;
 		size: string | null;
 		color: string | null;
+		stockQuantity: number;
 		available: boolean;
 	};
 };
