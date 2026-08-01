@@ -18,6 +18,7 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
 					<NavLink className="brand" href={localizedPath(locale)}>VALYDE</NavLink>
 					<nav className="desktop-nav" aria-label={messages.header.primaryNavigation}>
 						{collections.map((root) => <div className="nav-group" key={root.id}><NavLink href={localizedPath(locale, `/collections/${root.slug}`)}>{root.name}</NavLink>{root.children.length ? <div className="nav-dropdown">{root.children.slice(0, 5).map((child) => <NavLink key={child.id} href={localizedPath(locale, `/collections/${child.slug}`)}>{child.name}</NavLink>)}<NavLink className="nav-view-all" href={localizedPath(locale, `/collections/${root.slug}`)}>{messages.header.viewAll} {root.name}</NavLink></div> : null}</div>)}
+						<NavLink href={localizedPath(locale, "/f1-schedule")}>{messages.header.editorial}</NavLink>
 						<NavLink href={localizedPath(locale, "/collections")}>{messages.header.shopAll}</NavLink>
 					</nav>
 				</div>
@@ -28,6 +29,7 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
 						<summary aria-label={messages.header.openMenu}><MenuIcon /></summary>
 						<nav aria-label={messages.header.mobileNavigation}>
 							{collections.map((root) => <div key={root.id}><NavLink href={localizedPath(locale, `/collections/${root.slug}`)}>{root.name}</NavLink>{root.children.slice(0, 4).map((child) => <NavLink key={child.id} href={localizedPath(locale, `/collections/${child.slug}`)}>{child.name}</NavLink>)}<NavLink className="nav-view-all" href={localizedPath(locale, `/collections/${root.slug}`)}>{messages.header.viewAll} {root.name}</NavLink></div>)}
+							<NavLink href={localizedPath(locale, "/f1-schedule")}>{messages.header.editorial}</NavLink>
 							<NavLink href={localizedPath(locale, "/collections")}>{messages.header.shopAll}</NavLink>
 							<LanguageSwitcher variant="mobile" />
 						</nav>
@@ -37,4 +39,3 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
 		</div>
 	);
 }
-

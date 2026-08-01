@@ -8,6 +8,7 @@ export const revalidate = 3_600;
 const publicPages = [
 	"",
 	"/collections",
+	"/f1-schedule",
 	"/help/faq",
 	"/help/shipping-returns",
 	"/help/contact",
@@ -40,8 +41,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	return [
 		...sitemapLocales.flatMap((locale) => publicPages.map((path) => ({
 			url: absoluteUrl(`/${locale}${path}`),
-			changeFrequency: path === "" || path === "/collections" ? "daily" as const : "monthly" as const,
-			priority: path === "" ? 1 : path === "/collections" ? 0.9 : 0.5,
+			changeFrequency: path === "" || path === "/collections" ? "daily" as const : path === "/f1-schedule" ? "yearly" as const : "monthly" as const,
+			priority: path === "" ? 1 : path === "/collections" ? 0.9 : path === "/f1-schedule" ? 0.8 : 0.5,
 			alternates: { languages: { en: absoluteUrl(`/en${path}`), id: absoluteUrl(`/id${path}`), "x-default": absoluteUrl(`/en${path}`) } },
 		}))),
 		...sitemapLocales.flatMap((locale) => collections.map((collection) => ({
