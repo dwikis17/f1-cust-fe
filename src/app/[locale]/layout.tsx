@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Manrope, Plus_Jakarta_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
 import { AppProviders } from "@/components/app-providers";
 import { I18nProvider } from "@/components/i18n-provider";
@@ -11,6 +11,7 @@ import { siteName, siteUrl } from "@/lib/seo";
 import "../globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({ variable: "--font-plus-jakarta", subsets: ["latin"], display: "swap" });
+const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin"], display: "swap" });
 
 export const dynamicParams = true;
 export function generateStaticParams() {
@@ -62,7 +63,7 @@ export default async function RootLayout({ children, params }: Readonly<{ childr
 	if (!locale) notFound();
 	return (
 		<html lang={locale} data-scroll-behavior="smooth">
-			<body className={plusJakarta.variable}>
+			<body className={`${plusJakarta.variable} ${manrope.variable}`}>
 				<I18nProvider locale={locale}>
 					<AppProviders>
 						<SiteHeader locale={locale} />
