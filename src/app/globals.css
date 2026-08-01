@@ -153,9 +153,10 @@ body:has(.race-ticker-bar) .page-shell { padding-top: 118px; }
 .language-option-card.active .active-check { color: var(--apex); flex-shrink: 0; }
 .language-option-card:active { transform: scale(.98); }
 .mobile-menu { display: none; }
-.mobile-menu summary { list-style: none; }
+.mobile-menu summary { list-style: none; cursor: pointer; }
 .mobile-menu summary::-webkit-details-marker { display: none; }
-.mobile-menu nav { background: var(--black); display: flex; flex-direction: column; gap: 16px; left: 0; padding: 24px 20px 30px; position: fixed; right: 0; top: 64px; }
+.mobile-menu-backdrop { background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); position: fixed; inset: 0; z-index: 99; }
+.mobile-menu nav { background: #080808; border-top: 1px solid #202020; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9); display: flex; flex-direction: column; gap: 16px; height: calc(100dvh - 100%); left: 0; max-height: calc(100dvh - 100%); overflow-y: auto; padding: 24px 20px calc(80px + env(safe-area-inset-bottom, 0px)); position: absolute; right: 0; top: 100%; -webkit-overflow-scrolling: touch; z-index: 100; }
 .mobile-menu nav div { display: grid; gap: 8px; }
 .mobile-menu nav div > a:first-child { color: white; font-weight: 700; }
 .mobile-menu nav a { align-items: center; color: #b8b8b8; display: flex; font-family: var(--font-mono), monospace; font-size: 11px; letter-spacing: .09em; min-height: 36px; text-transform: uppercase; }
@@ -808,7 +809,6 @@ body:has(.race-ticker-bar) .page-shell { padding-top: 118px; }
 	.page-shell { padding-top: 64px; }
 	.brand { font-size: 19px; }
 	.header-actions { gap: 18px; }
-	.mobile-menu nav { max-height: calc(100vh - 64px); overflow-y: auto; }
 	.mobile-menu nav a { min-height: var(--control-height); }
 	.home-hero { height: 540px; min-height: 0; }
 	.home-carousel { height: 540px; }
