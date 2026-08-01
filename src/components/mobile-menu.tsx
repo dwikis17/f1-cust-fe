@@ -15,14 +15,6 @@ export function MobileMenu({
 	const pathname = usePathname();
 	const detailsRef = useRef<HTMLDetailsElement>(null);
 
-	// Close menu on route change
-	useEffect(() => {
-		setIsOpen(false);
-		if (detailsRef.current) {
-			detailsRef.current.open = false;
-		}
-	}, [pathname]);
-
 	// Prevent body scroll when menu is open
 	useEffect(() => {
 		if (isOpen) {
@@ -72,6 +64,7 @@ export function MobileMenu({
 
 	return (
 		<details
+			key={pathname}
 			ref={detailsRef}
 			className="mobile-menu"
 			open={isOpen}

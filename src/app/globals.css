@@ -727,6 +727,44 @@ body:has(.race-ticker-bar) .page-shell { padding-top: 118px; }
 .schedule-table tbody td:nth-child(2) { color: var(--ink); font-family: var(--font-display), sans-serif; font-size: 15px; font-weight: 700; text-transform: uppercase; }
 .schedule-flag { display: inline-block; font-family: sans-serif; font-size: 17px; margin-right: 8px; vertical-align: -1px; }
 
+/* Merchandise landing page */
+.merchandise-page { margin: 0 auto; max-width: 1240px; padding-left: 32px; padding-right: 32px; padding-bottom: 96px; }
+.merchandise-hero { background: var(--paper); border-bottom: 1px solid var(--ink); border-top: 3px solid var(--apex); color: var(--ink); padding: clamp(52px, 7vw, 88px) 0 clamp(46px, 6vw, 72px); }
+.merchandise-eyebrow { color: var(--apex); font-family: var(--font-mono), monospace; font-size: 11px; letter-spacing: .12em; margin: 0 0 18px; text-transform: uppercase; }
+.merchandise-hero h1 { font-family: var(--font-display), sans-serif; font-size: clamp(46px, 6.8vw, 84px); letter-spacing: -.04em; line-height: .94; margin: 0 0 22px; max-width: 940px; text-transform: uppercase; text-wrap: balance; }
+.merchandise-hero > p:last-child { color: #4e5050; font-size: 18px; line-height: 1.6; margin: 0; max-width: 58ch; }
+.merchandise-layout { align-items: start; display: grid; gap: clamp(52px, 8vw, 112px); grid-template-columns: minmax(0, 1fr) minmax(280px, .62fr); padding-top: 72px; }
+.merchandise-guide { max-width: 680px; }
+.merchandise-guide section { border-bottom: 1px solid var(--line); padding: 0 0 28px; }
+.merchandise-guide section + section { padding-top: 28px; }
+.merchandise-guide h2 { font-family: var(--font-display), sans-serif; font-size: 24px; letter-spacing: -.03em; line-height: 1.08; margin: 0 0 12px; text-transform: uppercase; text-wrap: balance; }
+.merchandise-guide p { color: #555757; line-height: 1.65; margin: 0; max-width: 65ch; }
+.merchandise-cta { margin-top: 30px; }
+.merchandise-teams { align-self: start; min-width: 0; }
+.merchandise-teams-heading { border-bottom: 1px solid var(--ink); padding-bottom: 14px; }
+.merchandise-teams-heading .eyebrow { color: var(--muted); margin: 0 0 10px; }
+.merchandise-teams-heading h2 { font-family: var(--font-display), sans-serif; font-size: 28px; letter-spacing: -.03em; line-height: 1; margin: 0; text-transform: uppercase; }
+.merchandise-team-links { border-top: 0; }
+.merchandise-team-link { align-items: center; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; min-height: 72px; padding: 12px 0; transition: background-color 180ms ease, color 180ms ease; }
+.merchandise-team-link strong { font-family: var(--font-display), sans-serif; font-size: 17px; letter-spacing: -.02em; text-transform: uppercase; }
+.merchandise-team-link span { color: var(--apex); font-size: 20px; transition: transform 180ms var(--ease-out); }
+.merchandise-team-link:hover { background: #f1f1f1; color: var(--ink); }
+.merchandise-team-link:hover span { transform: translateX(4px); }
+
+@media (max-width: 900px) {
+	.merchandise-layout { grid-template-columns: 1fr; }
+	.merchandise-guide { max-width: 760px; }
+}
+
+@media (max-width: 600px) {
+	.merchandise-page { padding-left: 20px; padding-right: 20px; padding-bottom: 64px; }
+	.merchandise-hero { padding: 52px 0 42px; }
+	.merchandise-hero h1 { font-size: clamp(42px, 12vw, 62px); }
+	.merchandise-hero > p:last-child { font-size: 15px; }
+	.merchandise-layout { gap: 52px; padding-top: 52px; }
+	.merchandise-team-link { min-height: 64px; }
+}
+
 @media (max-width: 900px) {
 	.schedule-layout { grid-template-columns: 1fr; }
 	.schedule-copy { max-width: 680px; }

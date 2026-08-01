@@ -86,7 +86,7 @@ export default async function F1SchedulePage({ params }: { params: Promise<{ loc
 						<h2>{messages.schedule.raceDayTitle}</h2>
 						<p>{messages.schedule.raceDayText}</p>
 					</section>
-					<Link className="button button-dark schedule-cta" href={localizedPath(locale, "/collections")}>
+					<Link className="button button-dark schedule-cta" href={localizedPath(locale, "/formula-1-merchandise-indonesia")}>
 						{messages.schedule.shopGear}
 					</Link>
 				</article>
