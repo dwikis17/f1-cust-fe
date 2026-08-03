@@ -8,7 +8,7 @@
     "test": "node --test src/lib/*.test.ts",
     "start": "next start",
     "lint": "eslint .",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy": "APP_ENV=production API_BASE_URL=https://api.valydejersey.com NEXT_PUBLIC_SITE_URL=https://valydejersey.com NEXT_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAAD9MetDQNU4y3PHR NEXT_PUBLIC_MIDTRANS_ENV=production NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=Mid-client-zPWzq52QTcf7T4xc opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts"
