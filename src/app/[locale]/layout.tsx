@@ -24,6 +24,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 	if (!locale) return {};
 	const messages = dictionary(locale);
 	const googleVerification = process.env.GOOGLE_SITE_VERIFICATION;
+	const isStaging = process.env.APP_ENV === "staging";
 	return {
 		metadataBase: new URL(siteUrl),
 		applicationName: siteName,
@@ -43,11 +44,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 			images: ["/images/generated/banner-desktop.webp"],
 		},
 		robots: {
-			index: true,
-			follow: true,
+			index: !isStaging,
+			follow: !isStaging,
 			googleBot: {
-				index: true,
-				follow: true,
+				index: !isStaging,
+				follow: !isStaging,
 				"max-image-preview": "large",
 				"max-snippet": -1,
 				"max-video-preview": -1,

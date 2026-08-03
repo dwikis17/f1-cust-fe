@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const isStaging = process.env.APP_ENV === "staging";
+
 const nextConfig: NextConfig = {
 	env: {
 		NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "0x4AAAAAAD9MetDQNU4y3PHR",
@@ -16,9 +18,15 @@ const nextConfig: NextConfig = {
 			{ source: "/orders/:path*", destination: "/en/orders/:path*", permanent: true },
 		];
 	},
+	async headers() {
+		return isStaging
+			? [{ source: "/(.*)", headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }] }]
+			: [];
+	},
 	images: {
 		remotePatterns: [
 			{ protocol: "https", hostname: "media.valydejersey.com" },
+			{ protocol: "https", hostname: "dev-media.valydejersey.com" },
 			{ protocol: "https", hostname: "f1-store-api.dwikis17.workers.dev" },
 			{ protocol: "https", hostname: "media.formula1.com" },
 	
