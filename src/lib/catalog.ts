@@ -109,7 +109,7 @@ export const catalog = {
 		return apiFetch(`/api/collections?locale=${locale}`, revalidate, ["catalog:collections"]);
 	},
 	listNavigationCollections(locale: Locale = "en"): Promise<CollectionNode[]> {
-		return staticApiFetch(`/api/collections?locale=${locale}`, ["catalog:collections"]);
+		return apiFetch(`/api/collections?locale=${locale}`, CATALOG_TTL_SECONDS, ["catalog:collections"]);
 	},
 	async getHomeHeroes(locale: Locale = "en"): Promise<PublicHomeHero[]> {
 		try {
