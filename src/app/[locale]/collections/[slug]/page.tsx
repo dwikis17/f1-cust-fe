@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -68,6 +69,7 @@ export default async function CollectionPage({ params, searchParams }: Collectio
 		: response.collection.children[0]?.kind === "DRIVER"
 			? messages.collections.drivers
 			: response.collection.name;
+	const identityImage = response.collection.kind === "TEAM" || response.collection.kind === "DRIVER" ? response.collection.imageUrl : null;
 	return <main className="page-shell collection-page">
 		<StructuredData data={{
 			"@context": "https://schema.org",
@@ -79,7 +81,7 @@ export default async function CollectionPage({ params, searchParams }: Collectio
 				{ "@type": "ListItem", position: response.collection.parent ? 4 : 3, name: response.collection.name, item: absoluteUrl(path) },
 			],
 		}} />
-		<section className="collection-title"><nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href={homePath}>{messages.collections.homepage}</Link><span>/</span><Link href={collectionsPath}>{messages.collections.title}</Link>{response.collection.parent ? <><span>/</span><Link href={localizedPath(locale, `/collections/${response.collection.parent.slug}`)}>{response.collection.parent.name}</Link></> : null}</nav><p className="eyebrow">{messages.kinds[response.collection.kind]}</p><h1>{response.collection.name}</h1>{response.collection.description ? <p>{response.collection.description}</p> : null}{!galleryCollections && response.collection.children.length ? <div className="child-collections">{response.collection.children.map((child) => <Link key={child.id} href={localizedPath(locale, `/collections/${child.slug}`)}>{child.name}</Link>)}</div> : null}</section>
+		<section className="collection-title"><nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href={homePath}>{messages.collections.homepage}</Link><span>/</span><Link href={collectionsPath}>{messages.collections.title}</Link>{response.collection.parent ? <><span>/</span><Link href={localizedPath(locale, `/collections/${response.collection.parent.slug}`)}>{response.collection.parent.name}</Link></> : null}</nav><div className="collection-title-content">{identityImage ? <div className={`collection-title-image collection-title-image-${response.collection.kind.toLowerCase()}`}><Image src={identityImage} alt={response.collection.name} fill priority sizes="(max-width: 600px) 96px, 132px" /></div> : null}<div className="collection-title-copy"><p className="eyebrow">{messages.kinds[response.collection.kind]}</p><h1>{response.collection.name}</h1>{response.collection.description ? <p>{response.collection.description}</p> : null}{!galleryCollections && response.collection.children.length ? <div className="child-collections">{response.collection.children.map((child) => <Link key={child.id} href={localizedPath(locale, `/collections/${child.slug}`)}>{child.name}</Link>)}</div> : null}</div></div></section>
 		{galleryCollections
 			? <CollectionGallery id={response.collection.slug} title={galleryTitle} collections={galleryCollections} locale={locale} priority showTitle={false} />
 			: <CollectionResults path={path} params={currentParams} response={response} locale={locale} />}

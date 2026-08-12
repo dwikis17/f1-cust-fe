@@ -3,7 +3,7 @@ import type { PublicHomeCollectionBlock, PublicHomeHero } from "./home";
 
 export type CatalogEntity = { id: string; name: string; slug: string; createdAt: string; updatedAt: string };
 export type ProductAudience = "MEN" | "WOMEN" | "KIDS" | "UNISEX";
-export type ProductCondition = "BNIB" | "BNWT" | "BNWOT" | "PRE_OWNED";
+export type ProductCondition = "BNWT" | "BNWOT" | "USED";
 export type CollectionKind = "DOMAIN" | "TEAM" | "DRIVER" | "MERCHANDISE" | "BRAND" | "PROMOTION" | "MANUAL";
 export type Team = CatalogEntity & { logoUrl: string | null };
 export type Driver = CatalogEntity & { racingNumber: number; photoUrl: string | null; teamId: string | null; team: Team | null };
@@ -31,6 +31,7 @@ export type CollectionDetail = CollectionSummary & {
 export type PublicProduct = {
 	id: string; name: string; slug: string; description: string; sizingNote: string | null; priceIdr: number;
 	originalPriceIdr: number | null;
+	salePercentage: number | null;
 	category: CatalogEntity; productType: CatalogEntity; team: Team | null; drivers: Driver[];
 	audience: ProductAudience | null; condition?: ProductCondition; collections: CollectionSummary[]; tags: CatalogEntity[];
 	variants: ProductVariant[]; photos: ProductPhoto[]; createdAt: string; updatedAt: string;
@@ -42,13 +43,14 @@ export type ProductFacets = {
 	conditions: Array<{ value: ProductCondition; count: number }>;
 	availability: { inStock: number }; price: { min: number; max: number };
 };
-export type ProductListResponse = { data: PublicProduct[]; page: number; limit: number; total: number };
+export type ProductListResponse = { data: PublicProduct[]; page: number; limit: number; total: number; facets?: ProductFacets };
 export type CollectionProductsResponse = ProductListResponse & { collection: CollectionDetail; facets: ProductFacets };
 export type ProductSort = "featured" | "relevance" | "name_asc" | "name_desc" | "price_asc" | "price_desc" | "newest" | "oldest";
 export type ProductQuery = {
 	page?: number; limit?: number; search?: string; productType?: string[]; category?: string[]; tag?: string[];
 	team?: string[]; driver?: string[]; size?: string[]; color?: string[]; audience?: ProductAudience[];
 	condition?: ProductCondition[]; availability?: "in_stock"; minPrice?: number; maxPrice?: number; sort?: ProductSort;
+	sale?: boolean; includeFacets?: boolean;
 };
 
 const apiBaseUrl = process.env.API_BASE_URL?.replace(/\/$/, "");
@@ -109,7 +111,7 @@ export const catalog = {
 		return apiFetch(`/api/collections?locale=${locale}`, revalidate, ["catalog:collections"]);
 	},
 	listNavigationCollections(locale: Locale = "en"): Promise<CollectionNode[]> {
-		return staticApiFetch(`/api/collections?locale=${locale}`, ["catalog:collections"]);
+		return apiFetch(`/api/collections?locale=${locale}`, CATALOG_TTL_SECONDS, ["catalog:collections"]);
 	},
 	async getHomeHeroes(locale: Locale = "en"): Promise<PublicHomeHero[]> {
 		try {

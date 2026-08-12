@@ -84,7 +84,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 						priceCurrency: "IDR",
 						price: product.priceIdr,
 						availability: available ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-						itemCondition: product.condition === "PRE_OWNED"
+						itemCondition: product.condition === "USED"
 							? "https://schema.org/UsedCondition"
 							: "https://schema.org/NewCondition",
 						seller: { "@type": "Organization", name: siteName, url: absoluteUrl(homePath) },

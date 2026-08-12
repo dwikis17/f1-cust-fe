@@ -60,11 +60,70 @@
 	},
 	"upload_source_maps": true,
 	"vars": {
+		"APP_ENV": "production",
 		"API_BASE_URL": "https://api.valydejersey.com",
 		"NEXT_PUBLIC_SITE_URL": "https://valydejersey.com",
 		"NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAD9MetDQNU4y3PHR",
 		"NEXT_PUBLIC_MIDTRANS_ENV": "production",
 		"NEXT_PUBLIC_MIDTRANS_CLIENT_KEY": "Mid-client-zPWzq52QTcf7T4xc"
+	},
+	"env": {
+		"staging": {
+			"routes": [
+				{
+					"pattern": "dev.valydejersey.com",
+					"custom_domain": true
+				}
+			],
+			"assets": {
+				"binding": "ASSETS",
+				"directory": ".open-next/assets"
+			},
+			"images": {
+				"binding": "IMAGES"
+			},
+			"services": [
+				{
+					"binding": "WORKER_SELF_REFERENCE",
+					"service": "f1-cust-fe-staging"
+				}
+			],
+			"r2_buckets": [
+				{
+					"binding": "NEXT_INC_CACHE_R2_BUCKET",
+					"bucket_name": "f1-cust-fe-staging-cache"
+				}
+			],
+			"durable_objects": {
+				"bindings": [
+					{
+						"name": "NEXT_CACHE_DO_QUEUE",
+						"class_name": "DOQueueHandler"
+					},
+					{
+						"name": "NEXT_TAG_CACHE_DO_SHARDED",
+						"class_name": "DOShardedTagCache"
+					}
+				]
+			},
+			"migrations": [
+				{
+					"tag": "v1",
+					"new_sqlite_classes": ["DOQueueHandler", "DOShardedTagCache"]
+				}
+			],
+			"observability": {
+				"enabled": true
+			},
+			"vars": {
+				"APP_ENV": "staging",
+				"API_BASE_URL": "https://dev-api.valydejersey.com",
+				"NEXT_PUBLIC_SITE_URL": "https://dev.valydejersey.com",
+				"NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAEE4NGGhjZJGpPwo",
+				"NEXT_PUBLIC_MIDTRANS_ENV": "sandbox",
+				"NEXT_PUBLIC_MIDTRANS_CLIENT_KEY": "Mid-client-cwkRE-SgbQ93Ylht"
+			}
+		}
 	}
 	/**
 	 * Smart Placement
