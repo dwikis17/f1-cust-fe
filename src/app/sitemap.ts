@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 
-import { catalog, type CollectionNode, type PublicProduct } from "@/lib/catalog";
+import { catalog, type CollectionNode, type PublicProductCard } from "@/lib/catalog";
 import { absoluteUrl } from "@/lib/seo";
 
 export const revalidate = 3_600;
@@ -24,7 +24,7 @@ function flattenCollections(nodes: CollectionNode[]): CollectionNode[] {
 	return nodes.flatMap((node) => [node, ...flattenCollections(node.children)]);
 }
 
-async function listAllProducts(): Promise<PublicProduct[]> {
+async function listAllProducts(): Promise<PublicProductCard[]> {
 	const limit = 100;
 	const first = await catalog.listProducts({ page: 1, limit }, "en", 3_600);
 	const pageCount = Math.ceil(first.total / limit);
@@ -56,7 +56,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		}))),
 		...sitemapLocales.flatMap((locale) => products.map((product) => ({
 			url: absoluteUrl(`/${locale}/products/${product.slug}`),
-			lastModified: new Date(product.updatedAt),
 			changeFrequency: "daily" as const,
 			priority: 0.9,
 			images: product.photos.map((photo) => photo.url),

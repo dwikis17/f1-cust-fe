@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatPrice, type PublicProduct } from "@/lib/catalog";
+import { formatPrice, type PublicProductCard } from "@/lib/catalog";
 import { dictionary, type Locale } from "@/lib/i18n";
 import { localizedPath } from "@/lib/locale";
 
@@ -10,7 +10,7 @@ export function ProductCard({
 	priority = false,
 	imageSizes = "(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 25vw",
 }: {
-	product: PublicProduct;
+	product: PublicProductCard;
 	locale: Locale;
 	priority?: boolean;
 	imageSizes?: string;

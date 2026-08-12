@@ -1,4 +1,4 @@
-import type { PublicProduct } from "./catalog";
+import type { PublicProductCard } from "./catalog";
 
 export type PublicHomeHero = {
 	id: string;
@@ -18,7 +18,7 @@ export type PublicHomeCollectionBlock = {
 	sideImageOneUrl: string;
 	sideImageTwoUrl: string;
 	collection: { name: string; slug: string; description: string };
-	products: PublicProduct[];
+	products: PublicProductCard[];
 };
 
 export type ResolvedHomeHero = Omit<PublicHomeHero, "collection"> & {

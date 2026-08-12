@@ -36,6 +36,13 @@ export type PublicProduct = {
 	audience: ProductAudience | null; condition?: ProductCondition; collections: CollectionSummary[]; tags: CatalogEntity[];
 	variants: ProductVariant[]; photos: ProductPhoto[]; createdAt: string; updatedAt: string;
 };
+export type PublicProductCard = {
+	id: string; name: string; slug: string; priceIdr: number; originalPriceIdr: number | null;
+	salePercentage: number | null; condition: ProductCondition;
+	team: { name: string } | null; productType: { name: string };
+	tags: Array<{ id: string; name: string }>;
+	photos: Array<{ url: string; altText: string }>;
+};
 export type NamedFacet = { id: string; name: string; slug: string; count: number };
 export type ProductFacets = {
 	tags: NamedFacet[]; teams: NamedFacet[]; drivers: NamedFacet[]; productTypes: NamedFacet[];
@@ -43,7 +50,7 @@ export type ProductFacets = {
 	conditions: Array<{ value: ProductCondition; count: number }>;
 	availability: { inStock: number }; price: { min: number; max: number };
 };
-export type ProductListResponse = { data: PublicProduct[]; page: number; limit: number; total: number; facets?: ProductFacets };
+export type ProductListResponse = { data: PublicProductCard[]; page: number; limit: number; total: number; facets?: ProductFacets };
 export type CollectionProductsResponse = ProductListResponse & { collection: CollectionDetail; facets: ProductFacets };
 export type ProductSort = "featured" | "relevance" | "name_asc" | "name_desc" | "price_asc" | "price_desc" | "newest" | "oldest";
 export type ProductQuery = {

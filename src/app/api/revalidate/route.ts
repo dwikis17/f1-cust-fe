@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { revalidateTag } from "next/cache";
-import { parseRevalidationTags } from "@/lib/revalidation";
+import { immediateRevalidation, parseRevalidationTags } from "@/lib/revalidation";
 
 function authorized(header: string | null, secret: string): boolean {
 	if (!header?.startsWith("Bearer ")) return false;
@@ -25,6 +25,6 @@ export async function POST(request: Request) {
 	const tags = parseRevalidationTags((body as { tags?: unknown } | null)?.tags);
 	if (!tags) return Response.json({ error: { code: "INVALID_TAGS" } }, { status: 400, headers: { "cache-control": "no-store" } });
 
-	for (const tag of tags) revalidateTag(tag, "max");
+	for (const tag of tags) revalidateTag(tag, immediateRevalidation);
 	return Response.json({ revalidated: true, tags, now: Date.now() }, { headers: { "cache-control": "no-store" } });
 }
