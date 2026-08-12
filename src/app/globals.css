@@ -1343,6 +1343,8 @@ body:has(.race-ticker-bar) .page-shell {
 
 .home-collection-block {
 	border-top: 1px solid var(--line);
+	contain-intrinsic-size: auto 1000px;
+	content-visibility: auto;
 }
 
 .collection-block-gallery {

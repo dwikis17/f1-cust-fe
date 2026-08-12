@@ -62,10 +62,11 @@ export default async function RootLayout({ children, params }: Readonly<{ childr
 	const { locale: value } = await params;
 	const locale = parseLocale(value);
 	if (!locale) notFound();
+	const messages = dictionary(locale);
 	return (
 		<html lang={locale} data-scroll-behavior="smooth">
 			<body className={`${plusJakarta.variable} ${manrope.variable}`}>
-				<I18nProvider locale={locale}>
+				<I18nProvider locale={locale} messages={messages}>
 					<AppProviders>
 						<SiteHeader locale={locale} />
 						{children}

@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import type { CollectionSummary } from "@/lib/catalog";
-import { dictionary, type Locale } from "@/lib/i18n";
+import type { Dictionary, Locale } from "@/lib/i18n";
 import { localizedPath } from "@/lib/locale";
 
 export function CollectionGallery({
@@ -12,6 +12,7 @@ export function CollectionGallery({
 	id,
 	priority = false,
 	showTitle = true,
+	messages,
 }: {
 	title: string;
 	collections: CollectionSummary[];
@@ -19,8 +20,8 @@ export function CollectionGallery({
 	id: string;
 	priority?: boolean;
 	showTitle?: boolean;
+	messages: Dictionary;
 }) {
-	const messages = dictionary(locale);
 	return (
 		<section className="collection-gallery" aria-labelledby={showTitle && title ? `collection-gallery-${id}` : undefined}>
 			<header className="collection-gallery-heading">

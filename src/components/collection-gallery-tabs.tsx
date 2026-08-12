@@ -3,12 +3,13 @@
 import { useState } from "react";
 
 import { CollectionGallery } from "@/components/collection-gallery";
+import { useDictionary } from "@/components/i18n-provider";
 import type { CollectionNode } from "@/lib/catalog";
-import { dictionary, type Locale } from "@/lib/i18n";
+import type { Locale } from "@/lib/i18n";
 
 export function CollectionGalleryTabs({ parents, locale }: { parents: CollectionNode[]; locale: Locale }) {
 	const [activeId, setActiveId] = useState(parents[0]?.id);
-	const messages = dictionary(locale);
+	const messages = useDictionary();
 	const activeParent = parents.find((parent) => parent.id === activeId) ?? parents[0];
 	if (!activeParent) return null;
 	const childKind = activeParent.children[0]?.kind;
@@ -43,6 +44,7 @@ export function CollectionGalleryTabs({ parents, locale }: { parents: Collection
 				collections={activeParent.children}
 				locale={locale}
 				priority
+				messages={messages}
 			/>
 		</div>
 	);
