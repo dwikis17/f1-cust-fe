@@ -17,7 +17,10 @@ export async function SiteHeader({ locale }: { locale: Locale }) {
 				<div className="header-left">
 					<NavLink className="brand" href={localizedPath(locale)}>VALYDE</NavLink>
 					<nav className="desktop-nav" aria-label={messages.header.primaryNavigation}>
-						{collections.map((root) => <div className="nav-group" key={root.id}><NavLink href={localizedPath(locale, `/collections/${root.slug}`)}>{root.name}</NavLink>{root.children.length ? <div className="nav-dropdown">{root.children.map((child) => <NavLink key={child.id} href={localizedPath(locale, `/collections/${child.slug}`)}>{child.name}</NavLink>)}<NavLink className="nav-view-all" href={localizedPath(locale, `/collections/${root.slug}`)}>{messages.header.viewAll} {root.name}</NavLink></div> : null}</div>)}
+						{collections.map((root) => {
+							const isDriverMenu = root.children.some((child) => child.kind === "DRIVER");
+							return <div className={`nav-group${isDriverMenu ? " nav-group-drivers" : ""}`} key={root.id}><NavLink href={localizedPath(locale, `/collections/${root.slug}`)}>{root.name}</NavLink>{root.children.length ? <div className="nav-dropdown"><div className="nav-dropdown-links">{root.children.map((child) => <NavLink key={child.id} href={localizedPath(locale, `/collections/${child.slug}`)}>{child.name}</NavLink>)}</div><NavLink className="nav-view-all" href={localizedPath(locale, `/collections/${root.slug}`)}>{messages.header.viewAll} {root.name}</NavLink></div> : null}</div>;
+						})}
 						<NavLink href={localizedPath(locale, "/f1-schedule")}>{messages.header.editorial}</NavLink>
 						<NavLink href={localizedPath(locale, "/collections")}>{messages.header.shopAll}</NavLink>
 					</nav>
