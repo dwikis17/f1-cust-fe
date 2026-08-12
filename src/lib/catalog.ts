@@ -43,13 +43,14 @@ export type ProductFacets = {
 	conditions: Array<{ value: ProductCondition; count: number }>;
 	availability: { inStock: number }; price: { min: number; max: number };
 };
-export type ProductListResponse = { data: PublicProduct[]; page: number; limit: number; total: number };
+export type ProductListResponse = { data: PublicProduct[]; page: number; limit: number; total: number; facets?: ProductFacets };
 export type CollectionProductsResponse = ProductListResponse & { collection: CollectionDetail; facets: ProductFacets };
 export type ProductSort = "featured" | "relevance" | "name_asc" | "name_desc" | "price_asc" | "price_desc" | "newest" | "oldest";
 export type ProductQuery = {
 	page?: number; limit?: number; search?: string; productType?: string[]; category?: string[]; tag?: string[];
 	team?: string[]; driver?: string[]; size?: string[]; color?: string[]; audience?: ProductAudience[];
 	condition?: ProductCondition[]; availability?: "in_stock"; minPrice?: number; maxPrice?: number; sort?: ProductSort;
+	sale?: boolean; includeFacets?: boolean;
 };
 
 const apiBaseUrl = process.env.API_BASE_URL?.replace(/\/$/, "");

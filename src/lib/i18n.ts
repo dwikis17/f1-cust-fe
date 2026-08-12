@@ -14,6 +14,7 @@ const en = {
     home: "Valyde Jersey home",
     primaryNavigation: "Primary navigation",
     shopAll: "Shop all",
+    sale: "Sale",
     viewAll: "View all",
     editorial: "F1 Schedule",
     shoppingBag: "Shopping bag",
@@ -151,6 +152,12 @@ const en = {
     loading: "Loading collection",
     preparing: "Preparing the grid",
     loadingProducts: "Loading products",
+  },
+  sale: {
+    eyebrow: "Valyde Jersey / Special prices",
+    title: "Sale",
+    intro: "Shop every active product currently marked down.",
+    breadcrumb: "Sale",
   },
   filters: {
     filters: "Filters",
@@ -452,6 +459,7 @@ const id: Dictionary = {
     home: "Beranda Valyde Jersey",
     primaryNavigation: "Navigasi utama",
     shopAll: "Belanja semua",
+    sale: "Sale",
     viewAll: "Lihat semua",
     editorial: "F1 Schedule",
     shoppingBag: "Keranjang belanja",
@@ -589,6 +597,12 @@ const id: Dictionary = {
     loading: "Memuat koleksi",
     preparing: "Menyiapkan daftar",
     loadingProducts: "Memuat produk",
+  },
+  sale: {
+    eyebrow: "Valyde Jersey / Harga spesial",
+    title: "Sale",
+    intro: "Belanja semua produk aktif yang sedang didiskon.",
+    breadcrumb: "Sale",
   },
   filters: {
     filters: "Filter",
