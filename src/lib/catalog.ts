@@ -152,10 +152,7 @@ export const catalog = {
 	},
 };
 
-export function formatPrice(priceIdr: number, locale: Locale = "en"): string {
-	return new Intl.NumberFormat(locale === "id" ? "id-ID" : "en-ID", {
-		style: "currency",
-		currency: "IDR",
-		maximumFractionDigits: 0,
-	}).format(priceIdr);
+export function formatPrice(priceIdr: number, _locale: Locale = "en"): string {
+	return `Rp ${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(priceIdr)}`;
 }
+
