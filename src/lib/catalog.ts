@@ -31,6 +31,7 @@ export type CollectionDetail = CollectionSummary & {
 export type PublicProduct = {
 	id: string; name: string; slug: string; description: string; sizingNote: string | null; priceIdr: number;
 	originalPriceIdr: number | null;
+	salePercentage: number | null;
 	category: CatalogEntity; productType: CatalogEntity; team: Team | null; drivers: Driver[];
 	audience: ProductAudience | null; condition?: ProductCondition; collections: CollectionSummary[]; tags: CatalogEntity[];
 	variants: ProductVariant[]; photos: ProductPhoto[]; createdAt: string; updatedAt: string;

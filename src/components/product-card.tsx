@@ -19,7 +19,7 @@ export function ProductCard({
 	const hoverPhoto = product.photos[1];
 	const messages = dictionary(locale);
 	const originalPrice = product.originalPriceIdr;
-	const onSale = originalPrice !== null;
+	const onSale = product.salePercentage !== null;
 	return (
 		<article className="product-card">
 			<Link href={localizedPath(locale, `/products/${product.slug}`)} aria-label={product.name}>
@@ -52,7 +52,7 @@ export function ProductCard({
 						</span>
 					)}
 					{product.condition ? <span className="condition-badge">{messages.conditions[product.condition].short}</span> : null}
-					{onSale ? <span className="sale-badge">{messages.product.sale}</span> : null}
+					{onSale ? <span className="sale-badge">-{product.salePercentage}%</span> : null}
 				</div>
 				<div className="product-meta">
 					<p>{product.team?.name ?? product.productType.name}</p>
