@@ -261,12 +261,11 @@ body:has(.race-ticker-bar) .page-shell { padding-top: 118px; }
 @media (hover: hover) and (pointer: fine) {
 	.product-card:hover .product-image img { filter: saturate(1.05) contrast(1.02); transform: scale(1.045); }
 	.product-card:hover .product-image-secondary { opacity: 1; }
-	.product-card:hover .product-meta h3 { transform: translateX(4px); }
 }
 .product-meta { padding-top: 14px; }
 .product-meta > p { color: var(--muted); font-family: var(--font-mono), monospace; font-size: 11px; letter-spacing: .07em; margin: 0 0 6px; text-transform: uppercase; }
 .product-meta > div { align-items: start; display: flex; gap: 12px; justify-content: space-between; }
-.product-meta h3 { font-family: var(--font-display), sans-serif; font-size: 17px; font-weight: 500; letter-spacing: -.03em; line-height: 1.15; margin: 0; text-transform: uppercase; transition: transform 280ms var(--ease-out); }
+.product-meta h3 { font-family: var(--font-display), sans-serif; font-size: 17px; font-weight: 500; letter-spacing: -.03em; line-height: 1.15; margin: 0; text-transform: uppercase; }
 .product-meta strong { font-family: var(--font-mono), monospace; font-size: 11px; white-space: nowrap; }
 .product-card-price { align-items: flex-end; display: flex; flex-direction: column; gap: 3px; }
 .product-card-price del { color: var(--muted); font-family: var(--font-mono), monospace; font-size: 10px; white-space: nowrap; }
