@@ -46,7 +46,7 @@ export function CollectionGallery({
 								alt=""
 								fill
 								priority={priority && index < 3}
-								sizes="(max-width: 600px) 50vw, 33vw"
+								sizes="(max-width: 600px) 50vw, 20vw"
 							/>
 						) : (
 							<div className="collection-gallery-placeholder">
