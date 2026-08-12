@@ -3,7 +3,7 @@ import type { PublicHomeCollectionBlock, PublicHomeHero } from "./home";
 
 export type CatalogEntity = { id: string; name: string; slug: string; createdAt: string; updatedAt: string };
 export type ProductAudience = "MEN" | "WOMEN" | "KIDS" | "UNISEX";
-export type ProductCondition = "BNIB" | "BNWT" | "BNWOT" | "PRE_OWNED";
+export type ProductCondition = "BNWT" | "BNWOT" | "USED";
 export type CollectionKind = "DOMAIN" | "TEAM" | "DRIVER" | "MERCHANDISE" | "BRAND" | "PROMOTION" | "MANUAL";
 export type Team = CatalogEntity & { logoUrl: string | null };
 export type Driver = CatalogEntity & { racingNumber: number; photoUrl: string | null; teamId: string | null; team: Team | null };
@@ -155,4 +155,3 @@ export const catalog = {
 export function formatPrice(priceIdr: number, _locale: Locale = "en"): string {
 	return `Rp ${new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(priceIdr)}`;
 }
-

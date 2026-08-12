@@ -187,10 +187,9 @@ const en = {
   },
   audiences: { MEN: "Men", WOMEN: "Women", KIDS: "Kids", UNISEX: "Unisex" },
   conditions: {
-    BNIB: { short: "BNIB", label: "BNIB — Brand new in box" },
     BNWT: { short: "BNWT", label: "BNWT — Brand new with tags" },
     BNWOT: { short: "BNWOT", label: "BNWOT — Brand new without tags" },
-    PRE_OWNED: { short: "Pre-owned", label: "Pre-owned" },
+    USED: { short: "USED", label: "USED — Used / Pre-owned" },
   },
   kinds: {
     DOMAIN: "Domain",
@@ -627,10 +626,9 @@ const id: Dictionary = {
   },
   audiences: { MEN: "Pria", WOMEN: "Wanita", KIDS: "Anak", UNISEX: "Uniseks" },
   conditions: {
-    BNIB: { short: "BNIB", label: "BNIB — Baru dalam kotak" },
     BNWT: { short: "BNWT", label: "BNWT — Baru dengan tag" },
     BNWOT: { short: "BNWOT", label: "BNWOT — Baru tanpa tag" },
-    PRE_OWNED: { short: "Bekas", label: "Bekas" },
+    USED: { short: "USED", label: "USED — Bekas" },
   },
   kinds: {
     DOMAIN: "Domain",
