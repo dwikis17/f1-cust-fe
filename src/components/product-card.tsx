@@ -53,11 +53,11 @@ export function ProductCard({
 					)}
 					{product.condition ? <span className="condition-badge">{messages.conditions[product.condition].short}</span> : null}
 					{onSale ? <span className="sale-badge">-{product.salePercentage}%</span> : null}
+					{product.tags.length ? <div className="product-tags" aria-label="Product tags">{product.tags.map((tag) => <span className="tag-pill" key={tag.id}>{tag.name}</span>)}</div> : null}
 				</div>
 				<div className="product-meta">
 					<p>{product.team?.name ?? product.productType.name}</p>
 					<div><h3>{product.name}</h3>{originalPrice !== null ? <span className="product-card-price"><strong>{formatPrice(product.priceIdr, locale)}</strong><del>{formatPrice(originalPrice, locale)}</del></span> : <strong>{formatPrice(product.priceIdr, locale)}</strong>}</div>
-					{product.tags.length ? <div className="product-tags" aria-label="Product tags">{product.tags.map((tag) => <span className="tag-pill" key={tag.id}>{tag.name}</span>)}</div> : null}
 				</div>
 			</Link>
 		</article>

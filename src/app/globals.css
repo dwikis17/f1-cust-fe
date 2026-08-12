@@ -1524,7 +1524,12 @@ body:has(.race-ticker-bar) .page-shell {
 }
 
 .product-tags {
-	margin-top: 10px;
+	bottom: 16px;
+	justify-content: flex-end;
+	margin-top: 0;
+	position: absolute;
+	right: 16px;
+	z-index: 2;
 }
 
 .product-detail-tags {
