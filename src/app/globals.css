@@ -1910,7 +1910,6 @@ body:has(.race-ticker-bar) .page-shell {
 
 .collection-gallery-grid {
 	background: var(--line);
-	border: 1px solid var(--line);
 	display: grid;
 	gap: 1px;
 	grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -2341,7 +2340,6 @@ body:has(.race-ticker-bar) .page-shell {
 
 .catalog-grid .product-image img {
 	object-fit: contain;
-	padding: 22px;
 }
 
 .catalog-grid .product-meta h3 {
@@ -5810,10 +5808,6 @@ body:has(.race-ticker-bar) .page-shell {
 
 	.catalog-grid {
 		gap: 28px 12px;
-	}
-
-	.catalog-grid .product-image img {
-		padding: 8px;
 	}
 
 	.catalog-grid .product-meta h3 {
