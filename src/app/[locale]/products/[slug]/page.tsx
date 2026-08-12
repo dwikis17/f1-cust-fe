@@ -114,6 +114,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 						<h1>{product.name}</h1>
 						<p className="product-price">{formatPrice(product.priceIdr, locale)}</p>
 						{product.condition ? <p className="product-condition"><span>{messages.product.condition}</span><strong>{messages.conditions[product.condition].label}</strong></p> : null}
+						{product.tags.length ? <div className="product-detail-tags" aria-label="Product tags">{product.tags.map((tag) => <span className="tag-pill" key={tag.id}>{tag.name}</span>)}</div> : null}
 						<SizingGuide variants={product.variants} note={product.sizingNote} />
 						<div className="product-promises"><span><VerifiedIcon /> {messages.product.officialMerchandise}</span><span><CubeIcon /> {messages.product.liveShippingRates}</span></div>
 						<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />

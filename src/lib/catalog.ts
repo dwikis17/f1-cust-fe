@@ -38,7 +38,7 @@ export type PublicProduct = {
 };
 export type NamedFacet = { id: string; name: string; slug: string; count: number };
 export type ProductFacets = {
-	teams: NamedFacet[]; drivers: NamedFacet[]; productTypes: NamedFacet[];
+	tags: NamedFacet[]; teams: NamedFacet[]; drivers: NamedFacet[]; productTypes: NamedFacet[];
 	audiences: Array<{ value: ProductAudience; count: number }>;
 	conditions: Array<{ value: ProductCondition; count: number }>;
 	availability: { inStock: number }; price: { min: number; max: number };

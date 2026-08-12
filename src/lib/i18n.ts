@@ -161,6 +161,7 @@ const en = {
   },
   filters: {
     filters: "Filters",
+		tag: "Tags",
     team: "Team",
     driver: "Driver",
     productType: "Product type",
@@ -606,6 +607,7 @@ const id: Dictionary = {
   },
   filters: {
     filters: "Filter",
+		tag: "Tag",
     team: "Tim",
     driver: "Pembalap",
     productType: "Jenis produk",

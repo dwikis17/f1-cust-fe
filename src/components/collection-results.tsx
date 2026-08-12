@@ -15,7 +15,7 @@ export function collectionQuery(params: CollectionSearchParams): ProductQuery {
 	const maxPrice = Number(firstValue(params.maxPrice));
 	return {
 		page: Math.max(1, Number(firstValue(params.page)) || 1), limit: 12, search: firstValue(params.search),
-		team: arrayValue(params.team), driver: arrayValue(params.driver), productType: arrayValue(params.productType),
+		tag: arrayValue(params.tag), team: arrayValue(params.team), driver: arrayValue(params.driver), productType: arrayValue(params.productType),
 		audience: arrayValue(params.audience) as ProductAudience[], availability: firstValue(params.availability) === "in_stock" ? "in_stock" : undefined,
 		condition: arrayValue(params.condition) as ProductCondition[],
 		minPrice: Number.isFinite(minPrice) && firstValue(params.minPrice) ? minPrice : undefined,
@@ -52,6 +52,7 @@ export function CollectionResults({ path, params, response, locale }: { path: st
 	const pages = Math.max(1, Math.ceil(response.total / response.limit));
 	const facets = response.facets;
 	const active = [
+		...(query.tag ?? []).map((value) => ({ key: "tag", value, label: facetLabel(facets?.tags, value) })),
 		...(query.team ?? []).map((value) => ({ key: "team", value, label: facetLabel(facets?.teams, value) })),
 		...(query.driver ?? []).map((value) => ({ key: "driver", value, label: facetLabel(facets?.drivers, value) })),
 		...(query.productType ?? []).map((value) => ({ key: "productType", value, label: facetLabel(facets?.productTypes, value) })),
@@ -83,6 +84,7 @@ export function CollectionResults({ path, params, response, locale }: { path: st
 				<summary>{messages.filters.filters} {active.length ? `(${active.length})` : ""}</summary>
 				<form className="filters" action={path}>
 					{query.search ? <input type="hidden" name="search" value={query.search} /> : null}
+					<FacetGroup title={messages.filters.tag} name="tag" items={facets?.tags ?? []} selected={query.tag ?? []} />
 					<FacetGroup title={messages.filters.team} name="team" items={facets?.teams ?? []} selected={query.team ?? []} />
 					<FacetGroup title={messages.filters.driver} name="driver" items={facets?.drivers ?? []} selected={query.driver ?? []} />
 					<FacetGroup title={messages.filters.productType} name="productType" items={facets?.productTypes ?? []} selected={query.productType ?? []} />
