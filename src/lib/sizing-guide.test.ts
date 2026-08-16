@@ -8,7 +8,7 @@ const guide = (length: number, chestWidth: number, waistWidth?: number) => ({
 	measurements: { length, chestWidth, ...(waistWidth === undefined ? {} : { waistWidth }) },
 });
 
-test("sizing rows use only complete unique sizes in natural order", () => {
+test("sizing rows use only complete unique sizes in variant order", () => {
 	const rows = buildSizingRows([
 		{ size: "L", available: false, sizingGuide: guide(74, 56, 54) },
 		{ size: "M", available: true, sizingGuide: guide(72, 52, 50) },
@@ -17,7 +17,7 @@ test("sizing rows use only complete unique sizes in natural order", () => {
 	]);
 
 	assert.deepEqual(rows, [
-		{ size: "M", unit: "cm", length: 72, chestWidth: 52, waistWidth: 50 },
 		{ size: "L", unit: "cm", length: 74, chestWidth: 56, waistWidth: 54 },
+		{ size: "M", unit: "cm", length: 72, chestWidth: 52, waistWidth: 50 },
 	]);
 });
