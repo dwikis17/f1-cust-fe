@@ -29,7 +29,7 @@ export type CollectionDetail = CollectionSummary & {
 	parent: CollectionSummary | null; children: CollectionSummary[]; _count: { products: number };
 };
 export type PublicProduct = {
-	id: string; name: string; slug: string; description: string; sizingNote: string | null; priceIdr: number;
+	id: string; name: string; slug: string; description: string; bulletPoints: string[]; sizingNote: string | null; priceIdr: number;
 	originalPriceIdr: number | null;
 	salePercentage: number | null;
 	category: CatalogEntity; productType: CatalogEntity; team: Team | null; drivers: Driver[];

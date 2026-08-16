@@ -2965,6 +2965,19 @@ body:has(.race-ticker-bar) .page-shell {
 	margin: 0 0 18px;
 }
 
+.product-info details .product-detail-bullets {
+	color: var(--muted);
+	font-size: 14px;
+	line-height: 1.5;
+	list-style: disc;
+	margin: -2px 0 18px;
+	padding-left: 20px;
+}
+
+.product-info details .product-detail-bullets li + li {
+	margin-top: 8px;
+}
+
 .technical-data {
 	border-top: 1px solid var(--line);
 	display: grid;

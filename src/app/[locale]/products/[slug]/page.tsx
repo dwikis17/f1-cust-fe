@@ -118,7 +118,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
 						<SizingGuide variants={product.variants} note={product.sizingNote} />
 						<div className="product-promises"><span><VerifiedIcon /> {messages.product.officialMerchandise}</span><span><CubeIcon /> {messages.product.liveShippingRates}</span></div>
 						<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />
-						<details><summary>{messages.product.productDetails}</summary><p>{product.description}</p></details>
+						<details>
+							<summary>{messages.product.productDetails}</summary>
+							<p>{product.description}</p>
+							{product.bulletPoints.length ? (
+								<ul className="product-detail-bullets">
+									{product.bulletPoints.map((point, index) => <li key={`${index}-${point}`}>{point}</li>)}
+								</ul>
+							) : null}
+						</details>
 						<details><summary>{messages.product.deliveryReturns}</summary><p>{messages.product.deliveryReturnsText} <Link className="inline-link" href={localizedPath(locale, "/help/shipping-returns")}>{messages.footer.shippingReturns} →</Link></p></details>
 					</div>
 				</section>
