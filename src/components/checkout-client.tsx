@@ -242,7 +242,7 @@ export function CheckoutClient() {
 		checkoutMutation.mutate();
 	}
 
-	if (!ready || catalogLoading) return <main className="page-shell checkout-page"><div className="checkout-empty"><p className="eyebrow">{messages.checkout.loading}</p></div></main>;
+	if (!ready || catalogLoading) return <CheckoutSkeleton label={messages.checkout.loading} />;
 	if (catalogError) return <main className="page-shell checkout-page"><div className="checkout-empty"><h1>{messages.cart.loadFailed}</h1><button className="button button-dark" type="button" onClick={retryCatalog}>{messages.cart.retry}</button></div></main>;
 	if (!lines.length) return <main className="page-shell checkout-page"><div className="checkout-empty"><p className="eyebrow">{messages.checkout.checkout}</p><h1>{messages.checkout.emptyTitle}</h1><p>{messages.checkout.emptyText}</p><Link className="button button-dark" href={localizedPath(locale, "/cart")}>{messages.checkout.returnCart}</Link></div></main>;
 
@@ -334,6 +334,62 @@ export function CheckoutClient() {
 					messages={messages.checkout}
 					locale={locale}
 				/>
+			</div>
+		</main>
+	);
+}
+
+function CheckoutSkeleton({ label }: { label: string }) {
+	return (
+		<main className="page-shell checkout-page" aria-busy="true">
+			<div className="checkout-skeleton" role="status" aria-live="polite">
+				<span className="sr-only">{label}</span>
+				<div className="checkout-skeleton-steps" aria-hidden="true">
+					<span className="checkout-skeleton-step"><span className="checkout-skeleton-block checkout-skeleton-step-index" /><span className="checkout-skeleton-block checkout-skeleton-step-label" /></span>
+					<span className="checkout-skeleton-step"><span className="checkout-skeleton-block checkout-skeleton-step-index" /><span className="checkout-skeleton-block checkout-skeleton-step-label checkout-skeleton-step-label-short" /></span>
+				</div>
+				<div className="checkout-layout">
+					<section className="checkout-main" aria-hidden="true">
+						<div className="checkout-skeleton-heading">
+							<span className="checkout-skeleton-block checkout-skeleton-kicker" />
+							<span className="checkout-skeleton-block checkout-skeleton-heading-title" />
+							<span className="checkout-skeleton-block checkout-skeleton-heading-copy" />
+						</div>
+						<div className="checkout-skeleton-fieldset">
+							<span className="checkout-skeleton-block checkout-skeleton-legend" />
+							<div className="checkout-skeleton-field checkout-skeleton-field-full"><span className="checkout-skeleton-block checkout-skeleton-label" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+							<span className="checkout-skeleton-block checkout-skeleton-hint" />
+						</div>
+						<div className="checkout-skeleton-fieldset">
+							<span className="checkout-skeleton-block checkout-skeleton-legend checkout-skeleton-legend-short" />
+							<div className="checkout-skeleton-delivery"><span className="checkout-skeleton-block checkout-skeleton-radio" /><span className="checkout-skeleton-block checkout-skeleton-delivery-copy" /></div>
+						</div>
+						<div className="checkout-skeleton-fieldset">
+							<span className="checkout-skeleton-block checkout-skeleton-legend checkout-skeleton-legend-medium" />
+							<div className="checkout-skeleton-fields">
+								<div className="checkout-skeleton-field"><span className="checkout-skeleton-block checkout-skeleton-label" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field"><span className="checkout-skeleton-block checkout-skeleton-label checkout-skeleton-label-short" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field checkout-skeleton-field-full"><span className="checkout-skeleton-block checkout-skeleton-label checkout-skeleton-label-wide" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field"><span className="checkout-skeleton-block checkout-skeleton-label checkout-skeleton-label-short" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field"><span className="checkout-skeleton-block checkout-skeleton-label" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field"><span className="checkout-skeleton-block checkout-skeleton-label checkout-skeleton-label-short" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field"><span className="checkout-skeleton-block checkout-skeleton-label checkout-skeleton-label-short" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field checkout-skeleton-field-full"><span className="checkout-skeleton-block checkout-skeleton-label" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+							</div>
+						</div>
+						<div className="checkout-skeleton-actions"><span className="checkout-skeleton-block checkout-skeleton-back" /><span className="checkout-skeleton-block checkout-skeleton-button" /></div>
+						<div className="checkout-skeleton-rates"><span className="checkout-skeleton-block checkout-skeleton-rates-copy" /></div>
+					</section>
+					<aside className="checkout-summary checkout-skeleton-summary" aria-hidden="true">
+						<span className="checkout-skeleton-block checkout-skeleton-summary-title" />
+						<div className="checkout-skeleton-summary-items">
+							{[0, 1, 2].map((item) => <div className="checkout-skeleton-summary-item" key={item}><span className="checkout-skeleton-block checkout-skeleton-thumb" /><span className="checkout-skeleton-item-copy"><span className="checkout-skeleton-block checkout-skeleton-item-name" /><span className="checkout-skeleton-block checkout-skeleton-item-meta" /></span><span className="checkout-skeleton-block checkout-skeleton-item-price" /></div>)}
+						</div>
+						<div className="checkout-skeleton-promo"><span className="checkout-skeleton-block checkout-skeleton-promo-label" /><span className="checkout-skeleton-block checkout-skeleton-promo-input" /></div>
+						<div className="checkout-skeleton-totals"><span className="checkout-skeleton-block checkout-skeleton-total-line" /><span className="checkout-skeleton-block checkout-skeleton-total-line checkout-skeleton-total-line-short" /><span className="checkout-skeleton-block checkout-skeleton-total-line checkout-skeleton-total-line-last" /></div>
+						<span className="checkout-skeleton-block checkout-skeleton-secure-note" />
+					</aside>
+				</div>
 			</div>
 		</main>
 	);
