@@ -26,18 +26,18 @@ function flattenCollections(nodes: CollectionNode[]): CollectionNode[] {
 
 async function listAllProducts(): Promise<PublicProductCard[]> {
 	const limit = 100;
-	const first = await catalog.listProducts({ page: 1, limit }, "en", 3_600);
+	const first = await catalog.listProducts({ page: 1, limit }, "en");
 	const pageCount = Math.ceil(first.total / limit);
 	if (pageCount <= 1) return first.data;
 
 	const remaining = await Promise.all(
-		Array.from({ length: pageCount - 1 }, (_, index) => catalog.listProducts({ page: index + 2, limit }, "en", 3_600)),
+		Array.from({ length: pageCount - 1 }, (_, index) => catalog.listProducts({ page: index + 2, limit }, "en")),
 	);
 	return [first, ...remaining].flatMap((page) => page.data);
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-	const [collectionTree, products] = await Promise.all([catalog.listCollections("en", 3_600), listAllProducts()]);
+	const [collectionTree, products] = await Promise.all([catalog.listCollections("en"), listAllProducts()]);
 	const collections = flattenCollections(collectionTree);
 
 	return [

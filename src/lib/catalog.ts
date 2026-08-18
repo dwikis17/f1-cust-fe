@@ -67,15 +67,6 @@ function apiUrl(path: string): string {
 	return `${apiBaseUrl}${path}`;
 }
 
-const CATALOG_TTL_SECONDS = 300;
-const TAXONOMY_TTL_SECONDS = 3_600;
-
-async function apiFetch<T>(path: string, revalidate = CATALOG_TTL_SECONDS, tags: string[] = []): Promise<T> {
-	const response = await fetch(apiUrl(path), { next: { revalidate, tags } });
-	if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
-	return response.json() as Promise<T>;
-}
-
 async function staticApiFetch<T>(path: string, tags: string[]): Promise<T> {
 	const response = await fetch(apiUrl(path), { cache: "force-cache", next: { tags } });
 	if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
@@ -94,36 +85,38 @@ function queryString(query: ProductQuery & { locale?: Locale }): string {
 }
 
 export const catalog = {
-	listProducts(query: ProductQuery = {}, locale: Locale = "en", revalidate = CATALOG_TTL_SECONDS): Promise<ProductListResponse> {
-		return apiFetch(`/api/products${queryString({ ...query, locale })}`, revalidate, ["catalog:products"]);
+	listProducts(query: ProductQuery = {}, locale: Locale = "en"): Promise<ProductListResponse> {
+		return staticApiFetch(`/api/products${queryString({ ...query, locale })}`, ["catalog:products"]);
 	},
 	async getProduct(slug: string, locale: Locale = "en"): Promise<PublicProduct | null> {
 		const response = await fetch(apiUrl(`/api/products/${encodeURIComponent(slug)}?locale=${locale}`), {
-			next: { revalidate: CATALOG_TTL_SECONDS, tags: ["catalog:products", `catalog:product:${slug}`] },
+			cache: "force-cache",
+			next: { tags: ["catalog:products", `catalog:product:${slug}`] },
 		});
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
 		return response.json() as Promise<PublicProduct>;
 	},
 	listCategories(): Promise<CatalogEntity[]> {
-		return apiFetch("/api/categories", TAXONOMY_TTL_SECONDS, ["catalog:products"]);
+		return staticApiFetch("/api/categories", ["catalog:products"]);
 	},
 	listTags(): Promise<CatalogEntity[]> {
-		return apiFetch("/api/tags", TAXONOMY_TTL_SECONDS, ["catalog:products"]);
+		return staticApiFetch("/api/tags", ["catalog:products"]);
 	},
 	listTeams(): Promise<Team[]> {
-		return apiFetch("/api/teams", TAXONOMY_TTL_SECONDS, ["catalog:teams"]);
+		return staticApiFetch("/api/teams", ["catalog:teams"]);
 	},
-	listCollections(locale: Locale = "en", revalidate = CATALOG_TTL_SECONDS): Promise<CollectionNode[]> {
-		return apiFetch(`/api/collections?locale=${locale}`, revalidate, ["catalog:collections"]);
+	listCollections(locale: Locale = "en"): Promise<CollectionNode[]> {
+		return staticApiFetch(`/api/collections?locale=${locale}`, ["catalog:collections"]);
 	},
 	listNavigationCollections(locale: Locale = "en"): Promise<CollectionNode[]> {
-		return apiFetch(`/api/collections?locale=${locale}`, CATALOG_TTL_SECONDS, ["catalog:collections"]);
+		return staticApiFetch(`/api/collections?locale=${locale}`, ["catalog:collections"]);
 	},
 	async getHomeHeroes(locale: Locale = "en"): Promise<PublicHomeHero[]> {
 		try {
 			const response = await fetch(apiUrl(`/api/home?locale=${locale}`), {
-				next: { revalidate: TAXONOMY_TTL_SECONDS, tags: ["content:home"] },
+				cache: "force-cache",
+				next: { tags: ["content:home"] },
 			});
 			if (!response.ok) return [];
 			return response.json() as Promise<PublicHomeHero[]>;
@@ -134,7 +127,8 @@ export const catalog = {
 	async getHomeCollectionBlocks(locale: Locale = "en"): Promise<PublicHomeCollectionBlock[]> {
 		try {
 			const response = await fetch(apiUrl(`/api/home/collection-blocks?locale=${locale}`), {
-				next: { revalidate: TAXONOMY_TTL_SECONDS, tags: ["content:home", "catalog:collections", "catalog:products"] },
+				cache: "force-cache",
+				next: { tags: ["content:home", "catalog:collections", "catalog:products"] },
 			});
 			if (!response.ok) return [];
 			return response.json() as Promise<PublicHomeCollectionBlock[]>;
@@ -144,7 +138,8 @@ export const catalog = {
 	},
 	async getCollection(slug: string, locale: Locale = "en"): Promise<CollectionDetail | null> {
 		const response = await fetch(apiUrl(`/api/collections/${encodeURIComponent(slug)}?locale=${locale}`), {
-			next: { revalidate: CATALOG_TTL_SECONDS, tags: ["catalog:collections", `catalog:collection:${slug}`] },
+			cache: "force-cache",
+			next: { tags: ["catalog:collections", `catalog:collection:${slug}`] },
 		});
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
@@ -153,7 +148,10 @@ export const catalog = {
 	async listCollectionProducts(slug: string, query: ProductQuery = {}, locale: Locale = "en"): Promise<CollectionProductsResponse | null> {
 		const response = await fetch(
 			apiUrl(`/api/collections/${encodeURIComponent(slug)}/products${queryString({ ...query, locale })}`),
-			{ next: { revalidate: CATALOG_TTL_SECONDS, tags: ["catalog:products", "catalog:collections", `catalog:collection:${slug}`] } },
+			{
+				cache: "force-cache",
+				next: { tags: ["catalog:products", "catalog:collections", `catalog:collection:${slug}`] },
+			},
 		);
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
