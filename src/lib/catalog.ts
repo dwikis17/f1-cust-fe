@@ -61,6 +61,7 @@ export type ProductQuery = {
 };
 
 const apiBaseUrl = process.env.API_BASE_URL?.replace(/\/$/, "");
+const catalogRevalidation = 300;
 
 function apiUrl(path: string): string {
 	if (!apiBaseUrl) throw new Error("API_BASE_URL is required for storefront catalog requests");
@@ -68,7 +69,7 @@ function apiUrl(path: string): string {
 }
 
 async function staticApiFetch<T>(path: string, tags: string[]): Promise<T> {
-	const response = await fetch(apiUrl(path), { cache: "force-cache", next: { tags } });
+	const response = await fetch(apiUrl(path), { cache: "force-cache", next: { tags, revalidate: catalogRevalidation } });
 	if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
 	return response.json() as Promise<T>;
 }
@@ -91,7 +92,7 @@ export const catalog = {
 	async getProduct(slug: string, locale: Locale = "en"): Promise<PublicProduct | null> {
 		const response = await fetch(apiUrl(`/api/products/${encodeURIComponent(slug)}?locale=${locale}`), {
 			cache: "force-cache",
-			next: { tags: ["catalog:products", `catalog:product:${slug}`] },
+			next: { tags: ["catalog:products", `catalog:product:${slug}`], revalidate: catalogRevalidation },
 		});
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
@@ -116,7 +117,7 @@ export const catalog = {
 		try {
 			const response = await fetch(apiUrl(`/api/home?locale=${locale}`), {
 				cache: "force-cache",
-				next: { tags: ["content:home"] },
+				next: { tags: ["content:home"], revalidate: catalogRevalidation },
 			});
 			if (!response.ok) return [];
 			return response.json() as Promise<PublicHomeHero[]>;
@@ -128,7 +129,7 @@ export const catalog = {
 		try {
 			const response = await fetch(apiUrl(`/api/home/collection-blocks?locale=${locale}`), {
 				cache: "force-cache",
-				next: { tags: ["content:home", "catalog:collections", "catalog:products"] },
+				next: { tags: ["content:home", "catalog:collections", "catalog:products"], revalidate: catalogRevalidation },
 			});
 			if (!response.ok) return [];
 			return response.json() as Promise<PublicHomeCollectionBlock[]>;
@@ -139,7 +140,7 @@ export const catalog = {
 	async getCollection(slug: string, locale: Locale = "en"): Promise<CollectionDetail | null> {
 		const response = await fetch(apiUrl(`/api/collections/${encodeURIComponent(slug)}?locale=${locale}`), {
 			cache: "force-cache",
-			next: { tags: ["catalog:collections", `catalog:collection:${slug}`] },
+			next: { tags: ["catalog:collections", `catalog:collection:${slug}`], revalidate: catalogRevalidation },
 		});
 		if (response.status === 404) return null;
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
@@ -150,7 +151,7 @@ export const catalog = {
 			apiUrl(`/api/collections/${encodeURIComponent(slug)}/products${queryString({ ...query, locale })}`),
 			{
 				cache: "force-cache",
-				next: { tags: ["catalog:products", "catalog:collections", `catalog:collection:${slug}`] },
+				next: { tags: ["catalog:products", "catalog:collections", `catalog:collection:${slug}`], revalidate: catalogRevalidation },
 			},
 		);
 		if (response.status === 404) return null;

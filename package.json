@@ -8,8 +8,9 @@
     "test": "node --test src/lib/*.test.ts",
     "start": "next start",
     "lint": "eslint .",
-    "deploy": "APP_ENV=production API_BASE_URL=https://api.valydejersey.com NEXT_PUBLIC_SITE_URL=https://valydejersey.com NEXT_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAAD9MetDQNU4y3PHR NEXT_PUBLIC_MIDTRANS_ENV=production NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=Mid-client-zPWzq52QTcf7T4xc opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "deploy:staging": "APP_ENV=staging API_BASE_URL=https://dev-api.valydejersey.com NEXT_PUBLIC_SITE_URL=https://dev.valydejersey.com NEXT_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAAEE4NGGhjZJGpPwo NEXT_PUBLIC_MIDTRANS_ENV=sandbox NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=Mid-client-cwkRE-SgbQ93Ylht opennextjs-cloudflare build --env staging && opennextjs-cloudflare deploy --env staging",
+    "clean:cache": "rm -rf .next/cache .open-next",
+    "deploy": "npm run clean:cache && APP_ENV=production API_BASE_URL=https://api.valydejersey.com NEXT_PUBLIC_SITE_URL=https://valydejersey.com NEXT_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAAD9MetDQNU4y3PHR NEXT_PUBLIC_MIDTRANS_ENV=production NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=Mid-client-zPWzq52QTcf7T4xc opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy:staging": "npm run clean:cache && APP_ENV=staging API_BASE_URL=https://dev-api.valydejersey.com NEXT_PUBLIC_SITE_URL=https://dev.valydejersey.com NEXT_PUBLIC_TURNSTILE_SITE_KEY=0x4AAAAAAEE4NGGhjZJGpPwo NEXT_PUBLIC_MIDTRANS_ENV=sandbox NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=Mid-client-cwkRE-SgbQ93Ylht opennextjs-cloudflare build --env staging && opennextjs-cloudflare deploy --env staging",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts"
