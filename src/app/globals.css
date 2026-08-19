@@ -4976,6 +4976,7 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 }
 
 .shipping-returns-content ul {
+	align-items: start;
 	display: grid;
 	gap: 12px 28px;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4986,10 +4987,20 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 }
 
 .shipping-returns-content li {
-	border-left: 2px solid var(--apex);
 	line-height: 1.55;
 	margin-top: 0;
-	padding: 4px 0 4px 16px;
+	padding: 0 0 0 16px;
+	position: relative;
+}
+
+.shipping-returns-content li::before {
+	background: var(--apex);
+	content: "";
+	height: 1.55em;
+	left: 0;
+	position: absolute;
+	top: 0;
+	width: 2px;
 }
 
 .shipping-request-section {
