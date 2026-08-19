@@ -51,9 +51,13 @@ export function ProductCard({
 							<span>{messages.product.imageUnavailable}</span>
 						</span>
 					)}
-					{product.condition ? <span className="condition-badge">{messages.conditions[product.condition].short}</span> : null}
+					{product.condition || product.tags.length ? (
+						<div className="product-image-badges">
+							{product.condition ? <span className="condition-badge">{messages.conditions[product.condition].short}</span> : null}
+							{product.tags.length ? <div className="product-tags" aria-label="Product tags">{product.tags.map((tag) => <span className="tag-pill" key={tag.id}>{tag.name}</span>)}</div> : null}
+						</div>
+					) : null}
 					{onSale ? <span className="sale-badge">-{product.salePercentage}%</span> : null}
-					{product.tags.length ? <div className="product-tags" aria-label="Product tags">{product.tags.map((tag) => <span className="tag-pill" key={tag.id}>{tag.name}</span>)}</div> : null}
 				</div>
 				<div className="product-meta">
 					<p>{product.team?.name ?? product.productType.name}</p>

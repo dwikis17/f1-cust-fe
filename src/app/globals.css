@@ -1419,18 +1419,26 @@ body:has(.race-ticker-bar) .page-shell {
 	position: relative;
 }
 
+.product-image-badges {
+	align-items: flex-start;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	left: 16px;
+	max-width: calc(100% - 88px);
+	position: absolute;
+	top: 16px;
+	z-index: 2;
+}
+
 .condition-badge {
 	background: var(--ink);
 	color: var(--white);
 	font-family: var(--font-mono), monospace;
 	font-size: 11px;
-	left: 16px;
 	letter-spacing: .08em;
 	padding: 7px 14px;
-	position: absolute;
 	text-transform: uppercase;
-	top: 16px;
-	z-index: 2;
 }
 
 .sale-badge {
@@ -1520,12 +1528,14 @@ body:has(.race-ticker-bar) .page-shell {
 }
 
 .product-tags {
-	bottom: 16px;
-	justify-content: flex-end;
-	margin-top: 0;
-	position: absolute;
-	right: 16px;
-	z-index: 2;
+	align-items: flex-start;
+	flex-direction: column;
+}
+
+.product-tags .tag-pill {
+	background: var(--white);
+	border-color: transparent;
+	color: var(--ink);
 }
 
 .product-detail-tags {
