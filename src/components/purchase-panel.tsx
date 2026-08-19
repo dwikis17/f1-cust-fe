@@ -23,11 +23,13 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 	const [added, setAdded] = useState<{ key: number; quantity: number } | null>(null);
 	const [inventory, setInventory] = useState<Record<string, number>>(() =>
 		Object.fromEntries(variants.map((variant) => [variant.id, variant.stockQuantity])));
+	const [unitsSold, setUnitsSold] = useState<Record<string, number>>({});
 	const selected = variants.find((variant) => variant.id === variantId) ?? firstAvailable;
 	const sizes = useMemo(() => [...new Set(variants.flatMap((variant) => variant.size ? [variant.size] : []))], [variants]);
 	const colors = useMemo(() => [...new Set(variants.flatMap((variant) => variant.color ? [variant.color] : []))], [variants]);
 	const stockFor = (variant: ProductVariant) => inventory[variant.id] ?? variant.stockQuantity;
 	const selectedStock = selected ? stockFor(selected) : 0;
+	const selectedUnitsSold = selected ? unitsSold[selected.id] ?? 0 : 0;
 	const orderLimit = maxPurchasableQuantity(selectedStock);
 	const cartQuantity = cartItems.find((item) => item.variantId === selected?.id)?.quantity ?? 0;
 	const remaining = Math.max(0, orderLimit - cartQuantity);
@@ -55,9 +57,9 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 			if (!response.ok) throw new Error("Inventory refresh failed");
 			return response.json() as Promise<CartItemsResponse>;
 		})).then((results) => {
-			const fresh = new Map(results.flatMap((result) =>
-				result.data.map((item) => [item.variant.id, item.variant.stockQuantity] as const)));
-			setInventory(Object.fromEntries(variantIds.map((id) => [id, fresh.get(id) ?? 0])));
+			const fresh = new Map(results.flatMap((result) => result.data.map((item) => [item.variant.id, item.variant] as const)));
+			setInventory(Object.fromEntries(variantIds.map((id) => [id, fresh.get(id)?.stockQuantity ?? 0])));
+			setUnitsSold(Object.fromEntries(variantIds.map((id) => [id, fresh.get(id)?.unitsSold ?? 0])));
 		}).catch((error) => {
 			if ((error as Error).name !== "AbortError") return;
 		});
@@ -89,7 +91,7 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 				? messages.product.optionUnavailable
 				: !remaining
 					? messages.product.maximumInCart
-					: `${selectedStock} ${messages.product.unitsAvailable}${selectedStock > 9 ? ` · ${messages.product.maximumPerOrder}` : ""}`}</p>
+					: `${selectedStock} ${messages.product.unitsAvailable}${selectedStock > 9 ? ` · ${messages.product.maximumPerOrder}` : ""}`}{selectedUnitsSold > 0 ? ` · ${selectedUnitsSold} ${messages.product.sold}` : ""}</p>
 		</div>
 		<section className="technical-data" aria-live="polite">
 			<div className="data-heading"><span>{messages.product.technicalData}</span><strong>{messages.product.selectedSpecification}</strong></div>

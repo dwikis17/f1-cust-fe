@@ -14,6 +14,7 @@ export type CartItemProduct = {
 		color: string | null;
 		stockQuantity: number;
 		available: boolean;
+		unitsSold: number;
 	};
 };
 
