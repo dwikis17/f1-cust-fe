@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { FaqCopyButton } from "@/components/faq-copy-button";
 import { StructuredData } from "@/components/structured-data";
+import { SupportContactLinks } from "@/components/support-contact-links";
 import { listFaqs } from "@/lib/faqs";
 import { dictionary } from "@/lib/i18n";
 import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
@@ -50,14 +51,14 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
 					<p className="faq-count"><span>{faqs.length}</span> {messages.faq.answerCount}</p>
 					<h2>{messages.faq.stillNeedHelp}</h2>
 					<p>{messages.faq.contactText}</p>
-					<a className="faq-contact-link" href="mailto:support@valyde.com">{messages.faq.contactSupport}</a>
+					<SupportContactLinks whatsappLabel={messages.faq.contactWhatsApp} emailLabel={messages.faq.contactSupport} />
 				</aside>
 				<section className="faq-list" aria-label={messages.faq.title}>
 					{faqs.length === 0 ? (
 						<div className="faq-empty">
 							<h2>{messages.faq.emptyTitle}</h2>
 							<p>{messages.faq.emptyText}</p>
-							<a className="faq-contact-link" href="mailto:support@valyde.com">{messages.faq.contactSupport}</a>
+							<SupportContactLinks whatsappLabel={messages.faq.contactWhatsApp} emailLabel={messages.faq.contactSupport} />
 						</div>
 					) : faqs.map((faq, index) => (
 						<details className="faq-item" name="faq" open={index === 0} key={faq.id}>

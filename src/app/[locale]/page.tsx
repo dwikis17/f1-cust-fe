@@ -11,6 +11,7 @@ import { resolveHomeHeroes } from "@/lib/home";
 import { dictionary } from "@/lib/i18n";
 import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
 import { absoluteUrl, siteName } from "@/lib/seo";
+import { SUPPORT_EMAIL, SUPPORT_WHATSAPP_NUMBER } from "@/lib/support";
 
 export const revalidate = 300;
 
@@ -62,7 +63,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 						"@id": `${absoluteUrl(homePath)}#organization`,
 						name: siteName,
 						url: absoluteUrl(homePath),
-						email: "support@valyde.com",
+						email: SUPPORT_EMAIL,
+						telephone: `+${SUPPORT_WHATSAPP_NUMBER}`,
 						description: messages.metadata.description,
 					},
 					{
