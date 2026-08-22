@@ -94,14 +94,12 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 					: `${selectedStock} ${messages.product.unitsAvailable}${selectedStock > 9 ? ` · ${messages.product.maximumPerOrder}` : ""}`}{selectedUnitsSold > 0 ? ` · ${selectedUnitsSold} ${messages.product.sold}` : ""}</p>
 		</div>
 		<section className="technical-data" aria-live="polite">
-			<div className="data-heading"><span>{messages.product.technicalData}</span><strong>{messages.product.selectedSpecification}</strong></div>
 			<div><span>{messages.product.packageWeight}</span><strong>{selected ? `${selected.packageWeightG} ${messages.product.grams}` : "—"}</strong></div>
 			<div><span>{messages.product.dimensions}</span><strong>{selected ? `${selected.packageLengthMm} × ${selected.packageWidthMm} × ${selected.packageHeightMm} mm` : "—"}</strong></div>
 			<div><span>{messages.product.modelNumber}</span><strong>{selected?.sku ?? "—"}</strong></div>
 			{selected?.size ? <div><span>{messages.product.size}</span><strong>{selected.size}</strong></div> : null}
 			{colors.length > 1 && selected?.color ? <div><span>{messages.product.color}</span><strong>{selected.color}</strong></div> : null}
 			<div><span>{messages.product.availability}</span><strong>{selectedStock ? `${selectedStock} ${messages.product.unitsAvailable}` : messages.product.outOfStock}</strong></div>
-			<div><span>{messages.product.authenticity}</span><strong>{messages.product.verified}</strong></div>
 		</section>
 	</>;
 }

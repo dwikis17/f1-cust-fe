@@ -2988,7 +2988,7 @@ body:has(.race-ticker-bar) .page-shell {
 	border-top: 1px solid var(--line);
 	display: grid;
 	gap: 36px;
-	grid-template-columns: 1.5fr repeat(3, 1fr);
+	grid-template-columns: repeat(4, 1fr);
 	padding: 46px 0;
 }
 
@@ -2996,12 +2996,6 @@ body:has(.race-ticker-bar) .page-shell {
 	gap: 22px 16px;
 	grid-template-columns: repeat(2, 1fr);
 	padding: 28px 0;
-}
-
-.product-info .technical-data .data-heading,
-.product-info .technical-data .sizing-data {
-	grid-column: span 2;
-	grid-row: auto;
 }
 
 .technical-data>div {
@@ -3025,10 +3019,6 @@ body:has(.race-ticker-bar) .page-shell {
 	font-weight: 400;
 	letter-spacing: .07em;
 	text-transform: uppercase;
-}
-
-.data-heading {
-	grid-row: span 2;
 }
 
 .commentary-block {
@@ -6106,11 +6096,6 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 
 	.technical-data {
 		grid-template-columns: repeat(2, 1fr);
-	}
-
-	.data-heading {
-		grid-column: span 2;
-		grid-row: auto;
 	}
 
 	.commentary-block {
