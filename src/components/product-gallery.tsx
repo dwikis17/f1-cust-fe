@@ -7,7 +7,7 @@ import type { ProductPhoto } from "@/lib/catalog";
 
 export function ProductGallery({ photos }: { photos: ProductPhoto[] }) {
 	const messages = useDictionary();
-	const { activePhoto, setActivePhoto } = useProductSelection();
+	const { activePhoto, setActivePhoto, selectedStock } = useProductSelection();
 	const current = photos[activePhoto] ?? photos[0];
 	if (!current) return null;
 
@@ -21,7 +21,7 @@ export function ProductGallery({ photos }: { photos: ProductPhoto[] }) {
 				))}
 			</div>
 			<div className="gallery-main">
-				<span className="stock-badge">{messages.product.lastStock}</span>
+				{selectedStock === 1 ? <span className="stock-badge">{messages.product.lastStock}</span> : null}
 				<div className="gallery-main-image" key={current.id}>
 					<Image src={current.url} alt={current.altText} fill sizes="(max-width: 800px) 100vw, 50vw" loading="eager" />
 				</div>

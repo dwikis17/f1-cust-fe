@@ -106,7 +106,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 				},
 			]} />
 			<nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href={homePath}>{messages.collections.homepage}</Link><span>/</span><Link href={currentCollectionPath}>{currentCollection?.name ?? messages.collections.title}</Link><span>/</span><strong>{product.name}</strong></nav>
-			<ProductSelection photos={product.photos}>
+			<ProductSelection photos={product.photos} initialStockQuantity={product.variants.find((variant) => variant.available)?.stockQuantity ?? 0}>
 				<section className="product-top">
 					<ProductGallery photos={product.photos} />
 					<div className="product-info">

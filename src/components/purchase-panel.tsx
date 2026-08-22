@@ -14,7 +14,7 @@ type Props = { productId: string; productName: string; variants: ProductVariant[
 export function PurchasePanel({ productId, productName, variants }: Props) {
 	const messages = useDictionary();
 	const locale = useLocale();
-	const { selectColor } = useProductSelection();
+	const { selectColor, setSelectedStock } = useProductSelection();
 	const addItem = useCartStore((state) => state.addItem);
 	const cartItems = useCartStore((state) => state.items);
 	const firstAvailable = variants.find((variant) => variant.available) ?? variants[0];
@@ -34,6 +34,8 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 	const cartQuantity = cartItems.find((item) => item.variantId === selected?.id)?.quantity ?? 0;
 	const remaining = Math.max(0, orderLimit - cartQuantity);
 	const selectedQuantity = Math.min(quantity, Math.max(1, remaining));
+
+	useEffect(() => setSelectedStock(selectedStock), [selectedStock, setSelectedStock]);
 
 	useEffect(() => {
 		if (!added) return;
