@@ -18,7 +18,7 @@ type ProductPageProps = {
 
 export const dynamic = "force-static";
 export const dynamicParams = true;
-export const revalidate = 300;
+export const revalidate = 600;
 export function generateStaticParams() { return []; }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
@@ -131,11 +131,6 @@ export default async function ProductPage({ params }: ProductPageProps) {
 					</div>
 				</section>
 			</ProductSelection>
-
-			<section className="commentary-block">
-				<div><span>{messages.product.paddockCommentary}</span><strong>{messages.product.designerPerspective}</strong></div>
-				<article><p>{messages.product.commentaryOne}</p><p>{messages.product.commentaryTwo}</p><blockquote>{messages.product.quote}</blockquote></article>
-			</section>
 		</main>
 	);
 }
