@@ -553,7 +553,7 @@ body:has(.race-ticker-bar) .page-shell {
 
 .header-actions>a,
 .icon-button,
-.mobile-menu summary {
+.mobile-menu > summary {
 	align-items: center;
 	background: none;
 	border: 0;
@@ -759,12 +759,13 @@ body:has(.race-ticker-bar) .page-shell {
 	display: none;
 }
 
-.mobile-menu summary {
+.mobile-menu > summary {
 	list-style: none;
 	cursor: pointer;
 }
 
-.mobile-menu summary::-webkit-details-marker {
+.mobile-menu summary::-webkit-details-marker,
+.mobile-nav-group > summary::-webkit-details-marker {
 	display: none;
 }
 
@@ -795,14 +796,46 @@ body:has(.race-ticker-bar) .page-shell {
 	z-index: 100;
 }
 
-.mobile-menu nav div {
+.mobile-nav-group {
 	display: grid;
-	gap: 8px;
+	gap: 0;
 }
 
-.mobile-menu nav div>a:first-child {
+.mobile-nav-group > summary {
+	align-items: center;
 	color: white;
+	cursor: pointer;
+	display: flex;
+	font-family: var(--font-mono), monospace;
+	font-size: 11px;
 	font-weight: 700;
+	justify-content: space-between;
+	letter-spacing: .09em;
+	list-style: none;
+	min-height: 36px;
+	text-transform: uppercase;
+	user-select: none;
+}
+
+.mobile-nav-group > summary svg {
+	color: #767676;
+	flex-shrink: 0;
+	transition: transform 180ms var(--ease-out);
+}
+
+.mobile-nav-group[open] > summary svg {
+	transform: rotate(180deg);
+}
+
+.mobile-nav-children {
+	display: grid;
+	gap: 0;
+	padding: 2px 0 8px 12px;
+}
+
+.mobile-nav-children .nav-view-all {
+	color: white;
+	margin-top: 4px;
 }
 
 .mobile-menu nav a {
@@ -814,6 +847,11 @@ body:has(.race-ticker-bar) .page-shell {
 	letter-spacing: .09em;
 	min-height: 36px;
 	text-transform: uppercase;
+}
+
+.mobile-menu nav > a {
+	color: white;
+	font-weight: 700;
 }
 
 .mobile-menu nav a[aria-current="page"] {
@@ -5926,7 +5964,8 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 		gap: 18px;
 	}
 
-	.mobile-menu nav a {
+	.mobile-menu nav a,
+	.mobile-nav-group > summary {
 		min-height: var(--control-height);
 	}
 
