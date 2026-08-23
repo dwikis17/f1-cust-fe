@@ -142,7 +142,7 @@ export const F1_2026_SCHEDULE: F1Race[] = [
 		flag: "🇬🇧",
 		weekendStartDate: "2026-07-03T00:00:00Z",
 		raceDate: "2026-07-05T14:00:00Z",
-		featuredCollectionSlug: "mercedes-amg",
+		featuredCollectionSlug: "mercedes",
 	},
 	{
 		slug: "bel-gp",
@@ -252,7 +252,7 @@ export const F1_2026_SCHEDULE: F1Race[] = [
 		flag: "🇧🇷",
 		weekendStartDate: "2026-11-06T00:00:00Z",
 		raceDate: "2026-11-08T17:00:00Z",
-		featuredCollectionSlug: "mercedes-amg",
+		featuredCollectionSlug: "mercedes",
 	},
 	{
 		slug: "lve-gp",
