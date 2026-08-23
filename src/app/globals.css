@@ -2620,11 +2620,24 @@ body:has(.race-ticker-bar) .page-shell {
 }
 
 .gallery-main-image {
+	appearance: none;
+	background: transparent;
+	border: 0;
+	cursor: zoom-in;
+	display: block;
 	inset: 0;
 	opacity: 1;
+	padding: 0;
 	position: absolute;
 	transform: scale(1);
 	transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+	width: 100%;
+}
+
+.gallery-main-image.is-zoomed {
+	cursor: zoom-out;
+	transform: scale(2);
+	transition: transform 80ms linear;
 }
 
 .gallery-main img {
@@ -7310,6 +7323,10 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 	.gallery-main-image {
 		transform: none;
 		transition: opacity 120ms var(--ease-out);
+	}
+
+	.gallery-main-image.is-zoomed {
+		transform: scale(2);
 	}
 
 	.cart-loading-line {
