@@ -6964,7 +6964,7 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 /* 404 Page Styling */
 .not-found-page {
 	background: var(--paper);
-	min-height: calc(100vh - 70px);
+	min-height: calc(100dvh - 70px);
 }
 
 .not-found-hero {
@@ -7061,7 +7061,7 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 	text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
-.not-found-heading-group h2 {
+.not-found-heading-group h1 {
 	font-family: var(--font-display), sans-serif;
 	font-size: clamp(24px, 4vw, 36px);
 	font-weight: 700;
@@ -7156,6 +7156,15 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 	margin-bottom: 24px;
 	border-bottom: 1px solid var(--line);
 	padding-bottom: 12px;
+}
+
+.destinations-header h2 {
+	font-family: var(--font-display), sans-serif;
+	font-size: 28px;
+	letter-spacing: -.04em;
+	line-height: 1;
+	margin: 0;
+	text-transform: uppercase;
 }
 
 .destinations-grid {
@@ -7299,7 +7308,9 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 	.icon-button:active,
 	.gallery-thumbs button:active,
 	.display-button:active,
-	.pagination>a:active {
+	.pagination>a:active,
+	.destination-card:hover,
+	.destination-card:hover .destination-arrow {
 		transform: none;
 	}
 
