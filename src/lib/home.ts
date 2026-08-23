@@ -21,6 +21,14 @@ export type PublicHomeCollectionBlock = {
 	products: PublicProductCard[];
 };
 
+export function splitHomeCollectionBlocks(blocks: PublicHomeCollectionBlock[]) {
+	const newArrival = blocks.find(({ collection }) => collection.slug === "new-arrival") ?? null;
+	return {
+		newArrival,
+		remaining: blocks.filter(({ collection }) => collection.slug !== "new-arrival"),
+	};
+}
+
 export type ResolvedHomeHero = Omit<PublicHomeHero, "collection"> & {
 	managed: boolean;
 	imageAlt: string;

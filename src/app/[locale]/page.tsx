@@ -7,7 +7,7 @@ import { ArrowRightIcon, RouteIcon, ShieldIcon, TruckIcon, VerifiedIcon } from "
 import { ProductCard } from "@/components/product-card";
 import { StructuredData } from "@/components/structured-data";
 import { catalog } from "@/lib/catalog";
-import { resolveHomeHeroes } from "@/lib/home";
+import { resolveHomeHeroes, splitHomeCollectionBlocks } from "@/lib/home";
 import { dictionary } from "@/lib/i18n";
 import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
 import { absoluteUrl, siteName } from "@/lib/seo";
@@ -34,6 +34,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 		catalog.getHomeHeroes(locale),
 		catalog.getHomeCollectionBlocks(locale),
 	]);
+	const { newArrival, remaining: remainingCollectionBlocks } = splitHomeCollectionBlocks(collectionBlocks);
 	const teams = collectionTree.flatMap((parent) => parent.children).filter((collection) => collection.kind === "TEAM");
 	const heroes = resolveHomeHeroes(managedHeroes, {
 		id: "fallback",
@@ -109,6 +110,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 				{teams.map((team) => <Link href={localizedPath(locale, `/collections/${team.slug}`)} aria-label={team.name} key={team.id}>{team.imageUrl ? <Image src={team.imageUrl} alt={team.name} fill sizes="(max-width: 640px) 104px, 12vw" /> : <span>{team.name}</span>}</Link>)}
 			</section>
 
+			{newArrival ? <HomeCollectionBlock block={newArrival} locale={locale} /> : null}
+
 			<section className="section selected-products">
 				<div className="section-heading">
 					<div><p className="eyebrow">{messages.home.selectedWorks}</p><h2>{messages.home.precisionGear}</h2></div>
@@ -117,7 +120,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 				<div className="home-product-grid">{products.slice(0, 4).map((product, index) => <ProductCard product={product} locale={locale} key={product.id} priority={index < 2} />)}</div>
 			</section>
 
-			{collectionBlocks.map((block) => <HomeCollectionBlock block={block} locale={locale} key={block.id} />)}
+			{remainingCollectionBlocks.map((block) => <HomeCollectionBlock block={block} locale={locale} key={block.id} />)}
 		</main>
 	);
 }
