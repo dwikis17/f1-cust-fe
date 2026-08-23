@@ -2629,6 +2629,7 @@ body:has(.race-ticker-bar) .page-shell {
 	opacity: 1;
 	padding: 0;
 	position: absolute;
+	touch-action: manipulation;
 	transform: scale(1);
 	transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
 	width: 100%;
@@ -2636,6 +2637,7 @@ body:has(.race-ticker-bar) .page-shell {
 
 .gallery-main-image.is-zoomed {
 	cursor: zoom-out;
+	touch-action: none;
 	transform: scale(2);
 	transition: transform 80ms linear;
 }
@@ -2712,7 +2714,7 @@ body:has(.race-ticker-bar) .page-shell {
 }
 
 .sizing-guide-control {
-	margin: -10px 0 18px;
+	margin: 0 0 18px;
 }
 
 .sizing-guide-link {
