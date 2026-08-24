@@ -11,7 +11,7 @@ import { resolveHomeHeroes, splitHomeCollectionBlocks } from "@/lib/home";
 import { dictionary } from "@/lib/i18n";
 import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
 import { absoluteUrl, siteName } from "@/lib/seo";
-import { SUPPORT_EMAIL, SUPPORT_WHATSAPP_NUMBER } from "@/lib/support";
+import { getSupportContent } from "@/lib/support";
 
 export const revalidate = 300;
 
@@ -28,11 +28,12 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 	const messages = dictionary(locale);
 	const homePath = localizedPath(locale);
 	const collectionsPath = localizedPath(locale, "/collections");
-	const [{ data: products }, collectionTree, managedHeroes, collectionBlocks] = await Promise.all([
+	const [{ data: products }, collectionTree, managedHeroes, collectionBlocks, support] = await Promise.all([
 		catalog.listProducts({ limit: 4 }, locale),
 		catalog.listCollections(locale),
 		catalog.getHomeHeroes(locale),
 		catalog.getHomeCollectionBlocks(locale),
+		getSupportContent(),
 	]);
 	const { newArrival, remaining: remainingCollectionBlocks } = splitHomeCollectionBlocks(collectionBlocks);
 	const teams = collectionTree.flatMap((parent) => parent.children).filter((collection) => collection.kind === "TEAM");
@@ -64,8 +65,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 						"@id": `${absoluteUrl(homePath)}#organization`,
 						name: siteName,
 						url: absoluteUrl(homePath),
-						email: SUPPORT_EMAIL,
-						telephone: `+${SUPPORT_WHATSAPP_NUMBER}`,
+						email: support.email,
+						telephone: `+${support.whatsappNumber}`,
 						description: messages.metadata.description,
 					},
 					{

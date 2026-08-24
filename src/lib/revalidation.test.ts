@@ -8,6 +8,11 @@ test("revalidation accepts known tags, deduplicates them, and rejects arbitrary 
 		"catalog:product:ferrari-shirt",
 	]);
 	assert.deepEqual(parseRevalidationTags(["content:home"]), ["content:home"]);
+	assert.deepEqual(parseRevalidationTags(["content:shipping-returns:en", "content:shipping-returns:id", "content:support"]), [
+		"content:shipping-returns:en",
+		"content:shipping-returns:id",
+		"content:support",
+	]);
 	assert.equal(parseRevalidationTags([]), null);
 	assert.equal(parseRevalidationTags(["orders:all"]), null);
 	assert.equal(parseRevalidationTags(Array.from({ length: 101 }, (_, index) => `catalog:product:item-${index}`)), null);

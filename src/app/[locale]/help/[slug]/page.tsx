@@ -7,16 +7,18 @@ import { SupportContactLinks } from "@/components/support-contact-links";
 import { dictionary } from "@/lib/i18n";
 import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
 import { absoluteUrl } from "@/lib/seo";
-import { SUPPORT_EMAIL, SUPPORT_MAILTO_URL, SUPPORT_PHONE_DISPLAY, SUPPORT_WHATSAPP_URL } from "@/lib/support";
+import { getShippingReturnsContent, getSupportContent } from "@/lib/support";
 
 type HelpSection = {
 	id?: string;
 	title: string;
 	body: string;
 	items?: readonly string[];
+	link?: { href: string; label: string };
 };
 
 type HelpFact = {
+	id?: string;
 	label: string;
 	value: string;
 };
@@ -136,8 +138,8 @@ const documents: Record<string, { en: HelpDocument; id: HelpDocument }> = {
 		},
 	},
 	contact: {
-		en: { title: "Contact", intro: "We are here to help with products, delivery, and existing orders.", sections: [{ title: "Order support", body: "Include your order ID, checkout email, and a short description when requesting help." }, { title: "Response time", body: "Support requests are reviewed during Indonesian business hours. Never send card numbers or payment credentials." }, { title: "Telephone", body: "Telephone support opens a WhatsApp chat at +62 851-2156-5774." }, { title: "Email", body: "Email support@valydejersey.com with the subject ‘Order support’." }] },
-		id: { title: "Kontak", intro: "Kami siap membantu terkait produk, pengiriman, dan pesanan.", sections: [{ title: "Dukungan pesanan", body: "Sertakan ID pesanan, email checkout, dan penjelasan singkat saat meminta bantuan." }, { title: "Waktu respons", body: "Permintaan ditinjau pada jam kerja Indonesia. Jangan pernah mengirim nomor kartu atau kredensial pembayaran." }, { title: "Telepon", body: "Dukungan telepon diarahkan ke percakapan WhatsApp di +62 851-2156-5774." }, { title: "Email", body: "Kirim email ke support@valydejersey.com dengan subjek ‘Dukungan pesanan’." }] },
+		en: { title: "Contact", intro: "We are here to help with products, delivery, and existing orders.", sections: [{ title: "Order support", body: "Include your order ID, checkout email, and a short description when requesting help." }, { title: "Response time", body: "Support requests are reviewed during Indonesian business hours. Never send card numbers or payment credentials." }, { id: "telephone", title: "Telephone", body: "Telephone support opens a WhatsApp chat at +62 851-2156-5774." }, { id: "email", title: "Email", body: "Email support@valydejersey.com with the subject ‘Order support’." }] },
+		id: { title: "Kontak", intro: "Kami siap membantu terkait produk, pengiriman, dan pesanan.", sections: [{ title: "Dukungan pesanan", body: "Sertakan ID pesanan, email checkout, dan penjelasan singkat saat meminta bantuan." }, { title: "Waktu respons", body: "Permintaan ditinjau pada jam kerja Indonesia. Jangan pernah mengirim nomor kartu atau kredensial pembayaran." }, { id: "telephone", title: "Telepon", body: "Dukungan telepon diarahkan ke percakapan WhatsApp di +62 851-2156-5774." }, { id: "email", title: "Email", body: "Kirim email ke support@valydejersey.com dengan subjek ‘Dukungan pesanan’." }] },
 	},
 	accessibility: {
 		en: { title: "Accessibility", intro: "Valyde Jersey is designed to support keyboard, screen-reader, zoom, and reduced-motion use.", sections: [{ title: "Using the site", body: "Interactive controls have visible keyboard focus and motion respects your system preference." }, { title: "Need assistance?", body: "If something prevents you from browsing or checking out, contact support and name the page, device, and assistive technology involved." }] },
@@ -165,12 +167,10 @@ const documents: Record<string, { en: HelpDocument; id: HelpDocument }> = {
 					body: "Orders are processed after checkout is completed and payment is received in full. Payment methods may include bank transfer, e-wallet, card, or other options shown at checkout. Valyde Jersey may cancel an order if payment is not completed within the stated time.",
 				},
 				{
-					title: "Shipping",
-					body: "Orders are sent with the courier or logistics partner available at the time of order. Delivery estimates vary by destination, service, and the courier’s operating conditions. Once the parcel is handed to the courier, the shipment is the courier’s responsibility. After it is marked delivered to the address you provided, later loss or damage is your responsibility, unless the courier’s policy or applicable law says otherwise.",
-				},
-				{
-					title: "Returns and exchanges",
-					body: "A return or exchange request must be submitted within 3 calendar days of delivery. The item must not have been washed or worn, must be in the same condition as received, must still have original labels or tags attached, and must be accompanied by an unboxing video from when the parcel was first opened. You cover return or exchange shipping unless Valyde Jersey sent the wrong size, colour, or product, or the item has a defect that is our responsibility. Requests that do not meet these conditions may be declined.",
+					id: "shipping-returns-policy",
+					title: "Shipping & returns",
+					body: "Shipping, delivery, returns, and exchanges are governed by our published policy.",
+					link: { href: "/help/shipping-returns", label: "Read the Shipping & Returns policy" },
 				},
 				{
 					title: "Intellectual property",
@@ -195,12 +195,10 @@ const documents: Record<string, { en: HelpDocument; id: HelpDocument }> = {
 					body: "Pesanan diproses setelah checkout selesai dan pembayaran diterima secara penuh. Metode pembayaran dapat berupa transfer bank, e-wallet, kartu, atau opsi lain yang tersedia di halaman checkout. Valyde Jersey berhak membatalkan pesanan jika pembayaran tidak diselesaikan dalam batas waktu yang ditentukan.",
 				},
 				{
-					title: "Pengiriman",
-					body: "Pesanan dikirim melalui jasa ekspedisi atau mitra logistik yang tersedia pada saat pemesanan. Estimasi waktu pengiriman dapat berbeda tergantung lokasi tujuan, jenis layanan yang dipilih, dan kondisi operasional pihak ekspedisi. Setelah paket diserahkan kepada ekspedisi, proses pengiriman menjadi tanggung jawab pihak ekspedisi. Untuk pesanan yang telah dinyatakan terkirim ke alamat yang diberikan pelanggan, risiko kehilangan atau kerusakan setelah itu menjadi tanggung jawab pelanggan, kecuali ditentukan lain oleh kebijakan ekspedisi atau hukum yang berlaku.",
-				},
-				{
-					title: "Pengembalian dan penukaran",
-					body: "Permintaan pengembalian atau penukaran dapat diajukan paling lambat 3 hari kalender setelah produk diterima. Produk belum boleh dicuci atau digunakan, kondisinya harus sama seperti saat diterima, label atau tag masih terpasang, dan pelanggan wajib menyertakan video unboxing saat paket pertama kali dibuka. Biaya kirim pengembalian atau penukaran menjadi tanggung jawab pelanggan, kecuali kesalahan terjadi dari pihak Valyde Jersey, seperti salah ukuran, warna, atau produk, atau terdapat cacat produk yang menjadi tanggung jawab kami. Pengajuan yang tidak memenuhi persyaratan ini dapat ditolak.",
+					id: "shipping-returns-policy",
+					title: "Pengiriman & pengembalian",
+					body: "Pengiriman, penerimaan paket, pengembalian, dan penukaran mengikuti kebijakan yang kami publikasikan.",
+					link: { href: "/help/shipping-returns", label: "Baca kebijakan Pengiriman & Pengembalian" },
 				},
 				{
 					title: "Hak kekayaan intelektual",
@@ -213,6 +211,45 @@ const documents: Record<string, { en: HelpDocument; id: HelpDocument }> = {
 
 type HelpSlug = keyof typeof documents;
 
+async function resolveDocument(slug: string, locale: "en" | "id"): Promise<HelpDocument | undefined> {
+	const fallback = documents[slug as HelpSlug]?.[locale];
+	if (!fallback) return undefined;
+	if (slug === "shipping-returns") {
+		const managed = await getShippingReturnsContent(locale);
+		if (!managed) return fallback;
+		return {
+			title: managed.title,
+			intro: managed.intro,
+			facts: managed.facts.map(({ id, label, value }) => ({ id, label, value })),
+			sections: managed.sections.map(({ id, title, body, items }) => ({
+				id,
+				title,
+				body,
+				items: items.map(({ text }) => text),
+			})),
+		};
+	}
+	if (slug === "contact") {
+		const support = await getSupportContent();
+		return {
+			...fallback,
+			sections: fallback.sections.map((section) => ({
+				...section,
+				body: section.id === "telephone"
+					? locale === "id"
+						? `Dukungan telepon diarahkan ke percakapan WhatsApp di ${support.whatsappDisplay}.`
+						: `Telephone support opens a WhatsApp chat at ${support.whatsappDisplay}.`
+					: section.id === "email"
+						? locale === "id"
+							? `Kirim email ke ${support.email} dengan subjek ‘Dukungan pesanan’.`
+							: `Email ${support.email} with the subject ‘Order support’.`
+						: section.body,
+			})),
+		};
+	}
+	return fallback;
+}
+
 export function generateStaticParams() {
 	return Object.keys(documents).map((slug) => ({ slug }));
 }
@@ -221,7 +258,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 	const { locale: value, slug } = await params;
 	const locale = parseLocale(value);
 	if (!locale) return {};
-	const document = documents[slug as HelpSlug]?.[locale];
+	const document = await resolveDocument(slug, locale);
 	const basePath = `/help/${slug}`;
 	return document ? { title: document.title, description: document.intro, alternates: { canonical: localizedPath(locale, basePath), ...localeAlternates(basePath) } } : {};
 }
@@ -230,21 +267,20 @@ export default async function HelpPage({ params }: { params: Promise<{ locale: s
 	const { locale: value, slug } = await params;
 	const locale = parseLocale(value);
 	if (!locale) notFound();
-	const document = documents[slug as HelpSlug]?.[locale];
+	const document = await resolveDocument(slug, locale);
 	if (!document) notFound();
+	const support = await getSupportContent();
 	const messages = dictionary(locale);
 	const homePath = localizedPath(locale);
 	const helpPath = localizedPath(locale, `/help/${slug}`);
 	const isShippingReturns = slug === "shipping-returns";
-	const phoneSection = locale === "id" ? "Telepon" : "Telephone";
-	const requestSection = locale === "id" ? "Cara mengajukan" : "How to request";
 	const contentsTitle = locale === "id" ? "Di halaman ini" : "On this page";
 	const factsTitle = locale === "id" ? "Ringkasan" : "At a glance";
 	const content = (
 		<div className={`help-content${isShippingReturns ? " shipping-returns-content" : ""}`}>
 			{document.sections.map((section) => {
 				const headingId = section.id ? `${section.id}-title` : undefined;
-				const isRequestSection = isShippingReturns && section.title === requestSection;
+				const isRequestSection = isShippingReturns && section.id === "how-to-request";
 				return (
 					<section className={isRequestSection ? "shipping-request-section" : undefined} id={section.id} aria-labelledby={headingId} key={section.title}>
 						<h2 id={headingId}>{section.title}</h2>
@@ -254,8 +290,9 @@ export default async function HelpPage({ params }: { params: Promise<{ locale: s
 								{section.items.map((item) => <li key={item}>{item}</li>)}
 							</ul>
 						) : null}
-						{slug === "contact" && section.title === phoneSection ? <a className="text-link" href={SUPPORT_WHATSAPP_URL} target="_blank" rel="noreferrer">{SUPPORT_PHONE_DISPLAY}</a> : null}
-						{slug === "contact" && section.title === "Email" ? <a className="text-link" href={SUPPORT_MAILTO_URL}>{SUPPORT_EMAIL}</a> : null}
+						{section.link ? <Link className="text-link" href={localizedPath(locale, section.link.href)}>{section.link.label}</Link> : null}
+						{slug === "contact" && section.id === "telephone" ? <a className="text-link" href={support.whatsappUrl} target="_blank" rel="noreferrer">{support.whatsappDisplay}</a> : null}
+						{slug === "contact" && section.id === "email" ? <a className="text-link" href={support.mailtoUrl}>{support.email}</a> : null}
 						{isRequestSection ? (
 							<SupportContactLinks whatsappLabel={messages.footer.whatsapp} emailLabel={messages.footer.email} />
 						) : null}
@@ -289,7 +326,7 @@ export default async function HelpPage({ params }: { params: Promise<{ locale: s
 							<h2 className="sr-only" id="shipping-facts-title">{factsTitle}</h2>
 							<div className="shipping-facts-grid">
 								{document.facts.map((fact) => (
-									<div className="shipping-fact" key={fact.label}>
+									<div className="shipping-fact" key={fact.id ?? fact.label}>
 										<p className="shipping-fact-label">{fact.label}</p>
 										<p className="shipping-fact-value">{fact.value}</p>
 									</div>
