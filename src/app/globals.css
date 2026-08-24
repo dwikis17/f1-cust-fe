@@ -1369,12 +1369,6 @@ body:has(.race-ticker-bar) .page-shell {
 	transform: scale(.98);
 }
 
-.home-product-grid {
-	display: grid;
-	gap: 24px;
-	grid-template-columns: repeat(auto-fill, minmax(190px, 240px));
-}
-
 .home-collection-block {
 	border-top: 1px solid var(--line);
 	contain-intrinsic-size: auto 1000px;
@@ -6017,10 +6011,6 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 		min-width: 104px;
 	}
 
-	.home-product-grid {
-		grid-template-columns: repeat(2, 1fr);
-	}
-
 	.collection-block-products {
 		display: flex;
 		overflow-x: auto;
@@ -6327,10 +6317,6 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 
 	.section-heading h2 {
 		font-size: 25px;
-	}
-
-	.home-product-grid {
-		gap: 24px 12px;
 	}
 
 	.collection-block-gallery {

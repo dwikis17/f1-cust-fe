@@ -3,8 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { HomeCarousel } from "@/components/home-carousel";
 import { HomeCollectionBlock } from "@/components/home-collection-block";
-import { ArrowRightIcon, RouteIcon, ShieldIcon, TruckIcon, VerifiedIcon } from "@/components/icons";
-import { ProductCard } from "@/components/product-card";
+import { RouteIcon, ShieldIcon, TruckIcon, VerifiedIcon } from "@/components/icons";
 import { StructuredData } from "@/components/structured-data";
 import { catalog } from "@/lib/catalog";
 import { resolveHomeHeroes, splitHomeCollectionBlocks } from "@/lib/home";
@@ -27,9 +26,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 	if (!locale) return null;
 	const messages = dictionary(locale);
 	const homePath = localizedPath(locale);
-	const collectionsPath = localizedPath(locale, "/collections");
-	const [{ data: products }, collectionTree, managedHeroes, collectionBlocks, support] = await Promise.all([
-		catalog.listProducts({ limit: 4 }, locale),
+	const [collectionTree, managedHeroes, collectionBlocks, support] = await Promise.all([
 		catalog.listCollections(locale),
 		catalog.getHomeHeroes(locale),
 		catalog.getHomeCollectionBlocks(locale),
@@ -112,14 +109,6 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 			</section>
 
 			{newArrival ? <HomeCollectionBlock block={newArrival} locale={locale} /> : null}
-
-			<section className="section selected-products">
-				<div className="section-heading">
-					<div><p className="eyebrow">{messages.home.selectedWorks}</p><h2>{messages.home.precisionGear}</h2></div>
-					<Link className="text-link" href={collectionsPath}>{messages.home.exploreShop} <ArrowRightIcon /></Link>
-				</div>
-				<div className="home-product-grid">{products.slice(0, 4).map((product, index) => <ProductCard product={product} locale={locale} key={product.id} priority={index < 2} />)}</div>
-			</section>
 
 			{remainingCollectionBlocks.map((block) => <HomeCollectionBlock block={block} locale={locale} key={block.id} />)}
 		</main>
