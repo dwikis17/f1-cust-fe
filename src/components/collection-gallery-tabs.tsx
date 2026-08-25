@@ -30,7 +30,7 @@ export function CollectionGalleryTabs({ parents, locale }: { parents: Collection
 						onClick={() => setActiveId(parent.id)}
 					>
 						{parent.children[0]?.kind === "TEAM"
-							? messages.collections.teams
+							? parent.name
 							: parent.children[0]?.kind === "DRIVER"
 								? messages.collections.drivers
 								: parent.name}
