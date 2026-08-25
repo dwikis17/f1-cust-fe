@@ -4224,6 +4224,25 @@ body:has(.race-ticker-bar) .page-shell {
 	overflow-wrap: anywhere;
 }
 
+.order-number-line {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.order-number-copy {
+	background: transparent;
+	border: 0;
+	border-bottom: 1px solid;
+	cursor: pointer;
+	font-family: var(--font-mono), monospace;
+	font-size: 9px;
+	letter-spacing: .08em;
+	padding: 4px 0;
+	text-transform: uppercase;
+}
+
 .order-status-card dl {
 	border-top: 1px solid var(--line);
 	margin: 28px 0;
