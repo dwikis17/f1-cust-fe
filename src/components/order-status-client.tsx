@@ -13,6 +13,8 @@ type OrderReceipt = {
 	orderNumber: string;
 	subtotalIdr: number;
 	discountIdr: number;
+	shippingOriginalIdr: number;
+	shippingDiscountIdr: number;
 	shippingIdr: number;
 	totalIdr: number;
 	promoCode: string | null;
@@ -85,7 +87,9 @@ export function OrderStatusClient({ id }: { id: string }) {
 					{order.tracking.waybillId ? <div><dt>{messages.waybill}</dt><dd>{order.tracking.waybillId}</dd></div> : null}
 					<div><dt>{messages.subtotal}</dt><dd>{formatPrice(order.subtotalIdr, locale)}</dd></div>
 					{order.promoCode ? <div><dt>{messages.promoCode} · {order.promoCode}</dt><dd>-{formatPrice(order.discountIdr, locale)}</dd></div> : null}
-					<div><dt>{messages.shipping}</dt><dd>{formatPrice(order.shippingIdr, locale)}</dd></div>
+					<div><dt>{messages.shipping}</dt><dd>{formatPrice(order.shippingOriginalIdr, locale)}</dd></div>
+					{order.shippingDiscountIdr ? <div><dt>{messages.freeShippingCoverage}</dt><dd>-{formatPrice(order.shippingDiscountIdr, locale)}</dd></div> : null}
+					{order.shippingDiscountIdr ? <div><dt>{messages.netShipping}</dt><dd>{formatPrice(order.shippingIdr, locale)}</dd></div> : null}
 					<div><dt>{messages.total}</dt><dd>{formatPrice(order.totalIdr, locale)}</dd></div>
 				</dl>
 				{error instanceof Error ? <p className="payment-notice" role="alert">{error.message}</p> : null}
