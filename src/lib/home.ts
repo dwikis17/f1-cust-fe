@@ -14,9 +14,9 @@ export type PublicHomeHero = {
 
 export type PublicHomeCollectionBlock = {
 	id: string;
-	leadImageUrl: string;
-	sideImageOneUrl: string;
-	sideImageTwoUrl: string;
+	leadImageUrl: string | null;
+	sideImageOneUrl: string | null;
+	sideImageTwoUrl: string | null;
 	collection: { name: string; slug: string; description: string };
 	products: PublicProductCard[];
 };
