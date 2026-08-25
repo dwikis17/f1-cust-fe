@@ -105,7 +105,9 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 			</section>
 
 			<section className="team-strip" aria-label={messages.home.teamsLabel}>
-				{teams.map((team) => <Link href={localizedPath(locale, `/collections/${team.slug}`)} aria-label={team.name} key={team.id}>{team.imageUrl ? <Image src={team.imageUrl} alt={team.name} fill sizes="(max-width: 640px) 104px, 12vw" /> : <span>{team.name}</span>}</Link>)}
+				<div className="team-strip-track">
+					{teams.map((team) => <Link href={localizedPath(locale, `/collections/${team.slug}`)} aria-label={team.name} key={team.id}>{team.imageUrl ? <Image src={team.imageUrl} alt={team.name} fill sizes="(max-width: 640px) 104px, 160px" /> : <span>{team.name}</span>}</Link>)}
+				</div>
 			</section>
 
 			{newArrival ? <HomeCollectionBlock block={newArrival} locale={locale} /> : null}

@@ -1306,23 +1306,39 @@ body:has(.race-ticker-bar) .page-shell {
 .team-strip {
 	background: var(--white);
 	border-bottom: 1px solid var(--line);
-	display: grid;
-	gap: 6px;
-	grid-auto-columns: minmax(112px, 1fr);
-	grid-auto-flow: column;
+	-webkit-overflow-scrolling: touch;
 	overflow-x: auto;
-	padding: 20px 16px;
-	scrollbar-width: none;
+	overflow-y: hidden;
+	overscroll-behavior-x: contain;
+	scrollbar-color: #b8b8b8 transparent;
+	scrollbar-width: thin;
 	scroll-snap-type: x proximity;
 }
 
 .team-strip::-webkit-scrollbar {
-	display: none;
+	height: 4px;
+}
+
+.team-strip::-webkit-scrollbar-thumb {
+	background: #b8b8b8;
+}
+
+.team-strip::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.team-strip-track {
+	display: flex;
+	gap: 6px;
+	min-width: 100%;
+	padding: 20px 16px;
+	width: max-content;
 }
 
 .team-strip a {
 	aspect-ratio: 1;
 	background: #f3f3f3;
+	flex: 1 0 112px;
 	min-width: 112px;
 	overflow: hidden;
 	position: relative;
@@ -6028,13 +6044,12 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 		font-size: 16px;
 	}
 
-	.team-strip {
-		gap: 6px;
-		grid-auto-columns: 104px;
+	.team-strip-track {
 		padding: 14px 16px;
 	}
 
 	.team-strip a {
+		flex-basis: 104px;
 		min-width: 104px;
 	}
 
