@@ -34,7 +34,7 @@ const en = {
     closeBanner: "Dismiss announcement",
   },
   footer: {
-    tagline: "Valyde Jersey offers a focused collection of Formula 1 apparel, accessories, and technical collectibles for race-day enthusiasts.",
+    tagline: "Valyde Jersey offers a curated collection of motorsport apparel, accessories, and technical collectibles for Formula 1 and MotoGP enthusiasts.",
     shop: "Shop",
     teams: "Teams",
     drivers: "Drivers",
@@ -494,7 +494,7 @@ const id: Dictionary = {
     closeBanner: "Tutup pengumuman",
   },
   footer: {
-    tagline: "Valyde Jersey menawarkan koleksi pilihan pakaian, aksesori, dan barang koleksi Formula 1 untuk penggemar hari balap.",
+    tagline: "Valyde Jersey menawarkan koleksi pilihan pakaian, aksesori, dan barang koleksi motorsport untuk penggemar Formula 1 dan MotoGP.",
     shop: "Belanja",
     teams: "Tim",
     drivers: "Pembalap",
