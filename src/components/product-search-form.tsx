@@ -144,8 +144,10 @@ function SearchForm({ action, className, label, placeholder, submitLabel, value 
 
 	function handleBlur(event: FocusEvent<HTMLDivElement>) {
 		if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-			setIsOpen(false);
-			setActiveIndex(-1);
+			window.requestAnimationFrame(() => {
+				setIsOpen(false);
+				setActiveIndex(-1);
+			});
 		}
 	}
 
