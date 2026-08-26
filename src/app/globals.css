@@ -551,6 +551,11 @@ body:has(.race-ticker-bar) .page-shell {
 	gap: 24px;
 }
 
+.product-search-shell {
+	position: relative;
+	width: fit-content;
+}
+
 .product-search-form {
 	align-items: center;
 	background: #151515;
@@ -625,7 +630,11 @@ body:has(.race-ticker-bar) .page-shell {
 	transform: translateY(1px);
 }
 
-.product-search-mobile {
+.product-search-shell.product-search-mobile {
+	width: 100%;
+}
+
+.product-search-shell.product-search-mobile .product-search-form {
 	border-bottom: 1px solid #333;
 	border-left: 0;
 	border-radius: 0;
@@ -634,17 +643,151 @@ body:has(.race-ticker-bar) .page-shell {
 	width: 100%;
 }
 
-.product-search-mobile label {
+.product-search-shell.product-search-mobile .product-search-form label {
 	flex: 1;
 }
 
-.product-search-mobile input {
+.product-search-shell.product-search-mobile .product-search-form input {
 	width: 100%;
+}
+
+.product-search-dropdown {
+	background: #151515;
+	border: 1px solid #3c3c3c;
+	box-shadow: 0 18px 36px rgb(0 0 0 / 42%);
+	color: var(--white);
+	max-height: min(70vh, 520px);
+	overflow-y: auto;
+	position: absolute;
+	right: 0;
+	top: calc(100% + 8px);
+	width: min(420px, calc(100vw - 32px));
+	z-index: var(--z-dropdown);
+}
+
+.product-search-heading {
+	border-bottom: 1px solid #333;
+	color: #b8b8b8;
+	font-family: var(--font-mono), monospace;
+	font-size: 10px;
+	letter-spacing: .08em;
+	margin: 0;
+	padding: 14px 16px 12px;
+	text-transform: uppercase;
+}
+
+.product-search-results {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.product-search-result {
+	border-bottom: 1px solid #333;
+	margin: 0;
+	padding: 0;
+}
+
+.product-search-dropdown .product-search-result > a {
+	align-items: center;
+	color: var(--white);
+	display: grid;
+	font-family: var(--font-body), sans-serif;
+	gap: 12px;
+	grid-template-columns: 56px minmax(0, 1fr);
+	letter-spacing: normal;
+	min-height: 78px;
+	padding: 10px 12px;
+	text-transform: none;
+	transition: background 150ms ease;
+}
+
+.product-search-dropdown .product-search-result > a:hover,
+.product-search-dropdown .product-search-result > a:focus-visible,
+.product-search-dropdown .product-search-result.is-active > a {
+	background: #222;
+}
+
+.product-search-result-image {
+	align-items: center;
+	background: #e7e7e7;
+	display: flex;
+	height: 56px;
+	justify-content: center;
+	overflow: hidden;
+	position: relative;
+	width: 56px;
+}
+
+.product-search-result-image img {
+	object-fit: contain;
+}
+
+.product-search-result-image b {
+	color: #222;
+	font-family: var(--font-display), sans-serif;
+	font-size: 20px;
+}
+
+.product-search-result-copy {
+	display: block;
+	min-width: 0;
+}
+
+.product-search-result-name {
+	display: -webkit-box;
+	font-size: 13px;
+	line-height: 1.35;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+}
+
+.product-search-result-price {
+	align-items: baseline;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 6px;
+}
+
+.product-search-result-price strong {
+	font-size: 12px;
+}
+
+.product-search-result-price del {
+	color: #e06464;
+	font-size: 11px;
+}
+
+.product-search-status {
+	color: #b8b8b8;
+	font-size: 12px;
+	margin: 0;
+	padding: 22px 16px;
+}
+
+.product-search-view-all {
+	color: var(--apex) !important;
+	display: block !important;
+	font-family: var(--font-mono), monospace !important;
+	font-size: 10px !important;
+	font-weight: 700;
+	letter-spacing: .08em !important;
+	min-height: 0 !important;
+	padding: 14px 16px !important;
+	text-transform: uppercase !important;
+}
+
+.product-search-view-all:hover,
+.product-search-view-all:focus-visible {
+	background: #222;
 }
 
 @media (prefers-reduced-motion: reduce) {
 	.product-search-form,
-	.product-search-form button {
+	.product-search-form button,
+	.product-search-dropdown .product-search-result > a {
 		transition: none;
 	}
 }
@@ -6083,6 +6226,13 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 @media (max-width: 900px) {
 	.product-search-desktop {
 		display: none;
+	}
+
+	.product-search-shell.product-search-mobile .product-search-dropdown {
+		box-shadow: none;
+		max-height: none;
+		position: static;
+		width: 100%;
 	}
 
 	.desktop-nav {

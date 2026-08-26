@@ -25,6 +25,9 @@ const en = {
     search: "Search products",
     searchPlaceholder: "Try Mercedes-AMG…",
     searchSubmit: "Search",
+    searchLoading: "Searching…",
+    searchUnavailable: "Search is temporarily unavailable.",
+    viewAllResults: "View all results",
   },
   raceCountdown: {
     nextRace: "Next Grand Prix",
@@ -502,6 +505,9 @@ const id: Dictionary = {
     search: "Cari produk",
     searchPlaceholder: "Coba Mercedes-AMG…",
     searchSubmit: "Cari",
+    searchLoading: "Mencari…",
+    searchUnavailable: "Pencarian sedang tidak tersedia.",
+    viewAllResults: "Lihat semua hasil",
   },
   raceCountdown: {
     nextRace: "Grand Prix Berikutnya",
