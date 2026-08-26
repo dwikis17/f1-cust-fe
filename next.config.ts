@@ -3,9 +3,6 @@ import type { NextConfig } from "next";
 const isStaging = process.env.APP_ENV === "staging";
 
 const nextConfig: NextConfig = {
-	env: {
-		NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "0x4AAAAAAD9MetDQNU4y3PHR",
-	},
 	async redirects() {
 		return [
 			{ source: "/", destination: "/en", permanent: true },

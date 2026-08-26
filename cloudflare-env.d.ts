@@ -8,7 +8,6 @@ interface __BaseEnv_CloudflareEnv {
 	APP_ENV: "staging" | "production";
 	API_BASE_URL: "https://dev-api.valydejersey.com" | "https://api.valydejersey.com";
 	NEXT_PUBLIC_SITE_URL: "https://dev.valydejersey.com" | "https://valydejersey.com";
-	NEXT_PUBLIC_TURNSTILE_SITE_KEY: "0x4AAAAAAEE4NGGhjZJGpPwo" | "0x4AAAAAAD9MetDQNU4y3PHR";
 	NEXT_PUBLIC_MIDTRANS_ENV: "sandbox";
 	NEXT_PUBLIC_MIDTRANS_CLIENT_KEY: "Mid-client-cwkRE-SgbQ93Ylht";
 	NEXTJS_ENV: string;
@@ -28,7 +27,6 @@ declare namespace Cloudflare {
 		APP_ENV: "staging";
 		API_BASE_URL: "https://dev-api.valydejersey.com";
 		NEXT_PUBLIC_SITE_URL: "https://dev.valydejersey.com";
-		NEXT_PUBLIC_TURNSTILE_SITE_KEY: "0x4AAAAAAEE4NGGhjZJGpPwo";
 		NEXT_PUBLIC_MIDTRANS_ENV: "sandbox";
 		NEXT_PUBLIC_MIDTRANS_CLIENT_KEY: "Mid-client-cwkRE-SgbQ93Ylht";
 		NEXTJS_ENV: string;
@@ -43,7 +41,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "APP_ENV" | "API_BASE_URL" | "NEXT_PUBLIC_SITE_URL" | "NEXT_PUBLIC_TURNSTILE_SITE_KEY" | "NEXT_PUBLIC_MIDTRANS_ENV" | "NEXT_PUBLIC_MIDTRANS_CLIENT_KEY" | "NEXTJS_ENV">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "APP_ENV" | "API_BASE_URL" | "NEXT_PUBLIC_SITE_URL" | "NEXT_PUBLIC_MIDTRANS_ENV" | "NEXT_PUBLIC_MIDTRANS_CLIENT_KEY" | "NEXTJS_ENV">> {}
 }
 
 // Begin runtime types

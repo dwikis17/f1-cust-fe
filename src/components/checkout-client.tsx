@@ -38,7 +38,7 @@ type ShippingDetails = {
 	postalCode: string;
 	phone: string;
 };
-type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }>; promoCode?: string; turnstileToken: string };
+type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }>; promoCode?: string; turnstileToken?: string };
 type PromoPreview = {
 	code: string;
 	discountPercentage: number;
@@ -68,6 +68,7 @@ declare global {
 
 const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
 const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const turnstileEnabled = Boolean(turnstileSiteKey);
 const midtransSnapUrl = String(process.env.NEXT_PUBLIC_MIDTRANS_ENV) === "production"
 	? "https://app.midtrans.com/snap/snap.js"
 	: "https://app.sandbox.midtrans.com/snap/snap.js";
@@ -98,6 +99,7 @@ export function CheckoutClient() {
 	const cartKey = lines.map((line) => `${line.variantId}:${line.quantity}`).join("|");
 	const appliedPromo = appliedPromoState?.cartKey === cartKey ? appliedPromoState.promo : null;
 	const subtotal = cartSubtotal(lines);
+	const turnstileVerified = !turnstileEnabled || Boolean(turnstileToken);
 	const shippingMutation = useMutation({
 		mutationFn: (request: ShippingRequest) => queryClient.fetchQuery({
 			queryKey: ["shipping-rates", request.destinationPostalCode, request.items, request.promoCode ?? ""],
@@ -163,7 +165,7 @@ export function CheckoutClient() {
 	});
 	const checkoutMutation = useMutation({
 		mutationFn: async () => {
-			if (!selectedRate || !idempotencyKey || !turnstileToken) throw new Error(messages.checkout.humanVerificationFailed);
+			if (!selectedRate || !idempotencyKey || !turnstileVerified) throw new Error(messages.checkout.humanVerificationFailed);
 			const response = await fetch("/api/checkout", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
@@ -174,7 +176,7 @@ export function CheckoutClient() {
 					courierCode: selectedRate.courierCode,
 					serviceCode: selectedRate.serviceCode,
 					quotedShippingIdr: selectedRate.price,
-					turnstileToken,
+					...(turnstileToken ? { turnstileToken } : {}),
 					...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
 				}),
 			});
@@ -213,8 +215,8 @@ export function CheckoutClient() {
 
 	function checkShipping(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		if (!turnstileToken) {
-			setTurnstileError(turnstileSiteKey ? messages.checkout.humanVerificationFailed : messages.checkout.humanVerificationUnavailable);
+		if (!turnstileVerified) {
+			setTurnstileError(messages.checkout.humanVerificationFailed);
 			return;
 		}
 		setTurnstileError("");
@@ -224,7 +226,7 @@ export function CheckoutClient() {
 			destinationPostalCode: details.postalCode,
 			items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })),
 			...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
-			turnstileToken,
+			...(turnstileToken ? { turnstileToken } : {}),
 		});
 	}
 
@@ -246,7 +248,7 @@ export function CheckoutClient() {
 			openSnap(checkoutMutation.data);
 			return;
 		}
-		if (!selectedRate || !idempotencyKey || !turnstileToken) return;
+		if (!selectedRate || !idempotencyKey || !turnstileVerified) return;
 		setPaymentError("");
 		checkoutMutation.mutate();
 	}
@@ -283,10 +285,10 @@ export function CheckoutClient() {
 							setTurnstileResetKey((value) => value + 1);
 							setStep("review");
 						}}
-						turnstileVerified={Boolean(turnstileToken)}
+						turnstileVerified={turnstileVerified}
 						turnstileSiteKey={turnstileSiteKey}
 						turnstileResetKey={turnstileResetKey}
-						turnstileError={turnstileSiteKey ? turnstileError : messages.checkout.humanVerificationUnavailable}
+						turnstileError={turnstileEnabled ? turnstileError : ""}
 						onTurnstileToken={(token) => {
 							setTurnstileToken(token);
 							if (token) setTurnstileError("");
@@ -307,12 +309,12 @@ export function CheckoutClient() {
 						locked={Boolean(checkoutMutation.data)}
 						startPayment={startPayment}
 						paymentLoading={checkoutMutation.isPending}
-						paymentReady={snapReady && Boolean(midtransClientKey) && Boolean(turnstileSiteKey) && Boolean(turnstileToken)}
+						paymentReady={snapReady && Boolean(midtransClientKey) && turnstileVerified}
 						paymentError={paymentError}
-						turnstileVerified={Boolean(turnstileToken)}
+						turnstileVerified={turnstileVerified}
 						turnstileSiteKey={turnstileSiteKey}
 						turnstileResetKey={turnstileResetKey}
-						turnstileError={turnstileSiteKey ? turnstileError : messages.checkout.humanVerificationUnavailable}
+						turnstileError={turnstileEnabled ? turnstileError : ""}
 						onTurnstileToken={(token) => {
 							setTurnstileToken(token);
 							if (token) setTurnstileError("");
