@@ -23,7 +23,7 @@ const en = {
     mobileNavigation: "Mobile navigation",
     language: "Language",
     search: "Search products",
-    searchPlaceholder: "Search by product name",
+    searchPlaceholder: "Try Mercedes-AMG…",
     searchSubmit: "Search",
   },
   raceCountdown: {
@@ -500,7 +500,7 @@ const id: Dictionary = {
     mobileNavigation: "Navigasi seluler",
     language: "Bahasa",
     search: "Cari produk",
-    searchPlaceholder: "Cari berdasarkan nama produk",
+    searchPlaceholder: "Coba Mercedes-AMG…",
     searchSubmit: "Cari",
   },
   raceCountdown: {

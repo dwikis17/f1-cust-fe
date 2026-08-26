@@ -553,8 +553,22 @@ body:has(.race-ticker-bar) .page-shell {
 
 .product-search-form {
 	align-items: center;
+	background: #151515;
+	border: 1px solid #3c3c3c;
+	border-radius: 2px;
 	display: flex;
-	gap: 4px;
+	gap: 0;
+	transition: border-color 180ms ease, box-shadow 180ms ease;
+	width: fit-content;
+}
+
+.product-search-form:hover {
+	border-color: #595959;
+}
+
+.product-search-form:focus-within {
+	border-color: var(--apex);
+	box-shadow: 0 0 0 2px rgb(255 90 31 / 22%);
 }
 
 .product-search-form label {
@@ -563,48 +577,60 @@ body:has(.race-ticker-bar) .page-shell {
 }
 
 .product-search-form input {
-	background: #151515;
-	border: 1px solid #414141;
+	background: transparent;
+	border: 0;
 	color: var(--white);
+	font-size: 12px;
 	height: 36px;
 	min-width: 0;
-	padding: 0 10px;
+	padding: 0 12px;
 	width: clamp(110px, 14vw, 190px);
 }
 
 .product-search-form input::placeholder {
-	color: #a2a2a2;
+	color: #b8b8b8;
 }
 
 .product-search-form input:focus-visible {
-	border-color: var(--apex);
-	outline: 2px solid var(--apex);
-	outline-offset: 2px;
+	outline: none;
 }
 
 .product-search-form button {
+	align-items: center;
 	background: var(--apex);
-	border: 1px solid var(--apex);
+	border: 0;
+	border-left: 1px solid rgb(5 5 5 / 22%);
 	color: var(--white);
 	cursor: pointer;
+	display: flex;
+	flex: 0 0 auto;
 	font-family: var(--font-mono), monospace;
 	font-size: 10px;
 	font-weight: 700;
 	height: 36px;
+	justify-content: center;
 	letter-spacing: .08em;
+	line-height: 1;
 	padding: 0 12px;
+	text-align: center;
 	text-transform: uppercase;
-	transition: background 180ms ease, border-color 180ms ease;
+	transition: background 180ms ease, transform 100ms ease;
 }
 
 .product-search-form button:hover {
 	background: #ff6f3b;
-	border-color: #ff6f3b;
+}
+
+.product-search-form button:active {
+	transform: translateY(1px);
 }
 
 .product-search-mobile {
 	border-bottom: 1px solid #333;
-	padding-bottom: 16px;
+	border-left: 0;
+	border-radius: 0;
+	border-right: 0;
+	border-top: 0;
 	width: 100%;
 }
 
@@ -614,6 +640,13 @@ body:has(.race-ticker-bar) .page-shell {
 
 .product-search-mobile input {
 	width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.product-search-form,
+	.product-search-form button {
+		transition: none;
+	}
 }
 
 .header-actions>a,
