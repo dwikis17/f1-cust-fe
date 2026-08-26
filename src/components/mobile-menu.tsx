@@ -49,10 +49,7 @@ export function MobileMenu({
 		const target = e.target as HTMLElement;
 		if (target.closest(".mobile-nav-group > summary")) return;
 		if (target.closest("a") || target.closest("button")) {
-			setIsOpen(false);
-			if (detailsRef.current) {
-				detailsRef.current.open = false;
-			}
+			window.requestAnimationFrame(closeMenu);
 		}
 	}
 
