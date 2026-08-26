@@ -838,66 +838,116 @@ body:has(.race-ticker-bar) .page-shell {
 }
 
 .language-switcher-header {
-	align-items: center;
-	background: rgba(255, 255, 255, 0.05);
-	border: 1px solid rgba(255, 255, 255, 0.15);
-	border-radius: 999px;
-	display: flex;
-	gap: 2px;
-	padding: 3px;
-	backdrop-filter: blur(8px);
-	transition: border-color 200ms ease, box-shadow 200ms ease;
+	position: relative;
 }
 
-.language-switcher-header:hover {
-	border-color: rgba(255, 255, 255, 0.3);
-}
-
-.language-header-btn {
+.language-header-trigger {
 	align-items: center;
 	background: transparent;
 	border: 0;
-	border-radius: 999px;
-	color: #a0a0a0;
+	color: #b8b8b8;
 	cursor: pointer;
 	display: flex;
-	font-family: var(--font-mono), monospace;
-	font-size: 11px;
-	font-weight: 600;
-	gap: 6px;
-	height: 32px;
-	letter-spacing: .05em;
-	padding: 0 10px;
-	transition: background 180ms ease, color 180ms ease, transform 140ms var(--ease-out), box-shadow 180ms ease;
+	gap: 7px;
+	height: var(--control-height);
+	justify-content: center;
+	min-width: var(--control-height);
+	padding: 0 2px;
+	transition: color 180ms ease, transform 140ms var(--ease-out);
 }
 
-.language-header-btn .flag-icon {
+.language-header-trigger:hover,
+.language-header-trigger[aria-expanded="true"] {
+	color: white;
+}
+
+.language-header-trigger .language-header-globe {
+	flex-shrink: 0;
+	transition: transform 180ms var(--ease-out);
+}
+
+.language-header-trigger[aria-expanded="true"] .language-header-globe {
+	transform: rotate(12deg);
+}
+
+.language-header-trigger .language-header-flag {
 	border-radius: 2px;
 	box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
 	flex-shrink: 0;
 	transition: transform 180ms ease;
 }
 
-.language-header-btn:hover {
-	color: white;
-}
-
-.language-header-btn:hover .flag-icon {
+.language-header-trigger:hover .language-header-flag,
+.language-header-trigger[aria-expanded="true"] .language-header-flag {
 	transform: scale(1.08);
 }
 
-.language-header-btn.active {
-	background: white;
-	box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
-	color: black;
-}
-
-.language-header-btn.active .flag-icon {
-	box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
-}
-
-.language-header-btn:active {
+.language-header-trigger:active {
 	transform: scale(.96);
+}
+
+.language-header-trigger:focus-visible {
+	outline: 2px solid #8c8c8c;
+	outline-offset: 3px;
+}
+
+.language-picker-panel {
+	background: #101010;
+	border: 1px solid #333;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 184px;
+	opacity: 0;
+	right: 0;
+	top: calc(100% + 8px);
+	padding: 12px;
+	pointer-events: none;
+	position: absolute;
+	transform: translateY(-6px) scale(.98);
+	transform-origin: top right;
+	transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out), visibility 0s linear 180ms;
+	visibility: hidden;
+	z-index: var(--z-dropdown);
+}
+
+.language-picker-panel.is-open {
+	opacity: 1;
+	pointer-events: auto;
+	transform: translateY(0) scale(1);
+	transition-delay: 0s;
+	visibility: visible;
+}
+
+.language-picker-label {
+	color: #9f9f9f;
+	font-family: var(--font-mono), monospace;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: .12em;
+	text-transform: uppercase;
+}
+
+.language-picker-panel select {
+	background: #161616;
+	border: 1px solid #4a4a4a;
+	border-radius: 2px;
+	color: white;
+	color-scheme: dark;
+	cursor: pointer;
+	min-height: 38px;
+	padding: 0 10px;
+	width: 100%;
+}
+
+.language-picker-panel select:hover {
+	border-color: #6b6b6b;
+}
+
+.language-picker-panel select:focus-visible {
+	border-color: #6b6b6b;
+	outline: 2px solid #8c8c8c;
+	outline-offset: 2px;
 }
 
 .language-switcher-mobile {
@@ -7584,6 +7634,7 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 	.variant-options button:active,
 	.quantity button:active,
 	.language-switcher button:active,
+	.language-header-trigger:active,
 	.icon-button:hover,
 	.icon-button:active,
 	.gallery-thumbs button:active,
@@ -7591,6 +7642,21 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 	.pagination>a:active,
 	.destination-card:hover,
 	.destination-card:hover .destination-arrow {
+		transform: none;
+	}
+
+	.language-header-trigger,
+	.language-header-trigger .language-header-globe,
+	.language-header-trigger .language-header-flag,
+	.language-picker-panel,
+	.language-picker-panel select {
+		transition: none;
+	}
+
+	.language-header-trigger[aria-expanded="true"] .language-header-globe,
+	.language-header-trigger:hover .language-header-flag,
+	.language-header-trigger[aria-expanded="true"] .language-header-flag,
+	.language-header-trigger:active {
 		transform: none;
 	}
 

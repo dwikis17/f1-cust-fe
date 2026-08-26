@@ -1,10 +1,11 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { GbFlag, IdFlag } from "@/components/flags";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
-import { CheckIcon } from "@/components/icons";
-import type { Locale } from "@/lib/i18n";
+import { CheckIcon, GlobeIcon } from "@/components/icons";
+import { isLocale, type Locale } from "@/lib/i18n";
 
 const LANGUAGES = [
 	{ code: "en", name: "English", short: "EN", Flag: GbFlag },
@@ -16,8 +17,43 @@ export function LanguageSwitcher({ variant = "header" }: { variant?: "header" | 
 	const messages = useDictionary();
 	const router = useRouter();
 	const pathname = usePathname();
+	const [isHeaderOpen, setIsHeaderOpen] = useState(false);
+	const pickerRef = useRef<HTMLDivElement>(null);
+	const triggerRef = useRef<HTMLButtonElement>(null);
+	const selectRef = useRef<HTMLSelectElement>(null);
+
+	useEffect(() => {
+		if (variant !== "header" || !isHeaderOpen) return;
+
+		function handlePointerDown(event: PointerEvent) {
+			if (!pickerRef.current?.contains(event.target as Node)) setIsHeaderOpen(false);
+		}
+
+		function handleKeyDown(event: KeyboardEvent) {
+			if (event.key === "Escape") {
+				setIsHeaderOpen(false);
+				triggerRef.current?.focus();
+			}
+		}
+
+		function handleFocusIn(event: FocusEvent) {
+			if (!pickerRef.current?.contains(event.target as Node)) setIsHeaderOpen(false);
+		}
+
+		document.addEventListener("pointerdown", handlePointerDown);
+		document.addEventListener("keydown", handleKeyDown);
+		document.addEventListener("focusin", handleFocusIn);
+		selectRef.current?.focus();
+		return () => {
+			document.removeEventListener("pointerdown", handlePointerDown);
+			document.removeEventListener("keydown", handleKeyDown);
+			document.removeEventListener("focusin", handleFocusIn);
+		};
+	}, [isHeaderOpen, variant]);
 
 	function select(next: Locale) {
+		setIsHeaderOpen(false);
+		triggerRef.current?.focus();
 		if (next !== locale) {
 			const segments = pathname.split("/");
 			segments[1] = next;
@@ -61,23 +97,33 @@ export function LanguageSwitcher({ variant = "header" }: { variant?: "header" | 
 	}
 
 	return (
-		<div className="language-switcher-header" aria-label={messages.header.language} aria-live="polite">
-			{LANGUAGES.map(({ code, short, name, Flag }) => {
-				const isActive = locale === code;
-				return (
-					<button
-						key={code}
-						type="button"
-						className={`language-header-btn ${isActive ? "active" : ""}`}
-						aria-pressed={isActive}
-						title={name}
-						onClick={() => select(code)}
-					>
-						<Flag width={18} height={12} className="flag-icon" />
-						<span className="language-code-text">{short}</span>
-					</button>
-				);
-			})}
+		<div className="language-switcher-header" ref={pickerRef}>
+			<button
+				ref={triggerRef}
+				type="button"
+				className="language-header-trigger"
+				aria-label={`${messages.header.language}: ${locale === "id" ? LANGUAGES[1].name : LANGUAGES[0].name}`}
+				aria-expanded={isHeaderOpen}
+				aria-controls="language-picker-panel"
+				onClick={() => setIsHeaderOpen((open) => !open)}
+			>
+				<GlobeIcon className="language-header-globe" width={19} height={19} aria-hidden="true" />
+				{locale === "id" ? <IdFlag width={18} height={12} className="language-header-flag" /> : <GbFlag width={18} height={12} className="language-header-flag" />}
+			</button>
+			<div id="language-picker-panel" className={`language-picker-panel${isHeaderOpen ? " is-open" : ""}`} aria-hidden={!isHeaderOpen}>
+				<label className="language-picker-label" htmlFor="language-picker-select">{messages.header.language}</label>
+				<select
+					ref={selectRef}
+					id="language-picker-select"
+					value={locale}
+					aria-label={messages.header.language}
+					onChange={(event) => {
+						if (isLocale(event.target.value)) select(event.target.value);
+					}}
+				>
+					{LANGUAGES.map(({ code, name }) => <option key={code} value={code}>{name}</option>)}
+				</select>
+			</div>
 		</div>
 	);
 }

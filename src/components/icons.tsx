@@ -24,6 +24,10 @@ export function ChevronDownIcon(props: IconProps) {
 	return <svg {...base} {...props}><path d="m7 9 5 5 5-5" /></svg>;
 }
 
+export function GlobeIcon(props: IconProps) {
+	return <svg {...base} {...props}><circle cx="12" cy="12" r="8.5" /><path d="M3.5 12h17M12 3.5c2.2 2.2 3.3 5 3.3 8.5s-1.1 6.3-3.3 8.5M12 3.5c-2.2 2.2-3.3 5-3.3 8.5s1.1 6.3 3.3 8.5" /></svg>;
+}
+
 export function GridIcon(props: IconProps) {
 	return <svg {...base} {...props}><rect x="4" y="4" width="6" height="6" /><rect x="14" y="4" width="6" height="6" /><rect x="4" y="14" width="6" height="6" /><rect x="14" y="14" width="6" height="6" /></svg>;
 }
