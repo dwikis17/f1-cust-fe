@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
 import { formatPrice } from "@/lib/catalog";
 import { localizedPath } from "@/lib/locale";
@@ -31,6 +31,9 @@ type TrackingResponse = {
 		history: Array<{ status: string; note: string; updatedAt: string }>;
 	};
 };
+
+type TrackingLookup = { orderNumber: string; email: string };
+type TrackOrderClientProps = { initialOrderNumber: string; initialEmail: string; hasTrackingQuery: boolean };
 
 const statusAliases = {
 	confirmed: "confirmed",
@@ -68,14 +71,16 @@ function formatDate(value: string, locale: "en" | "id", includeTime = true) {
 	}).format(date);
 }
 
-export function TrackOrderClient() {
+export function TrackOrderClient({ initialOrderNumber, initialEmail, hasTrackingQuery }: TrackOrderClientProps) {
 	const messages = useDictionary().tracking;
 	const locale = useLocale();
-	const [orderNumber, setOrderNumber] = useState("");
-	const [email, setEmail] = useState("");
+	const normalizedInitialOrderNumber = initialOrderNumber.trim().toUpperCase();
+	const normalizedInitialEmail = initialEmail.trim();
+	const [orderNumber, setOrderNumber] = useState(normalizedInitialOrderNumber);
+	const [email, setEmail] = useState(normalizedInitialEmail);
 	const [copied, setCopied] = useState(false);
 	const tracking = useMutation({
-		mutationFn: async () => {
+		mutationFn: async ({ orderNumber, email }: TrackingLookup) => {
 			const response = await fetch("/api/orders/track", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
@@ -90,11 +95,20 @@ export function TrackOrderClient() {
 			return body;
 		},
 	});
+	const initialQueryHandled = useRef(false);
+	useEffect(() => {
+		if (!hasTrackingQuery || initialQueryHandled.current) return;
+		initialQueryHandled.current = true;
+		window.history.replaceState(null, "", window.location.pathname);
+		if (normalizedInitialOrderNumber && normalizedInitialEmail) {
+			tracking.mutate({ orderNumber: normalizedInitialOrderNumber, email: normalizedInitialEmail });
+		}
+	}, [hasTrackingQuery, normalizedInitialEmail, normalizedInitialOrderNumber, tracking]);
 
 	function submit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setCopied(false);
-		tracking.mutate();
+		tracking.mutate({ orderNumber, email });
 	}
 
 	const result = tracking.data;
