@@ -3626,6 +3626,33 @@ body:has(.race-ticker-bar) .page-shell {
 	margin: 8px 0 22px;
 }
 
+.cart-promises {
+	border-bottom: 1px solid var(--line);
+	border-top: 1px solid var(--line);
+	display: grid;
+	gap: 10px;
+	list-style: none;
+	margin: 0 0 22px;
+	padding: 18px 0;
+}
+
+.cart-promises li {
+	align-items: flex-start;
+	display: flex;
+	font-size: 12px;
+	font-weight: 700;
+	gap: 8px;
+	line-height: 1.45;
+}
+
+.cart-promises svg {
+	color: #9bcfce;
+	flex: 0 0 16px;
+	height: 16px;
+	margin-top: 1px;
+	width: 16px;
+}
+
 .cart-summary .button {
 	width: 100%;
 }

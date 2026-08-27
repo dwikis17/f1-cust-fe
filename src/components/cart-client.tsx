@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
+import { CheckIcon } from "@/components/icons";
 import { useCartCatalog } from "@/components/use-cart-catalog";
 import { cartSubtotal, maxPurchasableQuantity, resolveCartLines } from "@/lib/cart";
 import { useCartStore } from "@/lib/cart-store";
@@ -90,6 +91,10 @@ export function CartClient() {
 				<div><span>{messages.cart.shipping}</span><strong>{messages.cart.calculatedAtCheckout}</strong></div>
 				<div className="cart-total"><span>{messages.cart.total}</span><strong>{formatPrice(subtotal, locale)}</strong></div>
 				<p>{hasUnavailableItem ? messages.cart.unavailableItem : messages.cart.checkoutShippingNote}</p>
+				<ul className="cart-promises">
+					<li><CheckIcon aria-hidden="true" /> <span>{messages.cart.dailyDispatch}</span></li>
+					<li><CheckIcon aria-hidden="true" /> <span>{messages.cart.freeShipping}</span></li>
+				</ul>
 				{hasUnavailableItem
 					? <span className="button button-dark disabled" aria-disabled="true">{messages.cart.checkout}</span>
 					: <Link className="button button-dark" href={localizedPath(locale, "/checkout")}>{messages.cart.checkout}</Link>}
