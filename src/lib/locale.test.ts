@@ -10,6 +10,6 @@ test("locale paths are deterministic and expose language alternates", () => {
 	assert.deepEqual(localeAlternates("/products/helmet").languages, {
 		en: "/en/products/helmet",
 		id: "/id/products/helmet",
-		"x-default": "/en/products/helmet",
+		"x-default": "/id/products/helmet",
 	});
 });

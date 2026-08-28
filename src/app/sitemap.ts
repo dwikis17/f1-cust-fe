@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { defaultLocale } from "@/lib/i18n";
 import { catalog, type CollectionNode, type PublicProductCard } from "@/lib/catalog";
 import { absoluteUrl } from "@/lib/seo";
 
@@ -26,18 +27,18 @@ function flattenCollections(nodes: CollectionNode[]): CollectionNode[] {
 
 async function listAllProducts(): Promise<PublicProductCard[]> {
 	const limit = 100;
-	const first = await catalog.listProducts({ page: 1, limit }, "en");
+	const first = await catalog.listProducts({ page: 1, limit }, defaultLocale);
 	const pageCount = Math.ceil(first.total / limit);
 	if (pageCount <= 1) return first.data;
 
 	const remaining = await Promise.all(
-		Array.from({ length: pageCount - 1 }, (_, index) => catalog.listProducts({ page: index + 2, limit }, "en")),
+		Array.from({ length: pageCount - 1 }, (_, index) => catalog.listProducts({ page: index + 2, limit }, defaultLocale)),
 	);
 	return [first, ...remaining].flatMap((page) => page.data);
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-	const [collectionTree, products] = await Promise.all([catalog.listCollections("en"), listAllProducts()]);
+	const [collectionTree, products] = await Promise.all([catalog.listCollections(defaultLocale), listAllProducts()]);
 	const collections = flattenCollections(collectionTree);
 
 	return [
@@ -45,21 +46,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 			url: absoluteUrl(`/${locale}${path}`),
 			changeFrequency: path === "" || path === "/collections" || path === "/sale" ? "daily" as const : path === "/f1-schedule" ? "yearly" as const : "monthly" as const,
 			priority: path === "" ? 1 : path === "/collections" ? 0.9 : path === "/sale" ? 0.9 : path === "/f1-schedule" ? 0.8 : path === "/formula-1-merchandise-indonesia" ? 0.85 : 0.5,
-			alternates: { languages: { en: absoluteUrl(`/en${path}`), id: absoluteUrl(`/id${path}`), "x-default": absoluteUrl(`/en${path}`) } },
+			alternates: { languages: { en: absoluteUrl(`/en${path}`), id: absoluteUrl(`/id${path}`), "x-default": absoluteUrl(`/id${path}`) } },
 		}))),
 		...sitemapLocales.flatMap((locale) => collections.map((collection) => ({
 			url: absoluteUrl(`/${locale}/collections/${collection.slug}`),
 			lastModified: new Date(collection.updatedAt),
 			changeFrequency: "daily" as const,
 			priority: 0.8,
-			alternates: { languages: { en: absoluteUrl(`/en/collections/${collection.slug}`), id: absoluteUrl(`/id/collections/${collection.slug}`), "x-default": absoluteUrl(`/en/collections/${collection.slug}`) } },
+			alternates: { languages: { en: absoluteUrl(`/en/collections/${collection.slug}`), id: absoluteUrl(`/id/collections/${collection.slug}`), "x-default": absoluteUrl(`/id/collections/${collection.slug}`) } },
 		}))),
 		...sitemapLocales.flatMap((locale) => products.map((product) => ({
 			url: absoluteUrl(`/${locale}/products/${product.slug}`),
 			changeFrequency: "daily" as const,
 			priority: 0.9,
 			images: product.photos.map((photo) => photo.url),
-			alternates: { languages: { en: absoluteUrl(`/en/products/${product.slug}`), id: absoluteUrl(`/id/products/${product.slug}`), "x-default": absoluteUrl(`/en/products/${product.slug}`) } },
+			alternates: { languages: { en: absoluteUrl(`/en/products/${product.slug}`), id: absoluteUrl(`/id/products/${product.slug}`), "x-default": absoluteUrl(`/id/products/${product.slug}`) } },
 		}))),
 	];
 }

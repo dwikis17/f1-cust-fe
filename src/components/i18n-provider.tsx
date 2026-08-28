@@ -2,9 +2,9 @@
 
 import { createContext, useContext } from "react";
 
-import type { Dictionary, Locale } from "@/lib/i18n";
+import { defaultLocale, type Dictionary, type Locale } from "@/lib/i18n";
 
-const LocaleContext = createContext<Locale>("en");
+const LocaleContext = createContext<Locale>(defaultLocale);
 const DictionaryContext = createContext<Dictionary | null>(null);
 
 export function I18nProvider({ locale, messages, children }: { locale: Locale; messages: Dictionary; children: React.ReactNode }) {

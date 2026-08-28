@@ -1,4 +1,4 @@
-import type { Locale } from "./i18n";
+import { defaultLocale, type Locale } from "./i18n.ts";
 import type { PublicHomeCollectionBlock, PublicHomeHero } from "./home";
 
 export type CatalogEntity = { id: string; name: string; slug: string; createdAt: string; updatedAt: string };
@@ -86,10 +86,10 @@ function queryString(query: ProductQuery & { locale?: Locale }): string {
 }
 
 export const catalog = {
-	listProducts(query: ProductQuery = {}, locale: Locale = "en"): Promise<ProductListResponse> {
+	listProducts(query: ProductQuery = {}, locale: Locale = defaultLocale): Promise<ProductListResponse> {
 		return staticApiFetch(`/api/products${queryString({ ...query, locale })}`, ["catalog:products"]);
 	},
-	async getProduct(slug: string, locale: Locale = "en"): Promise<PublicProduct | null> {
+	async getProduct(slug: string, locale: Locale = defaultLocale): Promise<PublicProduct | null> {
 		const response = await fetch(apiUrl(`/api/products/${encodeURIComponent(slug)}?locale=${locale}`), {
 			cache: "force-cache",
 			next: { tags: ["catalog:products", `catalog:product:${slug}`], revalidate: catalogRevalidation },
@@ -107,13 +107,13 @@ export const catalog = {
 	listTeams(): Promise<Team[]> {
 		return staticApiFetch("/api/teams", ["catalog:teams"]);
 	},
-	listCollections(locale: Locale = "en"): Promise<CollectionNode[]> {
+	listCollections(locale: Locale = defaultLocale): Promise<CollectionNode[]> {
 		return staticApiFetch(`/api/collections?locale=${locale}`, ["catalog:collections"]);
 	},
-	listNavigationCollections(locale: Locale = "en"): Promise<CollectionNode[]> {
+	listNavigationCollections(locale: Locale = defaultLocale): Promise<CollectionNode[]> {
 		return staticApiFetch(`/api/collections?locale=${locale}`, ["catalog:collections"]);
 	},
-	async getHomeHeroes(locale: Locale = "en"): Promise<PublicHomeHero[]> {
+	async getHomeHeroes(locale: Locale = defaultLocale): Promise<PublicHomeHero[]> {
 		try {
 			const response = await fetch(apiUrl(`/api/home?locale=${locale}`), {
 				cache: "force-cache",
@@ -125,7 +125,7 @@ export const catalog = {
 			return [];
 		}
 	},
-	async getHomeCollectionBlocks(locale: Locale = "en"): Promise<PublicHomeCollectionBlock[]> {
+	async getHomeCollectionBlocks(locale: Locale = defaultLocale): Promise<PublicHomeCollectionBlock[]> {
 		try {
 			const response = await fetch(apiUrl(`/api/home/collection-blocks?locale=${locale}`), {
 				cache: "force-cache",
@@ -137,7 +137,7 @@ export const catalog = {
 			return [];
 		}
 	},
-	async getCollection(slug: string, locale: Locale = "en"): Promise<CollectionDetail | null> {
+	async getCollection(slug: string, locale: Locale = defaultLocale): Promise<CollectionDetail | null> {
 		const response = await fetch(apiUrl(`/api/collections/${encodeURIComponent(slug)}?locale=${locale}`), {
 			cache: "force-cache",
 			next: { tags: ["catalog:collections", `catalog:collection:${slug}`], revalidate: catalogRevalidation },
@@ -146,7 +146,7 @@ export const catalog = {
 		if (!response.ok) throw new Error(`Catalog API request failed with ${response.status}`);
 		return response.json() as Promise<CollectionDetail>;
 	},
-	async listCollectionProducts(slug: string, query: ProductQuery = {}, locale: Locale = "en"): Promise<CollectionProductsResponse | null> {
+	async listCollectionProducts(slug: string, query: ProductQuery = {}, locale: Locale = defaultLocale): Promise<CollectionProductsResponse | null> {
 		const response = await fetch(
 			apiUrl(`/api/collections/${encodeURIComponent(slug)}/products${queryString({ ...query, locale })}`),
 			{
@@ -160,7 +160,7 @@ export const catalog = {
 	},
 };
 
-export function formatPrice(priceIdr: number, locale: Locale = "en"): string {
+export function formatPrice(priceIdr: number, locale: Locale = defaultLocale): string {
 	return new Intl.NumberFormat(locale === "id" ? "id-ID" : "en-ID", {
 		style: "currency",
 		currency: "IDR",

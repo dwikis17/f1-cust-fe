@@ -1,4 +1,4 @@
-import { isLocale, locales, type Locale } from "./i18n.ts";
+import { defaultLocale, isLocale, locales, type Locale } from "./i18n.ts";
 
 export type LocaleParams = { params: Promise<{ locale: string }> };
 
@@ -16,7 +16,7 @@ export function localeAlternates(path = "/") {
 		languages: {
 			en: localizedPath("en", path),
 			id: localizedPath("id", path),
-			"x-default": localizedPath("en", path),
+			"x-default": localizedPath(defaultLocale, path),
 		},
 	};
 }

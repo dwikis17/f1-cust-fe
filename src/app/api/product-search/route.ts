@@ -1,4 +1,4 @@
-import { isLocale } from "@/lib/i18n";
+import { defaultLocale, isLocale } from "@/lib/i18n";
 
 const apiBaseUrl = process.env.API_BASE_URL?.replace(/\/$/, "");
 const searchLimit = 4;
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
 	const params = new URL(request.url).searchParams;
 	const search = params.get("search")?.trim() ?? "";
-	const locale = params.get("locale") ?? "en";
+	const locale = params.get("locale") ?? defaultLocale;
 	if (search.length < 2 || search.length > 100 || !isLocale(locale)) {
 		return errorResponse("INVALID_SEARCH_QUERY", 400);
 	}
