@@ -2983,18 +2983,37 @@ body:has(.race-ticker-bar) .page-shell {
 }
 
 .product-price {
-	font-family: var(--font-mono), monospace;
-	font-size: 21px;
+	align-items: baseline;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 12px;
 	margin: 0 0 18px;
 }
 
-.product-price ins {
+.product-price-values {
+	font-family: var(--font-mono), monospace;
+	font-size: 21px;
+	margin: 0;
+}
+
+.product-detail-sale-badge {
+	background: #c8102e;
+	color: white;
+	font-family: var(--font-mono), monospace;
+	font-size: 11px;
+	letter-spacing: .08em;
+	line-height: 1;
+	padding: 6px 11px;
+	text-transform: uppercase;
+}
+
+.product-price-values ins {
 	color: #c8102e;
 	font-weight: 700;
 	text-decoration: none;
 }
 
-.product-price del {
+.product-price-values del {
 	color: var(--muted);
 	font-size: 15px;
 	margin-left: 10px;
