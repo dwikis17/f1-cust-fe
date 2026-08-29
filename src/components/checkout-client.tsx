@@ -41,7 +41,7 @@ type ShippingDetails = {
 	postalCode: string;
 	phone: string;
 };
-type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }>; includeInsurance?: boolean; promoCode?: string; turnstileToken?: string };
+type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }>; promoCode?: string; turnstileToken?: string };
 type PromoPreview = {
 	code: string;
 	discountPercentage: number;
@@ -91,7 +91,6 @@ export function CheckoutClient() {
 	const [step, setStep] = useState<Step>("shipping");
 	const [details, setDetails] = useState<ShippingDetails>(emptyDetails);
 	const [selectedRateKey, setSelectedRateKey] = useState("");
-	const [includeInsurance, setIncludeInsurance] = useState(false);
 	const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 	const [paymentError, setPaymentError] = useState("");
 	const [snapReady, setSnapReady] = useState(false);
@@ -108,7 +107,7 @@ export function CheckoutClient() {
 	const turnstileVerified = !turnstileEnabled || Boolean(turnstileToken);
 	const shippingMutation = useMutation({
 		mutationFn: (request: ShippingRequest) => queryClient.fetchQuery({
-		queryKey: ["shipping-rates", request.destinationPostalCode, request.items, request.includeInsurance ?? false, request.promoCode ?? ""],
+		queryKey: ["shipping-rates", request.destinationPostalCode, request.items, request.promoCode ?? ""],
 			queryFn: async () => {
 				const response = await fetch("/api/shipping/rates", {
 					method: "POST",
@@ -182,7 +181,6 @@ export function CheckoutClient() {
 					courierCode: selectedRate.courierCode,
 					serviceCode: selectedRate.serviceCode,
 					quotedShippingIdr: selectedRate.price,
-					includeInsurance,
 					...(turnstileToken ? { turnstileToken } : {}),
 					...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
 				}),
@@ -233,7 +231,6 @@ export function CheckoutClient() {
 			destinationPostalCode: details.postalCode,
 			items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })),
 			...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
-			...(includeInsurance ? { includeInsurance: true } : {}),
 			...(turnstileToken ? { turnstileToken } : {}),
 		});
 	}
@@ -293,8 +290,6 @@ export function CheckoutClient() {
 							setTurnstileResetKey((value) => value + 1);
 							setStep("review");
 						}}
-						includeInsurance={includeInsurance}
-						setIncludeInsurance={(value) => { setIncludeInsurance(value); setSelectedRateKey(""); shippingMutation.reset(); }}
 						turnstileVerified={turnstileVerified}
 						turnstileSiteKey={turnstileSiteKey}
 						turnstileResetKey={turnstileResetKey}
@@ -431,7 +426,7 @@ function CheckoutSteps({ step, setStep, canOpenPayment, messages }: { step: Step
 	})}</nav>;
 }
 
-function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelectedRateKey, error, loading, checkShipping, continueToReview, includeInsurance, setIncludeInsurance, turnstileVerified, turnstileSiteKey, turnstileResetKey, turnstileError, onTurnstileToken, onTurnstileError, messages, locale }: {
+function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelectedRateKey, error, loading, checkShipping, continueToReview, turnstileVerified, turnstileSiteKey, turnstileResetKey, turnstileError, onTurnstileToken, onTurnstileError, messages, locale }: {
 	details: ShippingDetails;
 	updateDetail: (field: keyof ShippingDetails, value: string) => void;
 	rates: ShippingRate[];
@@ -441,8 +436,6 @@ function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelect
 	loading: boolean;
 	checkShipping: (event: FormEvent<HTMLFormElement>) => void;
 	continueToReview: () => void;
-	includeInsurance: boolean;
-	setIncludeInsurance: (value: boolean) => void;
 	turnstileVerified: boolean;
 	turnstileSiteKey?: string;
 	turnstileResetKey: number;
@@ -458,7 +451,6 @@ function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelect
 		<form className="checkout-form" onSubmit={checkShipping}>
 			<fieldset><legend>{checkout.contactEmail}</legend><label className="full"><span>{checkout.emailAddress}</span><input type="email" autoComplete="email" required value={details.email} onChange={(event) => updateDetail("email", event.target.value)} /></label><p className="form-hint">{checkout.emailHint}</p></fieldset>
 			<fieldset><legend>{checkout.deliveryMethod}</legend><div className="delivery-method selected"><span aria-hidden="true">✓</span><div><strong>{checkout.homeDelivery}</strong><small>{checkout.homeDeliveryText}</small></div></div></fieldset>
-			<fieldset><legend>{checkout.shippingInsurance}</legend><label className="delivery-method"><input type="checkbox" checked={includeInsurance} onChange={(event) => setIncludeInsurance(event.target.checked)} /><div><strong>{checkout.addShippingInsurance}</strong><small>{checkout.shippingInsuranceText}</small></div></label></fieldset>
 			<fieldset><legend>{checkout.personalDetails}</legend><div className="checkout-fields">
 				<Field label={checkout.firstName} autoComplete="given-name" value={details.firstName} update={(value) => updateDetail("firstName", value)} />
 				<Field label={checkout.lastName} autoComplete="family-name" value={details.lastName} update={(value) => updateDetail("lastName", value)} />
@@ -477,7 +469,7 @@ function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelect
 		<div className="checkout-rates" aria-live="polite">
 			{error ? <p className="checkout-error">{error}</p> : null}
 			{!error && rates.length === 0 ? <p>{checkout.ratesIntro}</p> : null}
-			{rates.length > 0 ? <fieldset><legend>{checkout.chooseDelivery}</legend>{rates.map((rate) => <label className={selectedRateKey === rateKey(rate) ? "selected" : ""} key={rateKey(rate)}><input type="radio" name="shipping-rate" value={rateKey(rate)} disabled={includeInsurance && !rate.insuranceAvailable} checked={selectedRateKey === rateKey(rate)} onChange={(event) => setSelectedRateKey(event.target.value)} /><span><strong>{rate.courierName} — {rate.serviceName}</strong><small>{rate.duration || messages.cart.etaUnavailable}{rate.description ? ` · ${rate.description}` : ""}{includeInsurance && !rate.insuranceAvailable ? ` · ${checkout.insuranceUnavailable}` : ""}{rate.shippingDiscountIdr ? ` · ${checkout.freeShippingCoverage} -${formatPrice(rate.shippingDiscountIdr, locale)}` : ""}</small></span><b>{rate.shippingDiscountIdr ? <><s>{formatPrice(rate.originalPrice, locale)}</s><br /></> : null}{formatPrice(rate.price, locale)}</b></label>)}</fieldset> : null}
+			{rates.length > 0 ? <fieldset><legend>{checkout.chooseDelivery}</legend>{rates.map((rate) => <label className={selectedRateKey === rateKey(rate) ? "selected" : ""} key={rateKey(rate)}><input type="radio" name="shipping-rate" value={rateKey(rate)} disabled={!rate.insuranceAvailable} checked={selectedRateKey === rateKey(rate)} onChange={(event) => setSelectedRateKey(event.target.value)} /><span><strong>{rate.courierName} — {rate.serviceName}</strong><small>{rate.duration || messages.cart.etaUnavailable}{rate.description ? ` · ${rate.description}` : ""}{!rate.insuranceAvailable ? ` · ${checkout.insuranceUnavailable}` : ""}{rate.shippingDiscountIdr ? ` · ${checkout.freeShippingCoverage} -${formatPrice(rate.shippingDiscountIdr, locale)}` : ""}</small></span><b>{rate.shippingDiscountIdr ? <><s>{formatPrice(rate.originalPrice, locale)}</s><br /></> : null}{formatPrice(rate.price, locale)}</b></label>)}</fieldset> : null}
 			{rates.length > 0 ? <button className="button button-dark" type="button" disabled={!selectedRateKey} onClick={continueToReview}>{checkout.continueReview}</button> : null}
 		</div>
 	</>;
