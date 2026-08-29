@@ -16,6 +16,7 @@ type OrderReceipt = {
 	shippingOriginalIdr: number;
 	shippingDiscountIdr: number;
 	shippingIdr: number;
+	insuranceFeeIdr: number;
 	totalIdr: number;
 	promoCode: string | null;
 	paymentStatus: "PENDING" | "PAID" | "FAILED" | "EXPIRED" | "CANCELLED" | "REFUNDED";
@@ -90,6 +91,7 @@ export function OrderStatusClient({ id }: { id: string }) {
 					<div><dt>{messages.shipping}</dt><dd>{formatPrice(order.shippingOriginalIdr, locale)}</dd></div>
 					{order.shippingDiscountIdr ? <div><dt>{messages.freeShippingCoverage}</dt><dd>-{formatPrice(order.shippingDiscountIdr, locale)}</dd></div> : null}
 					{order.shippingDiscountIdr ? <div><dt>{messages.netShipping}</dt><dd>{formatPrice(order.shippingIdr, locale)}</dd></div> : null}
+					{order.insuranceFeeIdr ? <div><dt>{messages.shippingInsurance}</dt><dd>{formatPrice(order.insuranceFeeIdr, locale)}</dd></div> : null}
 					<div><dt>{messages.total}</dt><dd>{formatPrice(order.totalIdr, locale)}</dd></div>
 				</dl>
 				{error instanceof Error ? <p className="payment-notice" role="alert">{error.message}</p> : null}

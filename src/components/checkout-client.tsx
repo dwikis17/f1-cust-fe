@@ -26,6 +26,9 @@ type ShippingRate = {
 	currency: string;
 	originalPrice: number;
 	shippingDiscountIdr: number;
+	insuranceAvailable: boolean;
+	insuranceFeeIdr: number;
+	insuranceValueIdr: number;
 	price: number;
 };
 type ShippingDetails = {
@@ -38,7 +41,7 @@ type ShippingDetails = {
 	postalCode: string;
 	phone: string;
 };
-type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }>; promoCode?: string; turnstileToken?: string };
+type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }>; includeInsurance?: boolean; promoCode?: string; turnstileToken?: string };
 type PromoPreview = {
 	code: string;
 	discountPercentage: number;
@@ -56,6 +59,8 @@ type CheckoutResponse = {
 	shippingOriginalIdr: number;
 	shippingDiscountIdr: number;
 	shippingIdr: number;
+	insuranceValueIdr: number;
+	insuranceFeeIdr: number;
 	totalIdr: number;
 	promoCode: string | null;
 };
@@ -86,6 +91,7 @@ export function CheckoutClient() {
 	const [step, setStep] = useState<Step>("shipping");
 	const [details, setDetails] = useState<ShippingDetails>(emptyDetails);
 	const [selectedRateKey, setSelectedRateKey] = useState("");
+	const [includeInsurance, setIncludeInsurance] = useState(false);
 	const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 	const [paymentError, setPaymentError] = useState("");
 	const [snapReady, setSnapReady] = useState(false);
@@ -102,7 +108,7 @@ export function CheckoutClient() {
 	const turnstileVerified = !turnstileEnabled || Boolean(turnstileToken);
 	const shippingMutation = useMutation({
 		mutationFn: (request: ShippingRequest) => queryClient.fetchQuery({
-			queryKey: ["shipping-rates", request.destinationPostalCode, request.items, request.promoCode ?? ""],
+		queryKey: ["shipping-rates", request.destinationPostalCode, request.items, request.includeInsurance ?? false, request.promoCode ?? ""],
 			queryFn: async () => {
 				const response = await fetch("/api/shipping/rates", {
 					method: "POST",
@@ -176,6 +182,7 @@ export function CheckoutClient() {
 					courierCode: selectedRate.courierCode,
 					serviceCode: selectedRate.serviceCode,
 					quotedShippingIdr: selectedRate.price,
+					includeInsurance,
 					...(turnstileToken ? { turnstileToken } : {}),
 					...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
 				}),
@@ -226,6 +233,7 @@ export function CheckoutClient() {
 			destinationPostalCode: details.postalCode,
 			items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })),
 			...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
+			...(includeInsurance ? { includeInsurance: true } : {}),
 			...(turnstileToken ? { turnstileToken } : {}),
 		});
 	}
@@ -285,6 +293,8 @@ export function CheckoutClient() {
 							setTurnstileResetKey((value) => value + 1);
 							setStep("review");
 						}}
+						includeInsurance={includeInsurance}
+						setIncludeInsurance={(value) => { setIncludeInsurance(value); setSelectedRateKey(""); shippingMutation.reset(); }}
 						turnstileVerified={turnstileVerified}
 						turnstileSiteKey={turnstileSiteKey}
 						turnstileResetKey={turnstileResetKey}
@@ -421,7 +431,7 @@ function CheckoutSteps({ step, setStep, canOpenPayment, messages }: { step: Step
 	})}</nav>;
 }
 
-function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelectedRateKey, error, loading, checkShipping, continueToReview, turnstileVerified, turnstileSiteKey, turnstileResetKey, turnstileError, onTurnstileToken, onTurnstileError, messages, locale }: {
+function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelectedRateKey, error, loading, checkShipping, continueToReview, includeInsurance, setIncludeInsurance, turnstileVerified, turnstileSiteKey, turnstileResetKey, turnstileError, onTurnstileToken, onTurnstileError, messages, locale }: {
 	details: ShippingDetails;
 	updateDetail: (field: keyof ShippingDetails, value: string) => void;
 	rates: ShippingRate[];
@@ -431,6 +441,8 @@ function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelect
 	loading: boolean;
 	checkShipping: (event: FormEvent<HTMLFormElement>) => void;
 	continueToReview: () => void;
+	includeInsurance: boolean;
+	setIncludeInsurance: (value: boolean) => void;
 	turnstileVerified: boolean;
 	turnstileSiteKey?: string;
 	turnstileResetKey: number;
@@ -446,6 +458,7 @@ function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelect
 		<form className="checkout-form" onSubmit={checkShipping}>
 			<fieldset><legend>{checkout.contactEmail}</legend><label className="full"><span>{checkout.emailAddress}</span><input type="email" autoComplete="email" required value={details.email} onChange={(event) => updateDetail("email", event.target.value)} /></label><p className="form-hint">{checkout.emailHint}</p></fieldset>
 			<fieldset><legend>{checkout.deliveryMethod}</legend><div className="delivery-method selected"><span aria-hidden="true">✓</span><div><strong>{checkout.homeDelivery}</strong><small>{checkout.homeDeliveryText}</small></div></div></fieldset>
+			<fieldset><legend>{checkout.shippingInsurance}</legend><label className="delivery-method"><input type="checkbox" checked={includeInsurance} onChange={(event) => setIncludeInsurance(event.target.checked)} /><div><strong>{checkout.addShippingInsurance}</strong><small>{checkout.shippingInsuranceText}</small></div></label></fieldset>
 			<fieldset><legend>{checkout.personalDetails}</legend><div className="checkout-fields">
 				<Field label={checkout.firstName} autoComplete="given-name" value={details.firstName} update={(value) => updateDetail("firstName", value)} />
 				<Field label={checkout.lastName} autoComplete="family-name" value={details.lastName} update={(value) => updateDetail("lastName", value)} />
@@ -464,7 +477,7 @@ function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelect
 		<div className="checkout-rates" aria-live="polite">
 			{error ? <p className="checkout-error">{error}</p> : null}
 			{!error && rates.length === 0 ? <p>{checkout.ratesIntro}</p> : null}
-			{rates.length > 0 ? <fieldset><legend>{checkout.chooseDelivery}</legend>{rates.map((rate) => <label className={selectedRateKey === rateKey(rate) ? "selected" : ""} key={rateKey(rate)}><input type="radio" name="shipping-rate" value={rateKey(rate)} checked={selectedRateKey === rateKey(rate)} onChange={(event) => setSelectedRateKey(event.target.value)} /><span><strong>{rate.courierName} — {rate.serviceName}</strong><small>{rate.duration || messages.cart.etaUnavailable}{rate.description ? ` · ${rate.description}` : ""}{rate.shippingDiscountIdr ? ` · ${checkout.freeShippingCoverage} -${formatPrice(rate.shippingDiscountIdr, locale)}` : ""}</small></span><b>{rate.shippingDiscountIdr ? <><s>{formatPrice(rate.originalPrice, locale)}</s><br /></> : null}{formatPrice(rate.price, locale)}</b></label>)}</fieldset> : null}
+			{rates.length > 0 ? <fieldset><legend>{checkout.chooseDelivery}</legend>{rates.map((rate) => <label className={selectedRateKey === rateKey(rate) ? "selected" : ""} key={rateKey(rate)}><input type="radio" name="shipping-rate" value={rateKey(rate)} disabled={includeInsurance && !rate.insuranceAvailable} checked={selectedRateKey === rateKey(rate)} onChange={(event) => setSelectedRateKey(event.target.value)} /><span><strong>{rate.courierName} — {rate.serviceName}</strong><small>{rate.duration || messages.cart.etaUnavailable}{rate.description ? ` · ${rate.description}` : ""}{includeInsurance && !rate.insuranceAvailable ? ` · ${checkout.insuranceUnavailable}` : ""}{rate.shippingDiscountIdr ? ` · ${checkout.freeShippingCoverage} -${formatPrice(rate.shippingDiscountIdr, locale)}` : ""}</small></span><b>{rate.shippingDiscountIdr ? <><s>{formatPrice(rate.originalPrice, locale)}</s><br /></> : null}{formatPrice(rate.price, locale)}</b></label>)}</fieldset> : null}
 			{rates.length > 0 ? <button className="button button-dark" type="button" disabled={!selectedRateKey} onClick={continueToReview}>{checkout.continueReview}</button> : null}
 		</div>
 	</>;
@@ -523,5 +536,5 @@ function CheckoutSummary({ lines, subtotal, discount, selectedRate, total, promo
 	messages: ReturnType<typeof useDictionary>["checkout"];
 	locale: "en" | "id";
 }) {
-	return <aside className="checkout-summary"><h2>{messages.orderSummary}</h2><ul>{lines.map((line) => <li key={line.variantId}><div>{line.product.photo ? <Image src={line.product.photo.url} alt="" fill sizes="72px" /> : <span className="cart-image-placeholder">V</span>}<span className="checkout-item-quantity">{line.quantity}</span></div><p><strong>{line.product.name}</strong><small>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</small></p><b>{formatPrice(line.product.priceIdr * line.quantity, locale)}</b></li>)}</ul><div className="promo-code"><label htmlFor="promo-code">{messages.promoCode}</label><form onSubmit={(event) => { event.preventDefault(); applyPromo(); }}><input id="promo-code" value={promoInput} placeholder={messages.promoPlaceholder} disabled={promoLoading || locked || Boolean(appliedPromo)} onChange={(event) => setPromoInput(event.target.value.toUpperCase())} /><button type="submit" disabled={promoLoading || locked || Boolean(appliedPromo) || promoInput.trim().length < 3}>{promoLoading ? messages.applyingPromo : messages.applyPromo}</button></form>{appliedPromo ? <p><span>{appliedPromo.code} · {appliedPromo.discountPercentage}%</span><button type="button" disabled={locked} onClick={removePromo}>{messages.removePromo}</button></p> : null}{promoError ? <small role="alert">{promoError}</small> : null}</div><dl><div><dt>{messages.subtotal}</dt><dd>{formatPrice(subtotal, locale)}</dd></div>{appliedPromo ? <div className="promo-discount"><dt>{messages.discount}</dt><dd>-{formatPrice(discount, locale)}</dd></div> : null}{selectedRate?.shippingDiscountIdr ? <><div><dt>{messages.shipping}</dt><dd>{formatPrice(selectedRate.originalPrice, locale)}</dd></div><div className="promo-discount"><dt>{messages.freeShippingCoverage}</dt><dd>-{formatPrice(selectedRate.shippingDiscountIdr, locale)}</dd></div><div><dt>{messages.netShipping}</dt><dd>{formatPrice(selectedRate.price, locale)}</dd></div></> : <div><dt>{messages.shipping}</dt><dd>{selectedRate ? formatPrice(selectedRate.price, locale) : messages.calculatedAfterSelection}</dd></div>}<div><dt>{messages.total}</dt><dd>{formatPrice(total, locale)}</dd></div></dl><p className="secure-note">◇ {messages.secureCheckout}</p></aside>;
+	return <aside className="checkout-summary"><h2>{messages.orderSummary}</h2><ul>{lines.map((line) => <li key={line.variantId}><div>{line.product.photo ? <Image src={line.product.photo.url} alt="" fill sizes="72px" /> : <span className="cart-image-placeholder">V</span>}<span className="checkout-item-quantity">{line.quantity}</span></div><p><strong>{line.product.name}</strong><small>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</small></p><b>{formatPrice(line.product.priceIdr * line.quantity, locale)}</b></li>)}</ul><div className="promo-code"><label htmlFor="promo-code">{messages.promoCode}</label><form onSubmit={(event) => { event.preventDefault(); applyPromo(); }}><input id="promo-code" value={promoInput} placeholder={messages.promoPlaceholder} disabled={promoLoading || locked || Boolean(appliedPromo)} onChange={(event) => setPromoInput(event.target.value.toUpperCase())} /><button type="submit" disabled={promoLoading || locked || Boolean(appliedPromo) || promoInput.trim().length < 3}>{promoLoading ? messages.applyingPromo : messages.applyPromo}</button></form>{appliedPromo ? <p><span>{appliedPromo.code} · {appliedPromo.discountPercentage}%</span><button type="button" disabled={locked} onClick={removePromo}>{messages.removePromo}</button></p> : null}{promoError ? <small role="alert">{promoError}</small> : null}</div><dl><div><dt>{messages.subtotal}</dt><dd>{formatPrice(subtotal, locale)}</dd></div>{appliedPromo ? <div className="promo-discount"><dt>{messages.discount}</dt><dd>-{formatPrice(discount, locale)}</dd></div> : null}{selectedRate?.shippingDiscountIdr ? <><div><dt>{messages.shipping}</dt><dd>{formatPrice(selectedRate.originalPrice, locale)}</dd></div><div className="promo-discount"><dt>{messages.freeShippingCoverage}</dt><dd>-{formatPrice(selectedRate.shippingDiscountIdr, locale)}</dd></div><div><dt>{messages.netShipping}</dt><dd>{formatPrice(selectedRate.price - selectedRate.insuranceFeeIdr, locale)}</dd></div></> : <div><dt>{messages.shipping}</dt><dd>{selectedRate ? formatPrice(selectedRate.price - selectedRate.insuranceFeeIdr, locale) : messages.calculatedAfterSelection}</dd></div>}{selectedRate?.insuranceFeeIdr ? <div><dt>{messages.shippingInsurance}</dt><dd>{formatPrice(selectedRate.insuranceFeeIdr, locale)}</dd></div> : null}<div><dt>{messages.total}</dt><dd>{formatPrice(total, locale)}</dd></div></dl><p className="secure-note">◇ {messages.secureCheckout}</p></aside>;
 }
