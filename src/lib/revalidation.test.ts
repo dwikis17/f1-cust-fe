@@ -8,6 +8,7 @@ test("revalidation accepts known tags, deduplicates them, and rejects arbitrary 
 		"catalog:product:ferrari-shirt",
 	]);
 	assert.deepEqual(parseRevalidationTags(["content:home"]), ["content:home"]);
+	assert.deepEqual(parseRevalidationTags(["shipping:free-shipping-policy"]), ["shipping:free-shipping-policy"]);
 	assert.deepEqual(parseRevalidationTags(["content:shipping-returns:en", "content:shipping-returns:id", "content:support"]), [
 		"content:shipping-returns:en",
 		"content:shipping-returns:id",

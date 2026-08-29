@@ -1,4 +1,4 @@
-const exactTags = new Set(["catalog:products", "catalog:collections", "catalog:teams", "content:home", "content:support"]);
+const exactTags = new Set(["catalog:products", "catalog:collections", "catalog:teams", "content:home", "content:support", "shipping:free-shipping-policy"]);
 const scopedTag = /^(?:catalog:(?:product|collection):[a-z0-9]+(?:-[a-z0-9]+)*|content:(?:faqs|shipping-returns):(?:en|id))$/;
 export const immediateRevalidation = { expire: 0 } as const;
 

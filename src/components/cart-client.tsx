@@ -11,6 +11,8 @@ import { useCartStore } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/catalog";
 import { localizedPath } from "@/lib/locale";
 
+type FreeShippingPolicy = { active: boolean; minimumPurchaseIdr: number; maxCoverageIdr: number };
+
 export function CartClient() {
 	const locale = useLocale();
 	const messages = useDictionary();
@@ -21,6 +23,7 @@ export function CartClient() {
 	const addItem = useCartStore((state) => state.addItem);
 	const { products, error, loading, stockAdjusted, retry } = useCartCatalog();
 	const [removed, setRemoved] = useState<{ productId: string; productName: string; variantId: string; quantity: number; maximum: number } | null>(null);
+	const [freeShippingPolicy, setFreeShippingPolicy] = useState<FreeShippingPolicy | null>(null);
 
 	const lines = useMemo(() => resolveCartLines(items, products), [items, products]);
 	const subtotal = cartSubtotal(lines);
@@ -31,6 +34,12 @@ export function CartClient() {
 		const timer = window.setTimeout(() => setRemoved(null), 6000);
 		return () => window.clearTimeout(timer);
 	}, [removed]);
+	useEffect(() => {
+		void fetch("/api/shipping/free-shipping-policy", { cache: "no-store" })
+			.then((response) => response.ok ? response.json() as Promise<FreeShippingPolicy> : null)
+			.then(setFreeShippingPolicy)
+			.catch(() => setFreeShippingPolicy(null));
+	}, []);
 
 	function removeLine(line: (typeof lines)[number]) {
 		setRemoved({
@@ -93,7 +102,7 @@ export function CartClient() {
 				<p>{hasUnavailableItem ? messages.cart.unavailableItem : messages.cart.checkoutShippingNote}</p>
 				<ul className="cart-promises">
 					<li><CheckIcon aria-hidden="true" /> <span>{messages.cart.dailyDispatch}</span></li>
-					<li><CheckIcon aria-hidden="true" /> <span>{messages.cart.freeShipping}</span></li>
+					{freeShippingPolicy?.active ? <li><CheckIcon aria-hidden="true" /> <span>{messages.cart.freeShipping.replace("{minimumPurchase}", formatPrice(freeShippingPolicy.minimumPurchaseIdr, locale)).replace("{maxCoverage}", formatPrice(freeShippingPolicy.maxCoverageIdr, locale))}</span></li> : null}
 				</ul>
 				{hasUnavailableItem
 					? <span className="button button-dark disabled" aria-disabled="true">{messages.cart.checkout}</span>
