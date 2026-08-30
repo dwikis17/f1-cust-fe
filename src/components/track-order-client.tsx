@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMutation } from "@tanstack/react-query";
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
 import { formatPrice } from "@/lib/catalog";
 import { localizedPath } from "@/lib/locale";
@@ -14,6 +14,14 @@ type TrackingResponse = {
 	fulfillmentStatus: "UNFULFILLED" | "BOOKED" | "BOOKING_FAILED";
 	lifecycleStatus: "UNFULFILLED" | "PROCESSING" | "FULFILLED" | "CANCELLED";
 	refundState: "NONE" | "REQUIRED" | "EXTERNALLY_REFUNDED";
+	subtotalIdr: number;
+	discountIdr: number;
+	shippingOriginalIdr: number;
+	shippingDiscountIdr: number;
+	shippingIdr: number;
+	insuranceFeeIdr: number;
+	totalIdr: number;
+	promoCode: string | null;
 	destination: { city: string; province: string };
 	courier: { name: string; serviceName: string; duration: string };
 	items: Array<{ name: string; sku: string; color: string | null; size: string | null; unitPriceIdr: number; quantity: number }>;
@@ -24,6 +32,9 @@ type TrackingResponse = {
 		history: Array<{ status: string; note: string; updatedAt: string }>;
 	};
 };
+
+type TrackingLookup = { orderNumber: string; email: string };
+type TrackOrderClientProps = { initialOrderNumber: string; initialEmail: string; hasTrackingQuery: boolean };
 
 const statusAliases = {
 	confirmed: "confirmed",
@@ -61,14 +72,16 @@ function formatDate(value: string, locale: "en" | "id", includeTime = true) {
 	}).format(date);
 }
 
-export function TrackOrderClient() {
+export function TrackOrderClient({ initialOrderNumber, initialEmail, hasTrackingQuery }: TrackOrderClientProps) {
 	const messages = useDictionary().tracking;
 	const locale = useLocale();
-	const [orderNumber, setOrderNumber] = useState("");
-	const [email, setEmail] = useState("");
+	const normalizedInitialOrderNumber = initialOrderNumber.trim().toUpperCase();
+	const normalizedInitialEmail = initialEmail.trim();
+	const [orderNumber, setOrderNumber] = useState(normalizedInitialOrderNumber);
+	const [email, setEmail] = useState(normalizedInitialEmail);
 	const [copied, setCopied] = useState(false);
 	const tracking = useMutation({
-		mutationFn: async () => {
+		mutationFn: async ({ orderNumber, email }: TrackingLookup) => {
 			const response = await fetch("/api/orders/track", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
@@ -83,11 +96,20 @@ export function TrackOrderClient() {
 			return body;
 		},
 	});
+	const initialQueryHandled = useRef(false);
+	useEffect(() => {
+		if (!hasTrackingQuery || initialQueryHandled.current) return;
+		initialQueryHandled.current = true;
+		window.history.replaceState(null, "", window.location.pathname);
+		if (normalizedInitialOrderNumber && normalizedInitialEmail) {
+			tracking.mutate({ orderNumber: normalizedInitialOrderNumber, email: normalizedInitialEmail });
+		}
+	}, [hasTrackingQuery, normalizedInitialEmail, normalizedInitialOrderNumber, tracking]);
 
 	function submit(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		setCopied(false);
-		tracking.mutate();
+		tracking.mutate({ orderNumber, email });
 	}
 
 	const result = tracking.data;
@@ -136,6 +158,7 @@ export function TrackOrderClient() {
 					</article>
 
 					<aside className="tracking-sidebar">
+						<section className="tracking-detail-card"><h2>{messages.orderSummary}</h2><dl><div><dt>{messages.subtotal}</dt><dd>{formatPrice(result.subtotalIdr, locale)}</dd></div>{result.promoCode ? <div><dt>{messages.discount}</dt><dd>-{formatPrice(result.discountIdr, locale)}</dd></div> : null}<div><dt>{messages.shipping}</dt><dd>{formatPrice(result.shippingOriginalIdr, locale)}</dd></div>{result.shippingDiscountIdr ? <><div><dt>{messages.freeShippingCoverage}</dt><dd>-{formatPrice(result.shippingDiscountIdr, locale)}</dd></div><div><dt>{messages.netShipping}</dt><dd>{formatPrice(result.shippingIdr, locale)}</dd></div></> : null}{result.insuranceFeeIdr ? <div><dt>{messages.shippingInsurance}</dt><dd>{formatPrice(result.insuranceFeeIdr, locale)}</dd></div> : null}<div><dt>{messages.total}</dt><dd>{formatPrice(result.totalIdr, locale)}</dd></div></dl></section>
 						<section className="tracking-detail-card"><h2>{messages.shippingDetails}</h2><dl><div><dt>{messages.carrier}</dt><dd>{result.courier.name}</dd></div><div><dt>{messages.service}</dt><dd>{result.courier.serviceName}</dd></div>{result.tracking ? <div className="wide"><dt>{messages.trackingNumber}</dt><dd><span>{result.tracking.waybillId}</span><button type="button" onClick={async () => { await navigator.clipboard.writeText(result.tracking!.waybillId); setCopied(true); }} aria-label={messages.copyTracking}>{copied ? messages.copied : messages.copy}</button></dd></div> : null}</dl>{result.tracking?.link ? <a className="text-link" href={result.tracking.link} target="_blank" rel="noreferrer">{messages.openCarrier}</a> : null}</section>
 						<section className="tracking-package-card"><h2>{messages.packageContents}</h2><ul>{result.items.map((item) => <li key={item.sku}><div><strong>{item.name}</strong><span>{[item.color, item.size, item.sku].filter(Boolean).join(" · ")}</span></div><div><span>{messages.quantity} {item.quantity}</span><strong>{formatPrice(item.unitPriceIdr * item.quantity, locale)}</strong></div></li>)}</ul></section>
 						<Link className="tracking-support" href={localizedPath(locale, "/help/contact")}><strong>{messages.needHelp}</strong><span>{messages.supportText}</span><b>{messages.contactSupport} →</b></Link>

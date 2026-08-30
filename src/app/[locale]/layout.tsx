@@ -3,6 +3,7 @@ import { Manrope, Plus_Jakarta_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
 import { AppProviders } from "@/components/app-providers";
 import { I18nProvider } from "@/components/i18n-provider";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { dictionary } from "@/lib/i18n";
@@ -62,11 +63,13 @@ export default async function RootLayout({ children, params }: Readonly<{ childr
 	const { locale: value } = await params;
 	const locale = parseLocale(value);
 	if (!locale) notFound();
+	const messages = dictionary(locale);
 	return (
 		<html lang={locale} data-scroll-behavior="smooth">
 			<body className={`${plusJakarta.variable} ${manrope.variable}`}>
-				<I18nProvider locale={locale}>
+				<I18nProvider locale={locale} messages={messages}>
 					<AppProviders>
+						<ScrollToTop />
 						<SiteHeader locale={locale} />
 						{children}
 						<SiteFooter locale={locale} />

@@ -3,43 +3,358 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { StructuredData } from "@/components/structured-data";
+import { SupportContactLinks } from "@/components/support-contact-links";
+import { dictionary } from "@/lib/i18n";
 import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
 import { absoluteUrl } from "@/lib/seo";
+import { getShippingReturnsContent, getSupportContent } from "@/lib/support";
 
-const documents = {
+type HelpSection = {
+	id?: string;
+	title: string;
+	body: string;
+	items?: readonly string[];
+	link?: { href: string; label: string };
+};
+
+type HelpFact = {
+	id?: string;
+	label: string;
+	value: string;
+};
+
+type HelpDocument = {
+	title: string;
+	intro: string;
+	sections: readonly HelpSection[];
+	facts?: readonly HelpFact[];
+};
+
+const documents: Record<string, { en: HelpDocument; id: HelpDocument }> = {
 	"shipping-returns": {
-		en: { title: "Shipping & returns", intro: "Clear delivery expectations before you place an order.", sections: [["Delivery", "Tracked Indonesian delivery options and prices are calculated from your postcode during checkout."], ["Dispatch", "In-stock merchandise is prepared after payment confirmation. Tracking details are sent to the checkout email address."], ["Returns", "Unused merchandise may be returned within 14 days of delivery in its original packaging. Contact support before returning an item so the return can be identified."]] },
-		id: { title: "Pengiriman & pengembalian", intro: "Informasi pengiriman yang jelas sebelum Anda memesan.", sections: [["Pengiriman", "Pilihan dan biaya pengiriman terlacak di Indonesia dihitung dari kode pos Anda saat checkout."], ["Persiapan", "Produk yang tersedia disiapkan setelah pembayaran terkonfirmasi. Detail pelacakan dikirim ke email checkout."], ["Pengembalian", "Produk yang belum digunakan dapat dikembalikan dalam 14 hari setelah diterima dengan kemasan asli. Hubungi dukungan sebelum mengirimkannya."]] },
+		en: {
+			title: "Shipping & returns",
+			intro: "How Valyde Jersey processes orders, delivers across Indonesia, and handles returns or exchanges.",
+			facts: [
+				{ label: "Delivery", value: "Tracked rates at checkout" },
+				{ label: "Return window", value: "3 calendar days" },
+				{ label: "Condition", value: "Unused, tagged, with unboxing video" },
+			],
+			sections: [
+				{
+					id: "products-prices",
+					title: "Products and prices",
+					body: "We aim to show products accurately, including photos, size, colour, materials, and other details. Colour on screen can still differ slightly from the item because of lighting, device, or display settings. Prices, stock, promotions, and discounts may change at any time.",
+				},
+				{
+					id: "orders-payment",
+					title: "Orders and payment",
+					body: "An order is processed after checkout is completed and payment is received in full. Available methods may include bank transfer, e-wallet, card, or other options shown at checkout. Valyde Jersey may cancel an order if payment is not completed within the stated time.",
+				},
+				{
+					id: "shipping",
+					title: "Shipping",
+					body: "Orders are sent with the courier or logistics partner available at checkout. Delivery estimates vary by destination, service, and the courier’s operating conditions. Live tracked rates are calculated from your Indonesian delivery address; the amount shown at checkout is the shipping fee you pay.",
+				},
+				{
+					id: "after-dispatch",
+					title: "After dispatch",
+					body: "Once the parcel is handed to the courier, the shipment is the courier’s responsibility. After it is marked delivered to the address you provided, later loss or damage is your responsibility, unless the courier’s policy or applicable law says otherwise. Tracking details are sent to your checkout email, and you can also follow the shipment from Track your order.",
+				},
+				{
+					id: "returns-exchanges",
+					title: "Returns and exchanges",
+					body: "A return or exchange request must be submitted within 3 calendar days of delivery. The item must meet all of the following:",
+					items: [
+						"It has not been washed or worn.",
+						"It is in the same condition as when it arrived.",
+						"Original labels or tags are still attached.",
+						"You include an unboxing video from when the parcel was first opened.",
+					],
+				},
+				{
+					id: "return-shipping",
+					title: "Return shipping",
+					body: "You cover shipping for a return or exchange, unless Valyde Jersey sent the wrong size, colour, or product, or the item has a defect that is our responsibility. Requests that do not meet these conditions may be declined.",
+				},
+				{
+					id: "how-to-request",
+					title: "How to request",
+					body: "Contact us on WhatsApp or email before sending anything back. Include your order ID, checkout email, the item, and your unboxing video so we can confirm the next step.",
+				},
+			],
+		},
+		id: {
+			title: "Pengiriman & pengembalian",
+			intro: "Cara Valyde Jersey memproses pesanan, mengirim ke seluruh Indonesia, dan menangani pengembalian atau penukaran.",
+			facts: [
+				{ label: "Pengiriman", value: "Tarif terlacak di checkout" },
+				{ label: "Batas pengembalian", value: "3 hari kalender" },
+				{ label: "Kondisi", value: "Belum digunakan, tag terpasang, dengan video unboxing" },
+			],
+			sections: [
+				{
+					id: "products-prices",
+					title: "Produk dan harga",
+					body: "Valyde Jersey berusaha menampilkan informasi produk secara akurat, termasuk foto, ukuran, warna, bahan, dan detail lainnya. Warna pada foto tetap dapat sedikit berbeda dari barang aslinya karena pencahayaan, perangkat, atau pengaturan layar. Harga, stok, promosi, dan diskon dapat berubah sewaktu-waktu.",
+				},
+				{
+					id: "orders-payment",
+					title: "Pemesanan dan pembayaran",
+					body: "Pesanan diproses setelah checkout selesai dan pembayaran diterima secara penuh. Metode yang tersedia dapat berupa transfer bank, e-wallet, kartu, atau opsi lain yang tampil di halaman checkout. Valyde Jersey berhak membatalkan pesanan jika pembayaran tidak diselesaikan dalam batas waktu yang ditentukan.",
+				},
+				{
+					id: "shipping",
+					title: "Pengiriman",
+					body: "Pesanan dikirim melalui ekspedisi atau mitra logistik yang tersedia saat pemesanan. Estimasi tiba dapat berbeda tergantung lokasi tujuan, layanan yang dipilih, dan kondisi operasional ekspedisi. Tarif terlacak dihitung dari alamat pengiriman di Indonesia; jumlah yang tampil di checkout adalah biaya kirim yang Anda bayar.",
+				},
+				{
+					id: "after-dispatch",
+					title: "Setelah paket dikirim",
+					body: "Setelah paket diserahkan kepada ekspedisi, proses pengiriman menjadi tanggung jawab pihak ekspedisi. Jika paket telah dinyatakan terkirim ke alamat yang Anda berikan, risiko kehilangan atau kerusakan setelah itu menjadi tanggung jawab pelanggan, kecuali ditentukan lain oleh kebijakan ekspedisi atau hukum yang berlaku. Detail pelacakan dikirim ke email checkout, dan kiriman juga dapat diikuti di Lacak pesanan.",
+				},
+				{
+					id: "returns-exchanges",
+					title: "Pengembalian dan penukaran",
+					body: "Permintaan pengembalian atau penukaran dapat diajukan paling lambat 3 hari kalender setelah produk diterima. Produk harus memenuhi seluruh ketentuan berikut:",
+					items: [
+						"Belum dicuci atau digunakan.",
+						"Kondisinya sama seperti saat diterima.",
+						"Label atau tag asli masih terpasang.",
+						"Anda menyertakan video unboxing saat paket pertama kali dibuka.",
+					],
+				},
+				{
+					id: "return-shipping",
+					title: "Biaya pengembalian",
+					body: "Biaya kirim untuk pengembalian atau penukaran ditanggung pelanggan, kecuali kesalahan ada di pihak Valyde Jersey, seperti salah ukuran, warna, atau produk, atau terdapat cacat yang menjadi tanggung jawab kami. Pengajuan yang tidak memenuhi ketentuan ini dapat ditolak.",
+				},
+				{
+					id: "how-to-request",
+					title: "Cara mengajukan",
+					body: "Hubungi kami melalui WhatsApp atau email sebelum mengirim barang kembali. Sertakan ID pesanan, email checkout, barang yang diajukan, dan video unboxing agar kami dapat mengonfirmasi langkah berikutnya.",
+				},
+			],
+		},
 	},
 	contact: {
-		en: { title: "Contact", intro: "We are here to help with products, delivery, and existing orders.", sections: [["Order support", "Include your order ID, checkout email, and a short description when requesting help."], ["Response time", "Support requests are reviewed during Indonesian business hours. Never send card numbers or payment credentials."], ["Start a request", "Email support@valyde.com with the subject ‘Order support’."]] },
-		id: { title: "Kontak", intro: "Kami siap membantu terkait produk, pengiriman, dan pesanan.", sections: [["Dukungan pesanan", "Sertakan ID pesanan, email checkout, dan penjelasan singkat saat meminta bantuan."], ["Waktu respons", "Permintaan ditinjau pada jam kerja Indonesia. Jangan pernah mengirim nomor kartu atau kredensial pembayaran."], ["Mulai permintaan", "Kirim email ke support@valyde.com dengan subjek ‘Dukungan pesanan’."]] },
+		en: { title: "Contact", intro: "We are here to help with products, delivery, and existing orders.", sections: [{ title: "Order support", body: "Include your order ID, checkout email, and a short description when requesting help." }, { title: "Response time", body: "Support requests are reviewed during Indonesian business hours. Never send card numbers or payment credentials." }, { id: "telephone", title: "Telephone", body: "Telephone support opens a WhatsApp chat at +62 851-2156-5774." }, { id: "email", title: "Email", body: "Email support@valydejersey.com with the subject ‘Order support’." }] },
+		id: { title: "Kontak", intro: "Kami siap membantu terkait produk, pengiriman, dan pesanan.", sections: [{ title: "Dukungan pesanan", body: "Sertakan ID pesanan, email checkout, dan penjelasan singkat saat meminta bantuan." }, { title: "Waktu respons", body: "Permintaan ditinjau pada jam kerja Indonesia. Jangan pernah mengirim nomor kartu atau kredensial pembayaran." }, { id: "telephone", title: "Telepon", body: "Dukungan telepon diarahkan ke percakapan WhatsApp di +62 851-2156-5774." }, { id: "email", title: "Email", body: "Kirim email ke support@valydejersey.com dengan subjek ‘Dukungan pesanan’." }] },
 	},
 	accessibility: {
-		en: { title: "Accessibility", intro: "Valyde Jersey is designed to support keyboard, screen-reader, zoom, and reduced-motion use.", sections: [["Using the site", "Interactive controls have visible keyboard focus and motion respects your system preference."], ["Need assistance?", "If something prevents you from browsing or checking out, contact support and name the page, device, and assistive technology involved."]] },
-		id: { title: "Aksesibilitas", intro: "Valyde Jersey dirancang untuk penggunaan keyboard, pembaca layar, zoom, dan pengurangan gerakan.", sections: [["Menggunakan situs", "Kontrol interaktif memiliki fokus keyboard yang terlihat dan gerakan mengikuti preferensi sistem Anda."], ["Butuh bantuan?", "Jika ada kendala saat berbelanja, hubungi dukungan dan sebutkan halaman, perangkat, serta teknologi bantu yang digunakan."]] },
+		en: { title: "Accessibility", intro: "Valyde Jersey is designed to support keyboard, screen-reader, zoom, and reduced-motion use.", sections: [{ title: "Using the site", body: "Interactive controls have visible keyboard focus and motion respects your system preference." }, { title: "Need assistance?", body: "If something prevents you from browsing or checking out, contact support and name the page, device, and assistive technology involved." }] },
+		id: { title: "Aksesibilitas", intro: "Valyde Jersey dirancang untuk penggunaan keyboard, pembaca layar, zoom, dan pengurangan gerakan.", sections: [{ title: "Menggunakan situs", body: "Kontrol interaktif memiliki fokus keyboard yang terlihat dan gerakan mengikuti preferensi sistem Anda." }, { title: "Butuh bantuan?", body: "Jika ada kendala saat berbelanja, hubungi dukungan dan sebutkan halaman, perangkat, serta teknologi bantu yang digunakan." }] },
 	},
 	privacy: {
-		en: { title: "Privacy policy", intro: "We collect only the information required to operate the storefront and fulfil orders.", sections: [["Information used", "Checkout details are used for payment, delivery, fraud prevention, and order communication."], ["Local storage", "Cart contents and language preference are stored in your browser so they survive a return visit."], ["Payments", "Payment information is handled by the connected payment provider and is not stored by this storefront."]] },
-		id: { title: "Kebijakan privasi", intro: "Kami hanya mengumpulkan informasi yang diperlukan untuk menjalankan toko dan memenuhi pesanan.", sections: [["Informasi yang digunakan", "Detail checkout digunakan untuk pembayaran, pengiriman, pencegahan penipuan, dan komunikasi pesanan."], ["Penyimpanan lokal", "Isi keranjang dan pilihan bahasa disimpan di browser agar tetap tersedia saat Anda kembali."], ["Pembayaran", "Informasi pembayaran diproses oleh penyedia pembayaran dan tidak disimpan oleh toko ini."]] },
+		en: { title: "Privacy policy", intro: "We collect only the information required to operate the storefront and fulfil orders.", sections: [{ title: "Information used", body: "Checkout details are used for payment, delivery, fraud prevention, and order communication." }, { title: "Local storage", body: "Cart contents and language preference are stored in your browser so they survive a return visit." }, { title: "Payments", body: "Payment information is handled by the connected payment provider and is not stored by this storefront." }] },
+		id: { title: "Kebijakan privasi", intro: "Kami hanya mengumpulkan informasi yang diperlukan untuk menjalankan toko dan memenuhi pesanan.", sections: [{ title: "Informasi yang digunakan", body: "Detail checkout digunakan untuk pembayaran, pengiriman, pencegahan penipuan, dan komunikasi pesanan." }, { title: "Penyimpanan lokal", body: "Isi keranjang dan pilihan bahasa disimpan di browser agar tetap tersedia saat Anda kembali." }, { title: "Pembayaran", body: "Informasi pembayaran diproses oleh penyedia pembayaran dan tidak disimpan oleh toko ini." }] },
 	},
 	terms: {
-		en: { title: "Terms of service", intro: "The terms that apply when browsing and ordering through Valyde Jersey.", sections: [["Catalog", "Prices, stock, and product information may change before an order is confirmed."], ["Orders", "An order is accepted after payment confirmation. Orders may be cancelled and refunded if stock or delivery becomes unavailable."], ["Fair use", "Do not interfere with the storefront, attempt unauthorized access, or misuse checkout and promotion systems."]] },
-		id: { title: "Ketentuan layanan", intro: "Ketentuan yang berlaku saat menjelajah dan memesan melalui Valyde Jersey.", sections: [["Katalog", "Harga, stok, dan informasi produk dapat berubah sebelum pesanan dikonfirmasi."], ["Pesanan", "Pesanan diterima setelah pembayaran terkonfirmasi. Pesanan dapat dibatalkan dan dikembalikan dananya jika stok atau pengiriman tidak tersedia."], ["Penggunaan wajar", "Jangan mengganggu toko, mencoba akses tanpa izin, atau menyalahgunakan checkout dan sistem promosi."]] },
+		en: {
+			title: "Terms and conditions",
+			intro: "By using this site you confirm that you have read, understood, and agreed to these terms.",
+			sections: [
+				{
+					title: "General",
+					body: "Welcome to Valyde Jersey. Users must be at least 17 years old, or use this site with the guidance and consent of a parent or guardian.",
+				},
+				{
+					title: "Products and prices",
+					body: "Valyde Jersey aims to present products accurately, including photos, size, colour, materials, and other details. Colour on screen can still differ slightly from the item because of lighting, device, or display settings. Prices, stock, promotions, and discounts may change at any time.",
+				},
+				{
+					title: "Orders and payment",
+					body: "Orders are processed after checkout is completed and payment is received in full. Payment methods may include bank transfer, e-wallet, card, or other options shown at checkout. Valyde Jersey may cancel an order if payment is not completed within the stated time.",
+				},
+				{
+					id: "shipping-returns-policy",
+					title: "Shipping & returns",
+					body: "Shipping, delivery, returns, and exchanges are governed by our published policy.",
+					link: { href: "/help/shipping-returns", label: "Read the Shipping & Returns policy" },
+				},
+				{
+					title: "Intellectual property",
+					body: "All content on the Valyde Jersey site, including but not limited to the logo, store name, product photos, text, design, graphics, and other materials, is owned by Valyde Jersey or used with permission. Copying, reproducing, distributing, modifying, or reusing any part of this content without written permission from Valyde Jersey is not allowed and may be pursued under applicable law.",
+				},
+			],
+		},
+		id: {
+			title: "Syarat dan ketentuan",
+			intro: "Dengan mengakses dan menggunakan situs ini, Anda dianggap telah membaca, memahami, dan menyetujui seluruh syarat dan ketentuan yang berlaku.",
+			sections: [
+				{
+					title: "Ketentuan umum",
+					body: "Selamat datang di Valyde Jersey. Pengguna situs wajib berusia minimal 17 tahun, atau menggunakan situs ini dengan pendampingan dan persetujuan orang tua atau wali.",
+				},
+				{
+					title: "Produk dan harga",
+					body: "Valyde Jersey berusaha menampilkan informasi produk secara akurat, termasuk foto, ukuran, warna, bahan, dan detail lainnya. Warna pada foto tetap dapat sedikit berbeda dari barang aslinya karena pencahayaan, perangkat, atau pengaturan layar. Harga, stok, promosi, dan diskon dapat berubah sewaktu-waktu.",
+				},
+				{
+					title: "Pemesanan dan pembayaran",
+					body: "Pesanan diproses setelah checkout selesai dan pembayaran diterima secara penuh. Metode pembayaran dapat berupa transfer bank, e-wallet, kartu, atau opsi lain yang tersedia di halaman checkout. Valyde Jersey berhak membatalkan pesanan jika pembayaran tidak diselesaikan dalam batas waktu yang ditentukan.",
+				},
+				{
+					id: "shipping-returns-policy",
+					title: "Pengiriman & pengembalian",
+					body: "Pengiriman, penerimaan paket, pengembalian, dan penukaran mengikuti kebijakan yang kami publikasikan.",
+					link: { href: "/help/shipping-returns", label: "Baca kebijakan Pengiriman & Pengembalian" },
+				},
+				{
+					title: "Hak kekayaan intelektual",
+					body: "Seluruh konten pada situs Valyde Jersey, termasuk namun tidak terbatas pada logo, nama toko, foto produk, teks, desain, grafis, dan materi lainnya, merupakan hak milik Valyde Jersey atau digunakan secara sah oleh kami. Dilarang menyalin, menggandakan, mendistribusikan, memodifikasi, atau menggunakan kembali sebagian maupun seluruh konten tanpa izin tertulis dari Valyde Jersey. Penggunaan konten tanpa izin dapat ditindak sesuai ketentuan hukum yang berlaku.",
+				},
+			],
+		},
 	},
-} as const;
+};
 
 type HelpSlug = keyof typeof documents;
-export function generateStaticParams() { return Object.keys(documents).map((slug) => ({ slug })); }
-export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> { const { locale: value, slug } = await params; const locale = parseLocale(value); if (!locale) return {}; const document = documents[slug as HelpSlug]?.[locale]; const basePath = `/help/${slug}`; return document ? { title: document.title, description: document.intro, alternates: { canonical: localizedPath(locale, basePath), ...localeAlternates(basePath) } } : {}; }
+
+async function resolveDocument(slug: string, locale: "en" | "id"): Promise<HelpDocument | undefined> {
+	const fallback = documents[slug as HelpSlug]?.[locale];
+	if (!fallback) return undefined;
+	if (slug === "shipping-returns") {
+		const managed = await getShippingReturnsContent(locale);
+		if (!managed) return fallback;
+		return {
+			title: managed.title,
+			intro: managed.intro,
+			facts: managed.facts.map(({ id, label, value }) => ({ id, label, value })),
+			sections: managed.sections.map(({ id, title, body, items }) => ({
+				id,
+				title,
+				body,
+				items: items.map(({ text }) => text),
+			})),
+		};
+	}
+	if (slug === "contact") {
+		const support = await getSupportContent();
+		return {
+			...fallback,
+			sections: fallback.sections.map((section) => ({
+				...section,
+				body: section.id === "telephone"
+					? locale === "id"
+						? `Dukungan telepon diarahkan ke percakapan WhatsApp di ${support.whatsappDisplay}.`
+						: `Telephone support opens a WhatsApp chat at ${support.whatsappDisplay}.`
+					: section.id === "email"
+						? locale === "id"
+							? `Kirim email ke ${support.email} dengan subjek ‘Dukungan pesanan’.`
+							: `Email ${support.email} with the subject ‘Order support’.`
+						: section.body,
+			})),
+		};
+	}
+	return fallback;
+}
+
+export function generateStaticParams() {
+	return Object.keys(documents).map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+	const { locale: value, slug } = await params;
+	const locale = parseLocale(value);
+	if (!locale) return {};
+	const document = await resolveDocument(slug, locale);
+	const basePath = `/help/${slug}`;
+	return document ? { title: document.title, description: document.intro, alternates: { canonical: localizedPath(locale, basePath), ...localeAlternates(basePath) } } : {};
+}
 
 export default async function HelpPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
 	const { locale: value, slug } = await params;
 	const locale = parseLocale(value);
 	if (!locale) notFound();
-	const document = documents[slug as HelpSlug]?.[locale];
+	const document = await resolveDocument(slug, locale);
 	if (!document) notFound();
+	const support = await getSupportContent();
+	const messages = dictionary(locale);
 	const homePath = localizedPath(locale);
 	const helpPath = localizedPath(locale, `/help/${slug}`);
-	return <main className="page-shell help-page"><StructuredData data={{ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Valyde Jersey", item: absoluteUrl(homePath) }, { "@type": "ListItem", position: 2, name: document.title, item: absoluteUrl(helpPath) }] }} /><nav className="breadcrumbs" aria-label="Breadcrumb"><Link href={homePath}>Valyde Jersey</Link><span>/</span><strong>{document.title}</strong></nav><header><h1>{document.title}</h1><p>{document.intro}</p></header><div className="help-content">{document.sections.map(([title, body]) => <section key={title}><h2>{title}</h2><p>{body}</p>{slug === "contact" && title === (locale === "id" ? "Mulai permintaan" : "Start a request") ? <a className="text-link" href="mailto:support@valydejersey.com">support@valydejersey.com</a> : null}</section>)}</div></main>;
+	const isShippingReturns = slug === "shipping-returns";
+	const contentsTitle = locale === "id" ? "Di halaman ini" : "On this page";
+	const factsTitle = locale === "id" ? "Ringkasan" : "At a glance";
+	const content = (
+		<div className={`help-content${isShippingReturns ? " shipping-returns-content" : ""}`}>
+			{document.sections.map((section) => {
+				const headingId = section.id ? `${section.id}-title` : undefined;
+				const isRequestSection = isShippingReturns && section.id === "how-to-request";
+				return (
+					<section className={isRequestSection ? "shipping-request-section" : undefined} id={section.id} aria-labelledby={headingId} key={section.title}>
+						<h2 id={headingId}>{section.title}</h2>
+						<p>{section.body}</p>
+						{section.items ? (
+							<ul>
+								{section.items.map((item) => <li key={item}>{item}</li>)}
+							</ul>
+						) : null}
+						{section.link ? <Link className="text-link" href={localizedPath(locale, section.link.href)}>{section.link.label}</Link> : null}
+						{slug === "contact" && section.id === "telephone" ? <a className="text-link" href={support.whatsappUrl} target="_blank" rel="noreferrer">{support.whatsappDisplay}</a> : null}
+						{slug === "contact" && section.id === "email" ? <a className="text-link" href={support.mailtoUrl}>{support.email}</a> : null}
+						{isRequestSection ? (
+							<SupportContactLinks whatsappLabel={messages.footer.whatsapp} emailLabel={messages.footer.email} />
+						) : null}
+					</section>
+				);
+			})}
+		</div>
+	);
+
+	return (
+		<main className={`page-shell help-page${isShippingReturns ? " shipping-returns-page" : ""}`}>
+			<StructuredData data={{
+				"@context": "https://schema.org",
+				"@type": "BreadcrumbList",
+				itemListElement: [
+					{ "@type": "ListItem", position: 1, name: "Valyde Jersey", item: absoluteUrl(homePath) },
+					{ "@type": "ListItem", position: 2, name: document.title, item: absoluteUrl(helpPath) },
+				],
+			}} />
+			<nav className="breadcrumbs" aria-label="Breadcrumb">
+				<Link href={homePath}>Valyde Jersey</Link><span>/</span><strong>{document.title}</strong>
+			</nav>
+			{isShippingReturns ? (
+				<>
+					<header className="shipping-returns-hero">
+						<h1>{document.title}</h1>
+						<p>{document.intro}</p>
+					</header>
+					{document.facts ? (
+						<section className="shipping-facts" aria-labelledby="shipping-facts-title">
+							<h2 className="sr-only" id="shipping-facts-title">{factsTitle}</h2>
+							<div className="shipping-facts-grid">
+								{document.facts.map((fact) => (
+									<div className="shipping-fact" key={fact.id ?? fact.label}>
+										<p className="shipping-fact-label">{fact.label}</p>
+										<p className="shipping-fact-value">{fact.value}</p>
+									</div>
+								))}
+							</div>
+						</section>
+					) : null}
+					<div className="shipping-returns-layout">
+						<aside className="shipping-contents">
+							<p className="shipping-contents-title">{contentsTitle}</p>
+							<nav aria-label={contentsTitle}>
+								<ul>
+									{document.sections.map((section) => section.id ? <li key={section.id}><a href={`#${section.id}`}>{section.title}</a></li> : null)}
+								</ul>
+							</nav>
+						</aside>
+						{content}
+					</div>
+				</>
+			) : (
+				<>
+					<header>
+						<h1>{document.title}</h1>
+						<p>{document.intro}</p>
+					</header>
+					{content}
+				</>
+			)}
+		</main>
+	);
 }

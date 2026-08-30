@@ -13,7 +13,7 @@ const merchandiseLinks = [
 	{ slug: "mclaren", name: { en: "McLaren", id: "McLaren" } },
 	{ slug: "red-bull-racing", name: { en: "Red Bull Racing", id: "Red Bull Racing" } },
 	{ slug: "ferrari", name: { en: "Ferrari", id: "Ferrari" } },
-	{ slug: "mercedes-amg", name: { en: "Mercedes-AMG", id: "Mercedes-AMG" } },
+	{ slug: "mercedes", name: { en: "Mercedes-AMG", id: "Mercedes-AMG" } },
 ] as const;
 
 export function generateStaticParams() {

@@ -7,17 +7,20 @@ const ProductSelectionContext = createContext<{
 	activePhoto: number;
 	setActivePhoto: (index: number) => void;
 	selectColor: (color: string | null) => void;
-}>({ activePhoto: 0, setActivePhoto: () => {}, selectColor: () => {} });
+	selectedStock: number;
+	setSelectedStock: (stock: number) => void;
+}>({ activePhoto: 0, setActivePhoto: () => {}, selectColor: () => {}, selectedStock: 0, setSelectedStock: () => {} });
 
-export function ProductSelection({ children, photos }: { children: ReactNode; photos: ProductPhoto[] }) {
+export function ProductSelection({ children, photos, initialStockQuantity = 0 }: { children: ReactNode; photos: ProductPhoto[]; initialStockQuantity?: number }) {
 	const [activePhoto, setActivePhoto] = useState(0);
+	const [selectedStock, setSelectedStock] = useState(initialStockQuantity);
 
 	function selectColor(color: string | null) {
 		const index = photos.findIndex((photo) => photo.color === color);
 		if (index >= 0) setActivePhoto(index);
 	}
 
-	return <ProductSelectionContext value={{ activePhoto, setActivePhoto, selectColor }}>{children}</ProductSelectionContext>;
+	return <ProductSelectionContext value={{ activePhoto, setActivePhoto, selectColor, selectedStock, setSelectedStock }}>{children}</ProductSelectionContext>;
 }
 
 export const useProductSelection = () => useContext(ProductSelectionContext);

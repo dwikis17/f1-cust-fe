@@ -18,7 +18,7 @@ type ProductPageProps = {
 
 export const dynamic = "force-static";
 export const dynamicParams = true;
-export const revalidate = 300;
+export const revalidate = 600;
 export function generateStaticParams() { return []; }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
@@ -65,6 +65,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
 	const currentCollectionPath = currentCollection ? localizedPath(locale, `/collections/${currentCollection.slug}`) : collectionsPath;
 	const productUrl = absoluteUrl(localizedPath(locale, `/products/${product.slug}`));
 	const available = product.variants.some((variant) => variant.available);
+	const originalPrice = product.originalPriceIdr;
+	const onSale = product.salePercentage !== null;
 
 	return (
 		<main className="page-shell product-page">
@@ -106,27 +108,45 @@ export default async function ProductPage({ params }: ProductPageProps) {
 				},
 			]} />
 			<nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href={homePath}>{messages.collections.homepage}</Link><span>/</span><Link href={currentCollectionPath}>{currentCollection?.name ?? messages.collections.title}</Link><span>/</span><strong>{product.name}</strong></nav>
-			<ProductSelection photos={product.photos}>
+			<ProductSelection photos={product.photos} initialStockQuantity={product.variants.find((variant) => variant.available)?.stockQuantity ?? 0}>
 				<section className="product-top">
 					<ProductGallery photos={product.photos} />
 					<div className="product-info">
 						<p className="eyebrow">{product.team?.name ?? product.productType.name}{product.drivers.length ? ` / ${product.drivers.map((driver) => driver.name).join(" + ")}` : ""}</p>
 						<h1>{product.name}</h1>
-						<p className="product-price">{formatPrice(product.priceIdr, locale)}</p>
+						<div className="product-price">
+							{onSale ? (
+								<span className="product-detail-sale-badge" aria-label={`-${product.salePercentage}%`}>
+									-{product.salePercentage}%
+								</span>
+							) : null}
+							{originalPrice !== null ? (
+								<p className="product-price-values">
+									<ins>{formatPrice(product.priceIdr, locale)}</ins>
+									<del>{formatPrice(originalPrice, locale)}</del>
+								</p>
+							) : (
+								<p className="product-price-values">{formatPrice(product.priceIdr, locale)}</p>
+							)}
+						</div>
 						{product.condition ? <p className="product-condition"><span>{messages.product.condition}</span><strong>{messages.conditions[product.condition].label}</strong></p> : null}
-						<SizingGuide variants={product.variants} note={product.sizingNote} />
+						{product.tags.length ? <div className="product-detail-tags" aria-label="Product tags">{product.tags.map((tag) => <span className="tag-pill" key={tag.id}>{tag.name}</span>)}</div> : null}
 						<div className="product-promises"><span><VerifiedIcon /> {messages.product.officialMerchandise}</span><span><CubeIcon /> {messages.product.liveShippingRates}</span></div>
 						<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />
-						<details><summary>{messages.product.productDetails}</summary><p>{product.description}</p></details>
+						<SizingGuide variants={product.variants} note={product.sizingNote} />
+						<details>
+							<summary>{messages.product.productDetails}</summary>
+							<p>{product.description}</p>
+							{product.bulletPoints.length ? (
+								<ul className="product-detail-bullets">
+									{product.bulletPoints.map((point, index) => <li key={`${index}-${point}`}>{point}</li>)}
+								</ul>
+							) : null}
+						</details>
 						<details><summary>{messages.product.deliveryReturns}</summary><p>{messages.product.deliveryReturnsText} <Link className="inline-link" href={localizedPath(locale, "/help/shipping-returns")}>{messages.footer.shippingReturns} →</Link></p></details>
 					</div>
 				</section>
 			</ProductSelection>
-
-			<section className="commentary-block">
-				<div><span>{messages.product.paddockCommentary}</span><strong>{messages.product.designerPerspective}</strong></div>
-				<article><p>{messages.product.commentaryOne}</p><p>{messages.product.commentaryTwo}</p><blockquote>{messages.product.quote}</blockquote></article>
-			</section>
 		</main>
 	);
 }

@@ -1,4 +1,4 @@
-import type { PublicProduct } from "./catalog";
+import type { PublicProductCard } from "./catalog";
 
 export type PublicHomeHero = {
 	id: string;
@@ -14,12 +14,20 @@ export type PublicHomeHero = {
 
 export type PublicHomeCollectionBlock = {
 	id: string;
-	leadImageUrl: string;
-	sideImageOneUrl: string;
-	sideImageTwoUrl: string;
+	leadImageUrl: string | null;
+	sideImageOneUrl: string | null;
+	sideImageTwoUrl: string | null;
 	collection: { name: string; slug: string; description: string };
-	products: PublicProduct[];
+	products: PublicProductCard[];
 };
+
+export function splitHomeCollectionBlocks(blocks: PublicHomeCollectionBlock[]) {
+	const newArrival = blocks.find(({ collection }) => collection.slug === "new-arrival") ?? null;
+	return {
+		newArrival,
+		remaining: blocks.filter(({ collection }) => collection.slug !== "new-arrival"),
+	};
+}
 
 export type ResolvedHomeHero = Omit<PublicHomeHero, "collection"> & {
 	managed: boolean;

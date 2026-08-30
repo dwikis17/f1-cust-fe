@@ -3,14 +3,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { HomeCarousel } from "@/components/home-carousel";
 import { HomeCollectionBlock } from "@/components/home-collection-block";
-import { ArrowRightIcon, RouteIcon, ShieldIcon, TruckIcon, VerifiedIcon } from "@/components/icons";
-import { ProductCard } from "@/components/product-card";
+import { RouteIcon, ShieldIcon, TruckIcon, VerifiedIcon } from "@/components/icons";
 import { StructuredData } from "@/components/structured-data";
 import { catalog } from "@/lib/catalog";
-import { resolveHomeHeroes } from "@/lib/home";
+import { resolveHomeHeroes, splitHomeCollectionBlocks } from "@/lib/home";
 import { dictionary } from "@/lib/i18n";
 import { localeAlternates, localizedPath, parseLocale } from "@/lib/locale";
 import { absoluteUrl, siteName } from "@/lib/seo";
+import { getSupportContent } from "@/lib/support";
+
+export const revalidate = 300;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
 	const locale = parseLocale((await params).locale);
@@ -24,13 +26,13 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 	if (!locale) return null;
 	const messages = dictionary(locale);
 	const homePath = localizedPath(locale);
-	const collectionsPath = localizedPath(locale, "/collections");
-	const [{ data: products }, collectionTree, managedHeroes, collectionBlocks] = await Promise.all([
-		catalog.listProducts({ limit: 4 }, locale),
+	const [collectionTree, managedHeroes, collectionBlocks, support] = await Promise.all([
 		catalog.listCollections(locale),
 		catalog.getHomeHeroes(locale),
 		catalog.getHomeCollectionBlocks(locale),
+		getSupportContent(),
 	]);
+	const { newArrival, remaining: remainingCollectionBlocks } = splitHomeCollectionBlocks(collectionBlocks);
 	const teams = collectionTree.flatMap((parent) => parent.children).filter((collection) => collection.kind === "TEAM");
 	const heroes = resolveHomeHeroes(managedHeroes, {
 		id: "fallback",
@@ -60,7 +62,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 						"@id": `${absoluteUrl(homePath)}#organization`,
 						name: siteName,
 						url: absoluteUrl(homePath),
-						email: "support@valyde.com",
+						email: support.email,
+						telephone: `+${support.whatsappNumber}`,
 						description: messages.metadata.description,
 					},
 					{
@@ -102,18 +105,14 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 			</section>
 
 			<section className="team-strip" aria-label={messages.home.teamsLabel}>
-				{teams.map((team) => <Link href={localizedPath(locale, `/collections/${team.slug}`)} aria-label={team.name} key={team.id}>{team.imageUrl ? <Image src={team.imageUrl} alt={team.name} fill sizes="(max-width: 640px) 104px, 12vw" /> : <span>{team.name}</span>}</Link>)}
-			</section>
-
-			<section className="section selected-products">
-				<div className="section-heading">
-					<div><p className="eyebrow">{messages.home.selectedWorks}</p><h2>{messages.home.precisionGear}</h2></div>
-					<Link className="text-link" href={collectionsPath}>{messages.home.exploreShop} <ArrowRightIcon /></Link>
+				<div className="team-strip-track">
+					{teams.map((team) => <Link href={localizedPath(locale, `/collections/${team.slug}`)} aria-label={team.name} key={team.id}>{team.imageUrl ? <Image src={team.imageUrl} alt={team.name} fill sizes="(max-width: 640px) 104px, 160px" /> : <span>{team.name}</span>}</Link>)}
 				</div>
-				<div className="home-product-grid">{products.slice(0, 4).map((product, index) => <ProductCard product={product} locale={locale} key={product.id} priority={index < 2} />)}</div>
 			</section>
 
-			{collectionBlocks.map((block) => <HomeCollectionBlock block={block} locale={locale} key={block.id} />)}
+			{newArrival ? <HomeCollectionBlock block={newArrival} locale={locale} /> : null}
+
+			{remainingCollectionBlocks.map((block) => <HomeCollectionBlock block={block} locale={locale} key={block.id} />)}
 		</main>
 	);
 }

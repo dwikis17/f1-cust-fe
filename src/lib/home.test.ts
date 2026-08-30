@@ -4,6 +4,7 @@ import {
 	nextSlideIndex,
 	resolveHomeHeroes,
 	shouldAutoplay,
+	splitHomeCollectionBlocks,
 	type ResolvedHomeHero,
 } from "./home.ts";
 
@@ -19,6 +20,15 @@ const fallback: Omit<ResolvedHomeHero, "managed"> = {
 	imageAlt: "Race cars",
 	ctaPath: "/collections",
 };
+
+const block = (slug: string) => ({
+	id: slug,
+	leadImageUrl: `/${slug}-lead.webp`,
+	sideImageOneUrl: `/${slug}-side-one.webp`,
+	sideImageTwoUrl: `/${slug}-side-two.webp`,
+	collection: { name: slug, slug, description: "" },
+	products: [],
+});
 
 test("home campaigns use ordered managed content and preserve the complete static fallback", () => {
 	assert.deepEqual(resolveHomeHeroes([], fallback), [{ ...fallback, managed: false }]);
@@ -56,4 +66,16 @@ test("carousel navigation wraps and autoplay respects interaction and motion pre
 	assert.equal(shouldAutoplay(2, true, false, true), false);
 	assert.equal(shouldAutoplay(2, false, true, true), false);
 	assert.equal(shouldAutoplay(2, false, false, false), false);
+});
+
+test("home collection blocks reserve New Arrival without changing other block order", () => {
+	const blocks = [block("ferrari"), block("new-arrival"), block("mclaren")];
+	const split = splitHomeCollectionBlocks(blocks);
+
+	assert.equal(split.newArrival?.collection.slug, "new-arrival");
+	assert.deepEqual(split.remaining.map(({ collection }) => collection.slug), ["ferrari", "mclaren"]);
+
+	const unchanged = splitHomeCollectionBlocks([block("ferrari"), block("mclaren")]);
+	assert.equal(unchanged.newArrival, null);
+	assert.deepEqual(unchanged.remaining.map(({ collection }) => collection.slug), ["ferrari", "mclaren"]);
 });

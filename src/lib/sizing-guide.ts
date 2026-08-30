@@ -15,8 +15,6 @@ export type SizingRow = {
 	waistWidth: number;
 };
 
-const sizeOrder = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "2XL", "XXXL", "3XL", "4XL"];
-
 export function buildSizingRows(variants: GuideVariant[]): SizingRow[] {
 	const seen = new Set<string>();
 	const rows: SizingRow[] = [];
@@ -31,13 +29,5 @@ export function buildSizingRows(variants: GuideVariant[]): SizingRow[] {
 		seen.add(variant.size);
 		rows.push({ size: variant.size, unit, length: Number(length), chestWidth: Number(chestWidth), waistWidth: Number(waistWidth) });
 	}
-
-	return rows.sort((a, b) => {
-		const aRank = sizeOrder.indexOf(a.size.trim().toUpperCase());
-		const bRank = sizeOrder.indexOf(b.size.trim().toUpperCase());
-		if (aRank === -1 && bRank === -1) return 0;
-		if (aRank === -1) return 1;
-		if (bRank === -1) return -1;
-		return aRank - bRank;
-	});
+	return rows;
 }

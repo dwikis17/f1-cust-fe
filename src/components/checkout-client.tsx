@@ -24,6 +24,11 @@ type ShippingRate = {
 	duration: string;
 	serviceType: string;
 	currency: string;
+	originalPrice: number;
+	shippingDiscountIdr: number;
+	insuranceAvailable: boolean;
+	insuranceFeeIdr: number;
+	insuranceValueIdr: number;
 	price: number;
 };
 type ShippingDetails = {
@@ -36,7 +41,7 @@ type ShippingDetails = {
 	postalCode: string;
 	phone: string;
 };
-type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }>; turnstileToken: string };
+type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }>; promoCode?: string; turnstileToken?: string };
 type PromoPreview = {
 	code: string;
 	discountPercentage: number;
@@ -51,7 +56,11 @@ type CheckoutResponse = {
 	paymentStatus: string;
 	subtotalIdr: number;
 	discountIdr: number;
+	shippingOriginalIdr: number;
+	shippingDiscountIdr: number;
 	shippingIdr: number;
+	insuranceValueIdr: number;
+	insuranceFeeIdr: number;
 	totalIdr: number;
 	promoCode: string | null;
 };
@@ -64,6 +73,7 @@ declare global {
 
 const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
 const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const turnstileEnabled = Boolean(turnstileSiteKey);
 const midtransSnapUrl = String(process.env.NEXT_PUBLIC_MIDTRANS_ENV) === "production"
 	? "https://app.midtrans.com/snap/snap.js"
 	: "https://app.sandbox.midtrans.com/snap/snap.js";
@@ -94,9 +104,10 @@ export function CheckoutClient() {
 	const cartKey = lines.map((line) => `${line.variantId}:${line.quantity}`).join("|");
 	const appliedPromo = appliedPromoState?.cartKey === cartKey ? appliedPromoState.promo : null;
 	const subtotal = cartSubtotal(lines);
+	const turnstileVerified = !turnstileEnabled || Boolean(turnstileToken);
 	const shippingMutation = useMutation({
 		mutationFn: (request: ShippingRequest) => queryClient.fetchQuery({
-			queryKey: ["shipping-rates", request.destinationPostalCode, request.items],
+		queryKey: ["shipping-rates", request.destinationPostalCode, request.items, request.promoCode ?? ""],
 			queryFn: async () => {
 				const response = await fetch("/api/shipping/rates", {
 					method: "POST",
@@ -152,11 +163,14 @@ export function CheckoutClient() {
 		onSuccess: (promo) => {
 			setAppliedPromoState({ cartKey, promo });
 			setPromoInput(promo.code);
+			setSelectedRateKey("");
+			shippingMutation.reset();
+			setStep("shipping");
 		},
 	});
 	const checkoutMutation = useMutation({
 		mutationFn: async () => {
-			if (!selectedRate || !idempotencyKey || !turnstileToken) throw new Error(messages.checkout.humanVerificationFailed);
+			if (!selectedRate || !idempotencyKey || !turnstileVerified) throw new Error(messages.checkout.humanVerificationFailed);
 			const response = await fetch("/api/checkout", {
 				method: "POST",
 				headers: { "content-type": "application/json" },
@@ -166,7 +180,8 @@ export function CheckoutClient() {
 					items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })),
 					courierCode: selectedRate.courierCode,
 					serviceCode: selectedRate.serviceCode,
-					turnstileToken,
+					quotedShippingIdr: selectedRate.price,
+					...(turnstileToken ? { turnstileToken } : {}),
 					...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
 				}),
 			});
@@ -205,8 +220,8 @@ export function CheckoutClient() {
 
 	function checkShipping(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		if (!turnstileToken) {
-			setTurnstileError(turnstileSiteKey ? messages.checkout.humanVerificationFailed : messages.checkout.humanVerificationUnavailable);
+		if (!turnstileVerified) {
+			setTurnstileError(messages.checkout.humanVerificationFailed);
 			return;
 		}
 		setTurnstileError("");
@@ -215,7 +230,8 @@ export function CheckoutClient() {
 		shippingMutation.mutate({
 			destinationPostalCode: details.postalCode,
 			items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })),
-			turnstileToken,
+			...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
+			...(turnstileToken ? { turnstileToken } : {}),
 		});
 	}
 
@@ -237,12 +253,12 @@ export function CheckoutClient() {
 			openSnap(checkoutMutation.data);
 			return;
 		}
-		if (!selectedRate || !idempotencyKey || !turnstileToken) return;
+		if (!selectedRate || !idempotencyKey || !turnstileVerified) return;
 		setPaymentError("");
 		checkoutMutation.mutate();
 	}
 
-	if (!ready || catalogLoading) return <main className="page-shell checkout-page"><div className="checkout-empty"><p className="eyebrow">{messages.checkout.loading}</p></div></main>;
+	if (!ready || catalogLoading) return <CheckoutSkeleton label={messages.checkout.loading} />;
 	if (catalogError) return <main className="page-shell checkout-page"><div className="checkout-empty"><h1>{messages.cart.loadFailed}</h1><button className="button button-dark" type="button" onClick={retryCatalog}>{messages.cart.retry}</button></div></main>;
 	if (!lines.length) return <main className="page-shell checkout-page"><div className="checkout-empty"><p className="eyebrow">{messages.checkout.checkout}</p><h1>{messages.checkout.emptyTitle}</h1><p>{messages.checkout.emptyText}</p><Link className="button button-dark" href={localizedPath(locale, "/cart")}>{messages.checkout.returnCart}</Link></div></main>;
 
@@ -274,10 +290,10 @@ export function CheckoutClient() {
 							setTurnstileResetKey((value) => value + 1);
 							setStep("review");
 						}}
-						turnstileVerified={Boolean(turnstileToken)}
+						turnstileVerified={turnstileVerified}
 						turnstileSiteKey={turnstileSiteKey}
 						turnstileResetKey={turnstileResetKey}
-						turnstileError={turnstileSiteKey ? turnstileError : messages.checkout.humanVerificationUnavailable}
+						turnstileError={turnstileEnabled ? turnstileError : ""}
 						onTurnstileToken={(token) => {
 							setTurnstileToken(token);
 							if (token) setTurnstileError("");
@@ -298,12 +314,12 @@ export function CheckoutClient() {
 						locked={Boolean(checkoutMutation.data)}
 						startPayment={startPayment}
 						paymentLoading={checkoutMutation.isPending}
-						paymentReady={snapReady && Boolean(midtransClientKey) && Boolean(turnstileSiteKey) && Boolean(turnstileToken)}
+						paymentReady={snapReady && Boolean(midtransClientKey) && turnstileVerified}
 						paymentError={paymentError}
-						turnstileVerified={Boolean(turnstileToken)}
+						turnstileVerified={turnstileVerified}
 						turnstileSiteKey={turnstileSiteKey}
 						turnstileResetKey={turnstileResetKey}
-						turnstileError={turnstileSiteKey ? turnstileError : messages.checkout.humanVerificationUnavailable}
+						turnstileError={turnstileEnabled ? turnstileError : ""}
 						onTurnstileToken={(token) => {
 							setTurnstileToken(token);
 							if (token) setTurnstileError("");
@@ -327,6 +343,9 @@ export function CheckoutClient() {
 						setAppliedPromoState(null);
 						setPromoInput("");
 						promoMutation.reset();
+						setSelectedRateKey("");
+						shippingMutation.reset();
+						setStep("shipping");
 					}}
 					promoLoading={promoMutation.isPending}
 					promoError={promoMutation.error instanceof Error ? promoMutation.error.message : ""}
@@ -334,6 +353,62 @@ export function CheckoutClient() {
 					messages={messages.checkout}
 					locale={locale}
 				/>
+			</div>
+		</main>
+	);
+}
+
+function CheckoutSkeleton({ label }: { label: string }) {
+	return (
+		<main className="page-shell checkout-page" aria-busy="true">
+			<div className="checkout-skeleton" role="status" aria-live="polite">
+				<span className="sr-only">{label}</span>
+				<div className="checkout-skeleton-steps" aria-hidden="true">
+					<span className="checkout-skeleton-step"><span className="checkout-skeleton-block checkout-skeleton-step-index" /><span className="checkout-skeleton-block checkout-skeleton-step-label" /></span>
+					<span className="checkout-skeleton-step"><span className="checkout-skeleton-block checkout-skeleton-step-index" /><span className="checkout-skeleton-block checkout-skeleton-step-label checkout-skeleton-step-label-short" /></span>
+				</div>
+				<div className="checkout-layout">
+					<section className="checkout-main" aria-hidden="true">
+						<div className="checkout-skeleton-heading">
+							<span className="checkout-skeleton-block checkout-skeleton-kicker" />
+							<span className="checkout-skeleton-block checkout-skeleton-heading-title" />
+							<span className="checkout-skeleton-block checkout-skeleton-heading-copy" />
+						</div>
+						<div className="checkout-skeleton-fieldset">
+							<span className="checkout-skeleton-block checkout-skeleton-legend" />
+							<div className="checkout-skeleton-field checkout-skeleton-field-full"><span className="checkout-skeleton-block checkout-skeleton-label" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+							<span className="checkout-skeleton-block checkout-skeleton-hint" />
+						</div>
+						<div className="checkout-skeleton-fieldset">
+							<span className="checkout-skeleton-block checkout-skeleton-legend checkout-skeleton-legend-short" />
+							<div className="checkout-skeleton-delivery"><span className="checkout-skeleton-block checkout-skeleton-radio" /><span className="checkout-skeleton-block checkout-skeleton-delivery-copy" /></div>
+						</div>
+						<div className="checkout-skeleton-fieldset">
+							<span className="checkout-skeleton-block checkout-skeleton-legend checkout-skeleton-legend-medium" />
+							<div className="checkout-skeleton-fields">
+								<div className="checkout-skeleton-field"><span className="checkout-skeleton-block checkout-skeleton-label" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field"><span className="checkout-skeleton-block checkout-skeleton-label checkout-skeleton-label-short" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field checkout-skeleton-field-full"><span className="checkout-skeleton-block checkout-skeleton-label checkout-skeleton-label-wide" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field"><span className="checkout-skeleton-block checkout-skeleton-label checkout-skeleton-label-short" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field"><span className="checkout-skeleton-block checkout-skeleton-label" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field"><span className="checkout-skeleton-block checkout-skeleton-label checkout-skeleton-label-short" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field"><span className="checkout-skeleton-block checkout-skeleton-label checkout-skeleton-label-short" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+								<div className="checkout-skeleton-field checkout-skeleton-field-full"><span className="checkout-skeleton-block checkout-skeleton-label" /><span className="checkout-skeleton-block checkout-skeleton-input" /></div>
+							</div>
+						</div>
+						<div className="checkout-skeleton-actions"><span className="checkout-skeleton-block checkout-skeleton-back" /><span className="checkout-skeleton-block checkout-skeleton-button" /></div>
+						<div className="checkout-skeleton-rates"><span className="checkout-skeleton-block checkout-skeleton-rates-copy" /></div>
+					</section>
+					<aside className="checkout-summary checkout-skeleton-summary" aria-hidden="true">
+						<span className="checkout-skeleton-block checkout-skeleton-summary-title" />
+						<div className="checkout-skeleton-summary-items">
+							{[0, 1, 2].map((item) => <div className="checkout-skeleton-summary-item" key={item}><span className="checkout-skeleton-block checkout-skeleton-thumb" /><span className="checkout-skeleton-item-copy"><span className="checkout-skeleton-block checkout-skeleton-item-name" /><span className="checkout-skeleton-block checkout-skeleton-item-meta" /></span><span className="checkout-skeleton-block checkout-skeleton-item-price" /></div>)}
+						</div>
+						<div className="checkout-skeleton-promo"><span className="checkout-skeleton-block checkout-skeleton-promo-label" /><span className="checkout-skeleton-block checkout-skeleton-promo-input" /></div>
+						<div className="checkout-skeleton-totals"><span className="checkout-skeleton-block checkout-skeleton-total-line" /><span className="checkout-skeleton-block checkout-skeleton-total-line checkout-skeleton-total-line-short" /><span className="checkout-skeleton-block checkout-skeleton-total-line checkout-skeleton-total-line-last" /></div>
+						<span className="checkout-skeleton-block checkout-skeleton-secure-note" />
+					</aside>
+				</div>
 			</div>
 		</main>
 	);
@@ -394,7 +469,7 @@ function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelect
 		<div className="checkout-rates" aria-live="polite">
 			{error ? <p className="checkout-error">{error}</p> : null}
 			{!error && rates.length === 0 ? <p>{checkout.ratesIntro}</p> : null}
-			{rates.length > 0 ? <fieldset><legend>{checkout.chooseDelivery}</legend>{rates.map((rate) => <label className={selectedRateKey === rateKey(rate) ? "selected" : ""} key={rateKey(rate)}><input type="radio" name="shipping-rate" value={rateKey(rate)} checked={selectedRateKey === rateKey(rate)} onChange={(event) => setSelectedRateKey(event.target.value)} /><span><strong>{rate.courierName} — {rate.serviceName}</strong><small>{rate.duration || messages.cart.etaUnavailable}{rate.description ? ` · ${rate.description}` : ""}</small></span><b>{formatPrice(rate.price, locale)}</b></label>)}</fieldset> : null}
+			{rates.length > 0 ? <fieldset><legend>{checkout.chooseDelivery}</legend>{rates.map((rate) => <label className={selectedRateKey === rateKey(rate) ? "selected" : ""} key={rateKey(rate)}><input type="radio" name="shipping-rate" value={rateKey(rate)} disabled={!rate.insuranceAvailable} checked={selectedRateKey === rateKey(rate)} onChange={(event) => setSelectedRateKey(event.target.value)} /><span><strong>{rate.courierName} — {rate.serviceName}</strong><small>{rate.duration || messages.cart.etaUnavailable}{rate.description ? ` · ${rate.description}` : ""}{!rate.insuranceAvailable ? ` · ${checkout.insuranceUnavailable}` : ""}{rate.shippingDiscountIdr ? ` · ${checkout.freeShippingCoverage} -${formatPrice(rate.shippingDiscountIdr, locale)}` : ""}</small></span><b>{rate.shippingDiscountIdr ? <><s>{formatPrice(rate.originalPrice, locale)}</s><br /></> : null}{formatPrice(rate.price, locale)}</b></label>)}</fieldset> : null}
 			{rates.length > 0 ? <button className="button button-dark" type="button" disabled={!selectedRateKey} onClick={continueToReview}>{checkout.continueReview}</button> : null}
 		</div>
 	</>;
@@ -453,5 +528,5 @@ function CheckoutSummary({ lines, subtotal, discount, selectedRate, total, promo
 	messages: ReturnType<typeof useDictionary>["checkout"];
 	locale: "en" | "id";
 }) {
-	return <aside className="checkout-summary"><h2>{messages.orderSummary}</h2><ul>{lines.map((line) => <li key={line.variantId}><div>{line.product.photo ? <Image src={line.product.photo.url} alt="" fill sizes="72px" /> : <span className="cart-image-placeholder">V</span>}<span className="checkout-item-quantity">{line.quantity}</span></div><p><strong>{line.product.name}</strong><small>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</small></p><b>{formatPrice(line.product.priceIdr * line.quantity, locale)}</b></li>)}</ul><div className="promo-code"><label htmlFor="promo-code">{messages.promoCode}</label><form onSubmit={(event) => { event.preventDefault(); applyPromo(); }}><input id="promo-code" value={promoInput} placeholder={messages.promoPlaceholder} disabled={promoLoading || locked || Boolean(appliedPromo)} onChange={(event) => setPromoInput(event.target.value.toUpperCase())} /><button type="submit" disabled={promoLoading || locked || Boolean(appliedPromo) || promoInput.trim().length < 3}>{promoLoading ? messages.applyingPromo : messages.applyPromo}</button></form>{appliedPromo ? <p><span>{appliedPromo.code} · {appliedPromo.discountPercentage}%</span><button type="button" disabled={locked} onClick={removePromo}>{messages.removePromo}</button></p> : null}{promoError ? <small role="alert">{promoError}</small> : null}</div><dl><div><dt>{messages.subtotal}</dt><dd>{formatPrice(subtotal, locale)}</dd></div>{appliedPromo ? <div className="promo-discount"><dt>{messages.discount}</dt><dd>-{formatPrice(discount, locale)}</dd></div> : null}<div><dt>{messages.shipping}</dt><dd>{selectedRate ? formatPrice(selectedRate.price, locale) : messages.calculatedAfterSelection}</dd></div><div><dt>{messages.total}</dt><dd>{formatPrice(total, locale)}</dd></div></dl><p className="secure-note">◇ {messages.secureCheckout}</p></aside>;
+	return <aside className="checkout-summary"><h2>{messages.orderSummary}</h2><ul>{lines.map((line) => <li key={line.variantId}><div>{line.product.photo ? <Image src={line.product.photo.url} alt="" fill sizes="72px" /> : <span className="cart-image-placeholder">V</span>}<span className="checkout-item-quantity">{line.quantity}</span></div><p><strong>{line.product.name}</strong><small>{[line.variant.color, line.variant.size].filter(Boolean).join(" / ") || line.variant.sku}</small></p><b>{formatPrice(line.product.priceIdr * line.quantity, locale)}</b></li>)}</ul><div className="promo-code"><label htmlFor="promo-code">{messages.promoCode}</label><form onSubmit={(event) => { event.preventDefault(); applyPromo(); }}><input id="promo-code" value={promoInput} placeholder={messages.promoPlaceholder} disabled={promoLoading || locked || Boolean(appliedPromo)} onChange={(event) => setPromoInput(event.target.value.toUpperCase())} /><button type="submit" disabled={promoLoading || locked || Boolean(appliedPromo) || promoInput.trim().length < 3}>{promoLoading ? messages.applyingPromo : messages.applyPromo}</button></form>{appliedPromo ? <p><span>{appliedPromo.code} · {appliedPromo.discountPercentage}%</span><button type="button" disabled={locked} onClick={removePromo}>{messages.removePromo}</button></p> : null}{promoError ? <small role="alert">{promoError}</small> : null}</div><dl><div><dt>{messages.subtotal}</dt><dd>{formatPrice(subtotal, locale)}</dd></div>{appliedPromo ? <div className="promo-discount"><dt>{messages.discount}</dt><dd>-{formatPrice(discount, locale)}</dd></div> : null}{selectedRate?.shippingDiscountIdr ? <><div><dt>{messages.shipping}</dt><dd>{formatPrice(selectedRate.originalPrice, locale)}</dd></div><div className="promo-discount"><dt>{messages.freeShippingCoverage}</dt><dd>-{formatPrice(selectedRate.shippingDiscountIdr, locale)}</dd></div><div><dt>{messages.netShipping}</dt><dd>{formatPrice(selectedRate.price - selectedRate.insuranceFeeIdr, locale)}</dd></div></> : <div><dt>{messages.shipping}</dt><dd>{selectedRate ? formatPrice(selectedRate.price - selectedRate.insuranceFeeIdr, locale) : messages.calculatedAfterSelection}</dd></div>}{selectedRate?.insuranceFeeIdr ? <div><dt>{messages.shippingInsurance}</dt><dd>{formatPrice(selectedRate.insuranceFeeIdr, locale)}</dd></div> : null}<div><dt>{messages.total}</dt><dd>{formatPrice(total, locale)}</dd></div></dl><p className="secure-note">◇ {messages.secureCheckout}</p></aside>;
 }

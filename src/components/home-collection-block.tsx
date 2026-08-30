@@ -13,11 +13,11 @@ export function HomeCollectionBlock({ block, locale }: { block: PublicHomeCollec
 		{ src: block.leadImageUrl, className: "collection-block-image-lead" },
 		{ src: block.sideImageOneUrl, className: "collection-block-image-side" },
 		{ src: block.sideImageTwoUrl, className: "collection-block-image-side" },
-	];
+	].filter((image): image is { src: string; className: string } => Boolean(image.src));
 
 	return (
 		<section className="section home-collection-block">
-			<div className="collection-block-gallery">
+			{images.length ? <div className="collection-block-gallery" data-image-count={images.length}>
 				{images.map((image, index) => (
 					<Link
 						className={image.className}
@@ -33,7 +33,7 @@ export function HomeCollectionBlock({ block, locale }: { block: PublicHomeCollec
 						/>
 					</Link>
 				))}
-			</div>
+			</div> : null}
 			<div className="collection-block-heading">
 				<div>
 					<h2>{block.collection.name}</h2>

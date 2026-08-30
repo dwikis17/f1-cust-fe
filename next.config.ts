@@ -3,19 +3,16 @@ import type { NextConfig } from "next";
 const isStaging = process.env.APP_ENV === "staging";
 
 const nextConfig: NextConfig = {
-	env: {
-		NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "0x4AAAAAAD9MetDQNU4y3PHR",
-	},
 	async redirects() {
 		return [
-			{ source: "/", destination: "/en", permanent: true },
-			{ source: "/collections/:path*", destination: "/en/collections/:path*", permanent: true },
-			{ source: "/products/:path*", destination: "/en/products/:path*", permanent: true },
-			{ source: "/help/:path*", destination: "/en/help/:path*", permanent: true },
-			{ source: "/cart", destination: "/en/cart", permanent: true },
-			{ source: "/checkout", destination: "/en/checkout", permanent: true },
-			{ source: "/track-order", destination: "/en/track-order", permanent: true },
-			{ source: "/orders/:path*", destination: "/en/orders/:path*", permanent: true },
+			{ source: "/", destination: "/id", permanent: true },
+			{ source: "/collections/:path*", destination: "/id/collections/:path*", permanent: true },
+			{ source: "/products/:path*", destination: "/id/products/:path*", permanent: true },
+			{ source: "/help/:path*", destination: "/id/help/:path*", permanent: true },
+			{ source: "/cart", destination: "/id/cart", permanent: true },
+			{ source: "/checkout", destination: "/id/checkout", permanent: true },
+			{ source: "/track-order", destination: "/id/track-order", permanent: true },
+			{ source: "/orders/:path*", destination: "/id/orders/:path*", permanent: true },
 		];
 	},
 	async headers() {

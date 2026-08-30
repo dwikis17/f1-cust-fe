@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatPrice, type PublicProduct } from "@/lib/catalog";
+import { formatPrice, type PublicProductCard } from "@/lib/catalog";
 import { dictionary, type Locale } from "@/lib/i18n";
 import { localizedPath } from "@/lib/locale";
 
@@ -10,7 +10,7 @@ export function ProductCard({
 	priority = false,
 	imageSizes = "(max-width: 700px) 50vw, (max-width: 1100px) 33vw, 25vw",
 }: {
-	product: PublicProduct;
+	product: PublicProductCard;
 	locale: Locale;
 	priority?: boolean;
 	imageSizes?: string;
@@ -51,7 +51,12 @@ export function ProductCard({
 							<span>{messages.product.imageUnavailable}</span>
 						</span>
 					)}
-					{product.condition ? <span className="condition-badge">{messages.conditions[product.condition].short}</span> : null}
+					{product.condition || product.tags.length ? (
+						<div className="product-image-badges">
+							{product.condition ? <span className="condition-badge">{messages.conditions[product.condition].short}</span> : null}
+							{product.tags.length ? <div className="product-tags" aria-label="Product tags">{product.tags.map((tag) => <span className="tag-pill" key={tag.id}>{tag.name}</span>)}</div> : null}
+						</div>
+					) : null}
 					{onSale ? <span className="sale-badge">-{product.salePercentage}%</span> : null}
 				</div>
 				<div className="product-meta">

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { dictionary, type Locale } from "@/lib/i18n";
+import { useDictionary } from "@/components/i18n-provider";
+import type { Locale } from "@/lib/i18n";
 import { localizedPath } from "@/lib/locale";
 import { calculateTimeRemaining, getNextRace, type TimeRemaining } from "@/lib/races";
 
@@ -14,7 +15,7 @@ export function RaceCountdownTicker({ locale }: { locale: Locale }) {
 		calculateTimeRemaining(race.raceDate)
 	);
 
-	const messages = dictionary(locale);
+	const messages = useDictionary();
 
 	useEffect(() => {
 		const frame = requestAnimationFrame(() => {

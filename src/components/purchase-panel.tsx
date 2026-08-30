@@ -14,7 +14,7 @@ type Props = { productId: string; productName: string; variants: ProductVariant[
 export function PurchasePanel({ productId, productName, variants }: Props) {
 	const messages = useDictionary();
 	const locale = useLocale();
-	const { selectColor } = useProductSelection();
+	const { selectColor, setSelectedStock } = useProductSelection();
 	const addItem = useCartStore((state) => state.addItem);
 	const cartItems = useCartStore((state) => state.items);
 	const firstAvailable = variants.find((variant) => variant.available) ?? variants[0];
@@ -23,15 +23,19 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 	const [added, setAdded] = useState<{ key: number; quantity: number } | null>(null);
 	const [inventory, setInventory] = useState<Record<string, number>>(() =>
 		Object.fromEntries(variants.map((variant) => [variant.id, variant.stockQuantity])));
+	const [unitsSold, setUnitsSold] = useState<Record<string, number>>({});
 	const selected = variants.find((variant) => variant.id === variantId) ?? firstAvailable;
 	const sizes = useMemo(() => [...new Set(variants.flatMap((variant) => variant.size ? [variant.size] : []))], [variants]);
 	const colors = useMemo(() => [...new Set(variants.flatMap((variant) => variant.color ? [variant.color] : []))], [variants]);
 	const stockFor = (variant: ProductVariant) => inventory[variant.id] ?? variant.stockQuantity;
 	const selectedStock = selected ? stockFor(selected) : 0;
+	const selectedUnitsSold = selected ? unitsSold[selected.id] ?? 0 : 0;
 	const orderLimit = maxPurchasableQuantity(selectedStock);
 	const cartQuantity = cartItems.find((item) => item.variantId === selected?.id)?.quantity ?? 0;
 	const remaining = Math.max(0, orderLimit - cartQuantity);
 	const selectedQuantity = Math.min(quantity, Math.max(1, remaining));
+
+	useEffect(() => setSelectedStock(selectedStock), [selectedStock, setSelectedStock]);
 
 	useEffect(() => {
 		if (!added) return;
@@ -55,9 +59,9 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 			if (!response.ok) throw new Error("Inventory refresh failed");
 			return response.json() as Promise<CartItemsResponse>;
 		})).then((results) => {
-			const fresh = new Map(results.flatMap((result) =>
-				result.data.map((item) => [item.variant.id, item.variant.stockQuantity] as const)));
-			setInventory(Object.fromEntries(variantIds.map((id) => [id, fresh.get(id) ?? 0])));
+			const fresh = new Map(results.flatMap((result) => result.data.map((item) => [item.variant.id, item.variant] as const)));
+			setInventory(Object.fromEntries(variantIds.map((id) => [id, fresh.get(id)?.stockQuantity ?? 0])));
+			setUnitsSold(Object.fromEntries(variantIds.map((id) => [id, fresh.get(id)?.unitsSold ?? 0])));
 		}).catch((error) => {
 			if ((error as Error).name !== "AbortError") return;
 		});
@@ -89,17 +93,15 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 				? messages.product.optionUnavailable
 				: !remaining
 					? messages.product.maximumInCart
-					: `${selectedStock} ${messages.product.unitsAvailable}${selectedStock > 9 ? ` · ${messages.product.maximumPerOrder}` : ""}`}</p>
+					: `${selectedStock} ${messages.product.unitsAvailable}${selectedStock > 9 ? ` · ${messages.product.maximumPerOrder}` : ""}`}{selectedUnitsSold > 0 ? ` · ${selectedUnitsSold} ${messages.product.sold}` : ""}</p>
 		</div>
 		<section className="technical-data" aria-live="polite">
-			<div className="data-heading"><span>{messages.product.technicalData}</span><strong>{messages.product.selectedSpecification}</strong></div>
 			<div><span>{messages.product.packageWeight}</span><strong>{selected ? `${selected.packageWeightG} ${messages.product.grams}` : "—"}</strong></div>
 			<div><span>{messages.product.dimensions}</span><strong>{selected ? `${selected.packageLengthMm} × ${selected.packageWidthMm} × ${selected.packageHeightMm} mm` : "—"}</strong></div>
 			<div><span>{messages.product.modelNumber}</span><strong>{selected?.sku ?? "—"}</strong></div>
 			{selected?.size ? <div><span>{messages.product.size}</span><strong>{selected.size}</strong></div> : null}
 			{colors.length > 1 && selected?.color ? <div><span>{messages.product.color}</span><strong>{selected.color}</strong></div> : null}
 			<div><span>{messages.product.availability}</span><strong>{selectedStock ? `${selectedStock} ${messages.product.unitsAvailable}` : messages.product.outOfStock}</strong></div>
-			<div><span>{messages.product.authenticity}</span><strong>{messages.product.verified}</strong></div>
 		</section>
 	</>;
 }
