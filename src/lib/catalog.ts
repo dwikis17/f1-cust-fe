@@ -57,7 +57,7 @@ export type ProductQuery = {
 	page?: number; limit?: number; search?: string; productType?: string[]; category?: string[]; tag?: string[];
 	team?: string[]; driver?: string[]; size?: string[]; color?: string[]; audience?: ProductAudience[];
 	condition?: ProductCondition[]; availability?: "in_stock"; minPrice?: number; maxPrice?: number; sort?: ProductSort;
-	sale?: boolean; includeFacets?: boolean;
+	sale?: boolean; minSalePercentage?: number; includeFacets?: boolean;
 };
 
 const apiBaseUrl = process.env.API_BASE_URL?.replace(/\/$/, "");

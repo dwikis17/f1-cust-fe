@@ -39,6 +39,7 @@ export default async function SalePage({ params, searchParams }: SalePageProps) 
 	const response = await catalog.listProducts({
 		...collectionQuery(currentParams),
 		sale: true,
+		minSalePercentage: 30,
 		includeFacets: true,
 	}, locale);
 
