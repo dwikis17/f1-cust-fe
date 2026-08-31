@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, Plus_Jakarta_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
+import Script from "next/script";
 import { AppProviders } from "@/components/app-providers";
 import { I18nProvider } from "@/components/i18n-provider";
 import { ScrollToTop } from "@/components/scroll-to-top";
@@ -66,6 +67,15 @@ export default async function RootLayout({ children, params }: Readonly<{ childr
 	const messages = dictionary(locale);
 	return (
 		<html lang={locale} data-scroll-behavior="smooth">
+			<head>
+				<Script src="https://www.googletagmanager.com/gtag/js?id=G-K7B69JPSQ3" strategy="afterInteractive" />
+				<Script id="google-analytics" strategy="afterInteractive">
+					{`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-K7B69JPSQ3');`}
+				</Script>
+			</head>
 			<body className={`${plusJakarta.variable} ${manrope.variable}`}>
 				<I18nProvider locale={locale} messages={messages}>
 					<AppProviders>
