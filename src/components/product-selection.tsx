@@ -11,8 +11,8 @@ const ProductSelectionContext = createContext<{
 	setSelectedStock: (stock: number) => void;
 }>({ activePhoto: 0, setActivePhoto: () => {}, selectColor: () => {}, selectedStock: 0, setSelectedStock: () => {} });
 
-export function ProductSelection({ children, photos, initialStockQuantity = 0 }: { children: ReactNode; photos: ProductPhoto[]; initialStockQuantity?: number }) {
-	const [activePhoto, setActivePhoto] = useState(0);
+export function ProductSelection({ children, photos, initialColor, initialStockQuantity = 0 }: { children: ReactNode; photos: ProductPhoto[]; initialColor?: string | null; initialStockQuantity?: number }) {
+	const [activePhoto, setActivePhoto] = useState(() => Math.max(0, photos.findIndex((photo) => photo.color === initialColor)));
 	const [selectedStock, setSelectedStock] = useState(initialStockQuantity);
 
 	function selectColor(color: string | null) {

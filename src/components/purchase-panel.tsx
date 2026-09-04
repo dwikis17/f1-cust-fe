@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
 import { useDictionary, useLocale } from "@/components/i18n-provider";
@@ -7,11 +8,11 @@ import { useProductSelection } from "@/components/product-selection";
 import type { CartItemsResponse } from "@/lib/cart-catalog";
 import { maxPurchasableQuantity } from "@/lib/cart";
 import { useCartStore } from "@/lib/cart-store";
-import type { ProductVariant } from "@/lib/catalog";
+import { productPhotoForColor, type ProductPhoto, type ProductVariant } from "@/lib/catalog";
 
-type Props = { productId: string; productName: string; variants: ProductVariant[] };
+type Props = { productId: string; productName: string; variants: ProductVariant[]; photos: ProductPhoto[] };
 
-export function PurchasePanel({ productId, productName, variants }: Props) {
+export function PurchasePanel({ productId, productName, variants, photos }: Props) {
 	const messages = useDictionary();
 	const locale = useLocale();
 	const { selectColor, setSelectedStock } = useProductSelection();
@@ -86,7 +87,7 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 
 	return <>
 		<div className="purchase-panel">
-			{colors.length > 1 ? <OptionButtons label={messages.product.color} values={colors} selected={selected?.color} available={(value) => variants.some((variant) => variant.color === value && stockFor(variant) > 0)} choose={(value) => chooseOption("color", value)} /> : null}
+			{colors.length > 1 ? <ColorButtons label={messages.product.color} values={colors} selected={selected?.color} photos={photos} available={(value) => variants.some((variant) => variant.color === value && stockFor(variant) > 0)} choose={(value) => chooseOption("color", value)} /> : null}
 			{sizes.length > 0 ? <OptionButtons label={messages.product.size} values={sizes} selected={selected?.size} available={(value) => variants.some((variant) => variant.size === value && stockFor(variant) > 0 && (colors.length < 2 || variant.color === selected?.color))} choose={(value) => chooseOption("size", value)} /> : null}
 			<div className="purchase-row"><div className="quantity" aria-label={messages.product.quantitySelector}><button type="button" aria-label={`${messages.product.quantitySelector}: −`} disabled={selectedQuantity <= 1} onClick={() => setQuantity(Math.max(1, selectedQuantity - 1))}>−</button><span>{selectedQuantity}</span><button type="button" aria-label={`${messages.product.quantitySelector}: +`} disabled={remaining === 0 || selectedQuantity >= remaining} onClick={() => setQuantity(Math.min(remaining, selectedQuantity + 1))}>+</button></div><button className="button button-dark add-button" type="button" onClick={addToBag} disabled={!selectedStock || !remaining}>{selectedStock ? messages.product.addToCart : messages.product.outOfStock}</button>{added ? <span className="add-confirmation" key={added.key} role="status">✓ {added.quantity} {messages.product.addedToBag}</span> : null}</div>
 			<p className="payment-note" aria-live="polite">{!selectedStock
@@ -104,6 +105,13 @@ export function PurchasePanel({ productId, productName, variants }: Props) {
 			<div><span>{messages.product.availability}</span><strong>{selectedStock ? `${selectedStock} ${messages.product.unitsAvailable}` : messages.product.outOfStock}</strong></div>
 		</section>
 	</>;
+}
+
+function ColorButtons({ label, values, selected, photos, available, choose }: { label: string; values: string[]; selected: string | null | undefined; photos: ProductPhoto[]; available: (value: string) => boolean; choose: (value: string) => void }) {
+	return <fieldset className="variant-options color-options"><legend>{label}: <strong>{selected}</strong></legend><div>{values.map((value) => {
+		const photo = productPhotoForColor(photos, value);
+		return <button type="button" key={value} aria-label={`${label}: ${value}`} aria-pressed={selected === value} disabled={!available(value)} onClick={() => choose(value)}>{photo ? <Image src={photo.url} alt="" fill sizes="72px" /> : value}</button>;
+	})}</div></fieldset>;
 }
 
 function OptionButtons({ label, values, selected, available, choose }: { label: string; values: string[]; selected: string | null | undefined; available: (value: string) => boolean; choose: (value: string) => void }) {

@@ -65,6 +65,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 	const currentCollectionPath = currentCollection ? localizedPath(locale, `/collections/${currentCollection.slug}`) : collectionsPath;
 	const productUrl = absoluteUrl(localizedPath(locale, `/products/${product.slug}`));
 	const available = product.variants.some((variant) => variant.available);
+	const initialVariant = product.variants.find((variant) => variant.available) ?? product.variants[0];
 	const originalPrice = product.originalPriceIdr;
 	const onSale = product.salePercentage !== null;
 
@@ -108,7 +109,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 				},
 			]} />
 			<nav className="breadcrumbs" aria-label={messages.collections.breadcrumb}><Link href={homePath}>{messages.collections.homepage}</Link><span>/</span><Link href={currentCollectionPath}>{currentCollection?.name ?? messages.collections.title}</Link><span>/</span><strong>{product.name}</strong></nav>
-			<ProductSelection photos={product.photos} initialStockQuantity={product.variants.find((variant) => variant.available)?.stockQuantity ?? 0}>
+			<ProductSelection photos={product.photos} initialColor={initialVariant?.color} initialStockQuantity={initialVariant?.stockQuantity ?? 0}>
 				<section className="product-top">
 					<ProductGallery photos={product.photos} />
 					<div className="product-info">
@@ -132,7 +133,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 						{product.condition ? <p className="product-condition"><span>{messages.product.condition}</span><strong>{messages.conditions[product.condition].label}</strong></p> : null}
 						{product.tags.length ? <div className="product-detail-tags" aria-label="Product tags">{product.tags.map((tag) => <span className="tag-pill" key={tag.id}>{tag.name}</span>)}</div> : null}
 						<div className="product-promises"><span><VerifiedIcon /> {messages.product.officialMerchandise}</span><span><CubeIcon /> {messages.product.liveShippingRates}</span></div>
-						<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} />
+						<PurchasePanel productId={product.id} productName={product.name} variants={product.variants} photos={product.photos} />
 						<SizingGuide variants={product.variants} note={product.sizingNote} />
 						<details>
 							<summary>{messages.product.productDetails}</summary>

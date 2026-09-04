@@ -20,6 +20,9 @@ export type ProductPhoto = {
 	id: string; productId: string; color: string | null; path: string; altText: string; position: number;
 	createdAt: string; updatedAt: string; url: string;
 };
+export function productPhotoForColor<T extends { color: string | null }>(photos: T[], color: string) {
+	return photos.find((photo) => photo.color === color) ?? photos.find((photo) => photo.color === null) ?? photos[0];
+}
 export type CollectionSummary = {
 	id: string; name: string; slug: string; kind: CollectionKind; parentId: string | null; imageUrl: string | null;
 	description: string; position: number; active: boolean; createdAt: string; updatedAt: string;

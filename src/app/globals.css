@@ -3244,6 +3244,61 @@ body:has(.race-ticker-bar) .page-shell {
 	text-decoration: line-through;
 }
 
+.color-options button {
+	background: #f4f4f4;
+	height: 72px;
+	overflow: hidden;
+	padding: 0;
+	position: relative;
+	width: 72px;
+}
+
+.color-options button img {
+	object-fit: contain;
+	transition: transform 180ms var(--ease-out);
+}
+
+.color-options button[aria-pressed="true"] {
+	background: #f4f4f4;
+	border-color: #111;
+	box-shadow: inset 0 0 0 1px #111;
+}
+
+.color-options button::after {
+	align-items: center;
+	background: #111;
+	bottom: 4px;
+	color: white;
+	content: "✓";
+	display: flex;
+	font-size: 10px;
+	height: 18px;
+	justify-content: center;
+	opacity: 0;
+	position: absolute;
+	right: 4px;
+	transform: scale(.65);
+	transition: opacity 160ms ease, transform 180ms var(--ease-out);
+	width: 18px;
+	z-index: 1;
+}
+
+.color-options button[aria-pressed="true"]::after {
+	opacity: 1;
+	transform: scale(1);
+}
+
+@media (hover: hover) {
+	.color-options button:not(:disabled):hover {
+		border-color: #111;
+		transform: translateY(-2px);
+	}
+
+	.color-options button:not(:disabled):hover img {
+		transform: scale(1.04);
+	}
+}
+
 .variant-select {
 	display: flex;
 	flex-direction: column;
@@ -7678,6 +7733,8 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 	.button:hover,
 	.button:active,
 	.variant-options button:active,
+	.color-options button:hover,
+	.color-options button:hover img,
 	.quantity button:active,
 	.language-switcher button:active,
 	.language-header-trigger:active,
@@ -7689,6 +7746,12 @@ body:has(.race-ticker-bar) .shipping-returns-content section {
 	.destination-card:hover,
 	.destination-card:hover .destination-arrow {
 		transform: none;
+	}
+
+	.color-options button,
+	.color-options button img,
+	.color-options button::after {
+		transition: none;
 	}
 
 	.language-header-trigger,
