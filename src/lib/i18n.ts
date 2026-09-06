@@ -406,6 +406,7 @@ const en = {
     verifyingHuman: "Completing security verification…",
     humanVerificationFailed: "Security verification failed. Please try again.",
     humanVerificationUnavailable: "Security verification is temporarily unavailable. Please try again.",
+    retryVerification: "Retry verification",
   },
   order: {
     title: "Order status",
@@ -903,6 +904,7 @@ const id: Dictionary = {
     verifyingHuman: "Menyelesaikan verifikasi keamanan…",
     humanVerificationFailed: "Verifikasi keamanan gagal. Silakan coba lagi.",
     humanVerificationUnavailable: "Verifikasi keamanan sementara tidak tersedia. Silakan coba lagi.",
+    retryVerification: "Coba lagi verifikasi",
   },
   order: {
     title: "Status pesanan",

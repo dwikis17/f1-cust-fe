@@ -77,7 +77,9 @@ declare global {
 
 const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
 const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+const turnstileSiteKey = process.env.NEXT_PUBLIC_SITE_URL === "https://valydejersey.com"
+	? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+	: undefined;
 const turnstileEnabled = Boolean(turnstileSiteKey);
 const midtransSnapUrl = String(process.env.NEXT_PUBLIC_MIDTRANS_ENV) === "production"
 	? "https://app.midtrans.com/snap/snap.js"
@@ -124,7 +126,7 @@ export function CheckoutClient() {
 					headers: { "content-type": "application/json" },
 					body: JSON.stringify(request),
 				});
-				const body = await response.json() as { rates?: ShippingRate[]; error?: { code?: string } };
+				const body = await response.json().catch(() => ({})) as { rates?: ShippingRate[]; error?: { code?: string } };
 				if (!response.ok) {
 					const errors: Record<string, string> = {
 						INVALID_DESTINATION: messages.cart.invalidDestination,
@@ -224,6 +226,12 @@ export function CheckoutClient() {
 		shippingMutation.reset();
 	}
 
+	function retryTurnstile() {
+		setTurnstileToken("");
+		setTurnstileError("");
+		setTurnstileResetKey((value) => value + 1);
+	}
+
 	function updateDetail(field: keyof ShippingDetails, value: string) {
 		const nextValue = field === "postalCode" ? value.replace(/\D/g, "").slice(0, 5) : value;
 		setDetails((current) => ({ ...current, [field]: nextValue, ...(["address", "province", "city", "postalCode"].includes(field) ? { destinationLatitude: undefined, destinationLongitude: undefined } : {}) }));
@@ -251,7 +259,7 @@ export function CheckoutClient() {
 		setLocationCandidates([]);
 		try {
 			const response = await fetch("/api/locations/search", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ query }) });
-			const body = await response.json() as { candidates?: LocationCandidate[]; error?: { code?: string } };
+			const body = await response.json().catch(() => ({})) as { candidates?: LocationCandidate[]; error?: { code?: string } };
 			if (!response.ok) throw new Error(body.error?.code === "LOCATION_NOT_CONFIGURED" ? messages.checkout.locationUnavailable : messages.checkout.locationSearchError);
 			if (!body.candidates?.length) throw new Error(messages.checkout.locationNoResults);
 			setLocationCandidates(body.candidates);
@@ -317,8 +325,7 @@ export function CheckoutClient() {
 			{midtransClientKey ? <Script src={midtransSnapUrl} data-client-key={midtransClientKey} strategy="afterInteractive" onReady={() => setSnapReady(Boolean(window.snap))} onError={() => setPaymentError(messages.checkout.paymentUnavailable)} /> : null}
 			<CheckoutSteps step={step} setStep={(nextStep) => {
 				if (nextStep === "shipping") {
-					setTurnstileToken("");
-					setTurnstileResetKey((value) => value + 1);
+					retryTurnstile();
 				}
 				setStep(nextStep);
 			}} canOpenPayment={Boolean(selectedRate)} messages={messages.checkout} />
@@ -357,6 +364,7 @@ export function CheckoutClient() {
 							if (token) setTurnstileError("");
 						}}
 						onTurnstileError={() => setTurnstileError(messages.checkout.humanVerificationUnavailable)}
+						onTurnstileRetry={retryTurnstile}
 						messages={messages}
 						locale={locale}
 					/> : null}
@@ -365,8 +373,7 @@ export function CheckoutClient() {
 						details={details}
 						selectedRate={selectedRate}
 						editShipping={() => {
-							setTurnstileToken("");
-							setTurnstileResetKey((value) => value + 1);
+							retryTurnstile();
 							setStep("shipping");
 						}}
 						locked={Boolean(checkoutMutation.data)}
@@ -383,6 +390,7 @@ export function CheckoutClient() {
 							if (token) setTurnstileError("");
 						}}
 						onTurnstileError={() => setTurnstileError(messages.checkout.humanVerificationUnavailable)}
+						onTurnstileRetry={retryTurnstile}
 						messages={messages.checkout}
 						locale={locale}
 					/> : null}
@@ -484,7 +492,7 @@ function CheckoutSteps({ step, setStep, canOpenPayment, messages }: { step: Step
 	})}</nav>;
 }
 
-function ShippingStep({ details, updateDetail, locationCandidates, locationError, locationLoading, locationConfirmed, mapboxToken, findAddress, selectLocation, confirmLocation, rates, selectedRateKey, setSelectedRateKey, error, loading, checkShipping, continueToReview, turnstileVerified, turnstileSiteKey, turnstileResetKey, turnstileError, onTurnstileToken, onTurnstileError, messages, locale }: {
+function ShippingStep({ details, updateDetail, locationCandidates, locationError, locationLoading, locationConfirmed, mapboxToken, findAddress, selectLocation, confirmLocation, rates, selectedRateKey, setSelectedRateKey, error, loading, checkShipping, continueToReview, turnstileVerified, turnstileSiteKey, turnstileResetKey, turnstileError, onTurnstileToken, onTurnstileError, onTurnstileRetry, messages, locale }: {
 	details: ShippingDetails;
 	updateDetail: (field: keyof ShippingDetails, value: string) => void;
 	locationCandidates: LocationCandidate[];
@@ -508,6 +516,7 @@ function ShippingStep({ details, updateDetail, locationCandidates, locationError
 	turnstileError: string;
 	onTurnstileToken: (token: string) => void;
 	onTurnstileError: () => void;
+	onTurnstileRetry: () => void;
 	messages: ReturnType<typeof useDictionary>;
 	locale: "en" | "id";
 }) {
@@ -537,7 +546,7 @@ function ShippingStep({ details, updateDetail, locationCandidates, locationError
 			</fieldset>
 			{turnstileSiteKey ? <TurnstileWidget siteKey={turnstileSiteKey} action="shipping-rates" language={locale} resetKey={turnstileResetKey} onToken={onTurnstileToken} onError={onTurnstileError} /> : null}
 			{!turnstileVerified && !turnstileError ? <p className="verification-status" role="status">{checkout.verifyingHuman}</p> : null}
-			{turnstileError ? <p className="payment-notice" role="alert">{turnstileError}</p> : null}
+			{turnstileError ? <div className="payment-notice verification-error" role="alert"><p>{turnstileError}</p><button type="button" onClick={onTurnstileRetry}>{checkout.retryVerification}</button></div> : null}
 			<div className="shipping-actions"><Link href={localizedPath(locale, "/cart")}>← {checkout.returnCart}</Link><button className="button button-dark" type="submit" disabled={loading || !turnstileVerified}>{loading ? checkout.checking : checkout.getDeliveryOptions}</button></div>
 		</form>
 		<div className="checkout-rates" aria-live="polite">
@@ -553,7 +562,7 @@ function Field({ label, value, update, className, type = "text", autoComplete, i
 	return <label className={className}><span>{label}</span><input type={type} autoComplete={autoComplete} inputMode={inputMode} pattern={pattern} minLength={minLength} maxLength={maxLength} required value={value} onChange={(event) => update(event.target.value)} /></label>;
 }
 
-function ReviewStep({ lines, details, selectedRate, editShipping, locked, startPayment, paymentLoading, paymentReady, paymentError, turnstileVerified, turnstileSiteKey, turnstileResetKey, turnstileError, onTurnstileToken, onTurnstileError, messages, locale }: {
+function ReviewStep({ lines, details, selectedRate, editShipping, locked, startPayment, paymentLoading, paymentReady, paymentError, turnstileVerified, turnstileSiteKey, turnstileResetKey, turnstileError, onTurnstileToken, onTurnstileError, onTurnstileRetry, messages, locale }: {
 	lines: CartLine[];
 	details: ShippingDetails;
 	selectedRate: ShippingRate;
@@ -569,6 +578,7 @@ function ReviewStep({ lines, details, selectedRate, editShipping, locked, startP
 	turnstileError: string;
 	onTurnstileToken: (token: string) => void;
 	onTurnstileError: () => void;
+	onTurnstileRetry: () => void;
 	messages: ReturnType<typeof useDictionary>["checkout"];
 	locale: "en" | "id";
 }) {
@@ -579,7 +589,7 @@ function ReviewStep({ lines, details, selectedRate, editShipping, locked, startP
 		<div className="review-block review-items"><div><h2>{messages.items}</h2></div>{lines.map((line) => <p key={line.variantId}><span>{line.quantity} × {line.product.name}</span><strong>{formatPrice(line.product.priceIdr * line.quantity, locale)}</strong></p>)}</div>
 		{turnstileSiteKey && !locked ? <TurnstileWidget siteKey={turnstileSiteKey} action="checkout" language={locale} resetKey={turnstileResetKey} onToken={onTurnstileToken} onError={onTurnstileError} /> : null}
 		{!locked && !turnstileVerified && !turnstileError ? <p className="verification-status" role="status">{messages.verifyingHuman}</p> : null}
-		{turnstileError ? <p className="payment-notice" role="alert">{turnstileError}</p> : null}
+		{turnstileError ? <div className="payment-notice verification-error" role="alert"><p>{turnstileError}</p><button type="button" onClick={onTurnstileRetry}>{messages.retryVerification}</button></div> : null}
 		{paymentError ? <p className="payment-notice" role="alert">{paymentError}</p> : null}
 		<div className="checkout-nav">{locked ? <span /> : <button type="button" onClick={editShipping}>← {messages.backShipping}</button>}<button className="button button-dark" type="button" disabled={paymentLoading || !paymentReady} onClick={startPayment}>{paymentLoading ? messages.startingPayment : messages.placeOrder}</button></div>
 	</>;

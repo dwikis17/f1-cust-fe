@@ -4627,6 +4627,26 @@ body:has(.race-ticker-bar) .page-shell {
 	padding: 14px;
 }
 
+.verification-error {
+	display: flex;
+	gap: 12px;
+	justify-content: space-between;
+}
+
+.verification-error p {
+	margin: 0;
+}
+
+.verification-error button {
+	background: none;
+	border: 0;
+	border-bottom: 1px solid;
+	color: inherit;
+	cursor: pointer;
+	font: inherit;
+	padding: 0;
+}
+
 .order-status-page {
 	display: grid;
 	min-height: 70vh;

@@ -1,30 +1,7 @@
 "use client";
 
-import Script from "next/script";
-import { useEffect, useRef, useState } from "react";
-
-type TurnstileOptions = {
-	sitekey: string;
-	action: string;
-	appearance: "interaction-only";
-	size: "flexible";
-	language: string;
-	"refresh-expired": "auto";
-	callback: (token: string) => void;
-	"error-callback": () => void;
-	"expired-callback": () => void;
-	"timeout-callback": () => void;
-	"unsupported-callback": () => void;
-};
-
-declare global {
-	interface Window {
-		turnstile?: {
-			render: (container: HTMLElement, options: TurnstileOptions) => string;
-			remove: (widgetId: string) => void;
-		};
-	}
-}
+import { useEffect, useRef } from "react";
+import { loadTurnstileScript } from "@/lib/turnstile";
 
 export function TurnstileWidget({ siteKey, action, language, resetKey, onToken, onError }: {
 	siteKey: string;
@@ -37,7 +14,6 @@ export function TurnstileWidget({ siteKey, action, language, resetKey, onToken, 
 	const containerRef = useRef<HTMLDivElement>(null);
 	const onTokenRef = useRef(onToken);
 	const onErrorRef = useRef(onError);
-	const [ready, setReady] = useState(false);
 
 	useEffect(() => {
 		onTokenRef.current = onToken;
@@ -45,35 +21,38 @@ export function TurnstileWidget({ siteKey, action, language, resetKey, onToken, 
 	}, [onError, onToken]);
 
 	useEffect(() => {
-		if (!ready || !containerRef.current || !window.turnstile) return;
+		const container = containerRef.current;
+		if (!container) return;
+		let active = true;
+		let widgetId: string | undefined;
 		const fail = () => {
+			if (!active) return;
 			onTokenRef.current("");
 			onErrorRef.current();
 		};
-		const widgetId = window.turnstile.render(containerRef.current, {
-			sitekey: siteKey,
-			action,
-			appearance: "interaction-only",
-			size: "flexible",
-			language,
-			"refresh-expired": "auto",
-			callback: (token) => onTokenRef.current(token),
-			"error-callback": fail,
-			"expired-callback": () => onTokenRef.current(""),
-			"timeout-callback": fail,
-			"unsupported-callback": fail,
-		});
-		return () => window.turnstile?.remove(widgetId);
-	}, [action, language, ready, resetKey, siteKey]);
 
-	return <>
-		<Script
-			id="cloudflare-turnstile"
-			src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-			strategy="afterInteractive"
-			onReady={() => setReady(true)}
-			onError={() => onErrorRef.current()}
-		/>
-		<div className="turnstile-check" ref={containerRef} />
-	</>;
+		loadTurnstileScript().then((turnstile) => {
+			if (!active) return;
+			widgetId = turnstile.render(container, {
+				sitekey: siteKey,
+				action,
+				appearance: "interaction-only",
+				size: "flexible",
+				language,
+				"refresh-expired": "auto",
+				callback: (token) => active && onTokenRef.current(token),
+				"error-callback": fail,
+				"expired-callback": () => active && onTokenRef.current(""),
+				"timeout-callback": fail,
+				"unsupported-callback": fail,
+			});
+		}).catch(fail);
+
+		return () => {
+			active = false;
+			if (widgetId) window.turnstile?.remove(widgetId);
+		};
+	}, [action, language, resetKey, siteKey]);
+
+	return <div className="turnstile-check" ref={containerRef} />;
 }

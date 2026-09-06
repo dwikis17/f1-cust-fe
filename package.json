@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint .",
     "clean:cache": "rm -rf .next/cache .open-next",
-    "deploy": "npm run clean:cache && APP_ENV=production API_BASE_URL=https://api.valydejersey.com NEXT_PUBLIC_SITE_URL=https://valydejersey.com NEXT_PUBLIC_MIDTRANS_ENV=production NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=Mid-client-zPWzq52QTcf7T4xc opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "deploy": ": \"${NEXT_PUBLIC_TURNSTILE_SITE_KEY:?Set NEXT_PUBLIC_TURNSTILE_SITE_KEY to the Cloudflare Turnstile production site key}\" && : \"${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:?Set NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN to the domain-restricted Mapbox public token}\" && npm run clean:cache && APP_ENV=production API_BASE_URL=https://api.valydejersey.com NEXT_PUBLIC_SITE_URL=https://valydejersey.com NEXT_PUBLIC_MIDTRANS_ENV=production NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=Mid-client-zPWzq52QTcf7T4xc NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=\"$NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN\" NEXT_PUBLIC_TURNSTILE_SITE_KEY=\"$NEXT_PUBLIC_TURNSTILE_SITE_KEY\" opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "deploy:staging": "npm run clean:cache && APP_ENV=staging API_BASE_URL=https://dev-api.valydejersey.com NEXT_PUBLIC_SITE_URL=https://dev.valydejersey.com NEXT_PUBLIC_MIDTRANS_ENV=sandbox NEXT_PUBLIC_MIDTRANS_CLIENT_KEY=Mid-client-cwkRE-SgbQ93Ylht opennextjs-cloudflare build --env staging && opennextjs-cloudflare deploy --env staging",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
