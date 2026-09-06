@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type FormEvent, useMemo, useState } from "react";
@@ -40,8 +41,11 @@ type ShippingDetails = {
 	city: string;
 	postalCode: string;
 	phone: string;
+	destinationLatitude?: number;
+	destinationLongitude?: number;
 };
-type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }>; promoCode?: string; turnstileToken?: string };
+type ShippingRequest = { destinationPostalCode: string; destinationLatitude: number; destinationLongitude: number; items: Array<{ variantId: string; quantity: number }>; promoCode?: string; turnstileToken?: string };
+type LocationCandidate = { id: string; label: string; latitude: number; longitude: number };
 type PromoPreview = {
 	code: string;
 	discountPercentage: number;
@@ -72,6 +76,7 @@ declare global {
 }
 
 const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
+const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 const turnstileEnabled = Boolean(turnstileSiteKey);
 const midtransSnapUrl = String(process.env.NEXT_PUBLIC_MIDTRANS_ENV) === "production"
@@ -79,6 +84,7 @@ const midtransSnapUrl = String(process.env.NEXT_PUBLIC_MIDTRANS_ENV) === "produc
 	: "https://app.sandbox.midtrans.com/snap/snap.js";
 
 const emptyDetails: ShippingDetails = { email: "", firstName: "", lastName: "", address: "", province: "", city: "", postalCode: "", phone: "" };
+const DeliveryLocationMap = dynamic(() => import("@/components/delivery-location-map").then((module) => module.DeliveryLocationMap), { ssr: false });
 
 export function CheckoutClient() {
 	const router = useRouter();
@@ -99,6 +105,10 @@ export function CheckoutClient() {
 	const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 	const [promoInput, setPromoInput] = useState("");
 	const [appliedPromoState, setAppliedPromoState] = useState<{ cartKey: string; promo: PromoPreview } | null>(null);
+	const [locationCandidates, setLocationCandidates] = useState<LocationCandidate[]>([]);
+	const [locationError, setLocationError] = useState("");
+	const [locationLoading, setLocationLoading] = useState(false);
+	const [locationConfirmed, setLocationConfirmed] = useState(false);
 
 	const lines = useMemo(() => resolveCartLines(items, products), [items, products]);
 	const cartKey = lines.map((line) => `${line.variantId}:${line.quantity}`).join("|");
@@ -107,7 +117,7 @@ export function CheckoutClient() {
 	const turnstileVerified = !turnstileEnabled || Boolean(turnstileToken);
 	const shippingMutation = useMutation({
 		mutationFn: (request: ShippingRequest) => queryClient.fetchQuery({
-		queryKey: ["shipping-rates", request.destinationPostalCode, request.items, request.promoCode ?? ""],
+		queryKey: ["shipping-rates", request.destinationPostalCode, request.destinationLatitude, request.destinationLongitude, request.items, request.promoCode ?? ""],
 			queryFn: async () => {
 				const response = await fetch("/api/shipping/rates", {
 					method: "POST",
@@ -209,17 +219,55 @@ export function CheckoutClient() {
 		},
 	});
 
+	function clearRates() {
+		setSelectedRateKey("");
+		shippingMutation.reset();
+	}
+
 	function updateDetail(field: keyof ShippingDetails, value: string) {
 		const nextValue = field === "postalCode" ? value.replace(/\D/g, "").slice(0, 5) : value;
-		setDetails((current) => ({ ...current, [field]: nextValue }));
-		if (field === "postalCode") {
-			shippingMutation.reset();
-			setSelectedRateKey("");
+		setDetails((current) => ({ ...current, [field]: nextValue, ...(["address", "province", "city", "postalCode"].includes(field) ? { destinationLatitude: undefined, destinationLongitude: undefined } : {}) }));
+		if (["address", "province", "city", "postalCode"].includes(field)) {
+			setLocationCandidates([]);
+			setLocationConfirmed(false);
+			clearRates();
+		}
+	}
+
+	function setDeliveryCoordinate(coordinate: { latitude: number; longitude: number }) {
+		setDetails((current) => ({ ...current, destinationLatitude: coordinate.latitude, destinationLongitude: coordinate.longitude }));
+		setLocationConfirmed(false);
+		clearRates();
+	}
+
+	async function findAddress() {
+		const query = [details.address, details.city, details.province, details.postalCode].filter(Boolean).join(", ");
+		if (query.trim().length < 5) {
+			setLocationError(messages.checkout.locationSearchHint);
+			return;
+		}
+		setLocationLoading(true);
+		setLocationError("");
+		setLocationCandidates([]);
+		try {
+			const response = await fetch("/api/locations/search", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ query }) });
+			const body = await response.json() as { candidates?: LocationCandidate[]; error?: { code?: string } };
+			if (!response.ok) throw new Error(body.error?.code === "LOCATION_NOT_CONFIGURED" ? messages.checkout.locationUnavailable : messages.checkout.locationSearchError);
+			if (!body.candidates?.length) throw new Error(messages.checkout.locationNoResults);
+			setLocationCandidates(body.candidates);
+		} catch (error) {
+			setLocationError(error instanceof Error ? error.message : messages.checkout.locationSearchError);
+		} finally {
+			setLocationLoading(false);
 		}
 	}
 
 	function checkShipping(event: FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		if (!locationConfirmed || details.destinationLatitude == null || details.destinationLongitude == null) {
+			setLocationError(messages.checkout.locationRequired);
+			return;
+		}
 		if (!turnstileVerified) {
 			setTurnstileError(messages.checkout.humanVerificationFailed);
 			return;
@@ -229,6 +277,8 @@ export function CheckoutClient() {
 		shippingMutation.reset();
 		shippingMutation.mutate({
 			destinationPostalCode: details.postalCode,
+			destinationLatitude: details.destinationLatitude,
+			destinationLongitude: details.destinationLongitude,
 			items: lines.map((line) => ({ variantId: line.variantId, quantity: line.quantity })),
 			...(appliedPromo ? { promoCode: appliedPromo.code } : {}),
 			...(turnstileToken ? { turnstileToken } : {}),
@@ -278,6 +328,14 @@ export function CheckoutClient() {
 					{step === "shipping" ? <ShippingStep
 						details={details}
 						updateDetail={updateDetail}
+						locationCandidates={locationCandidates}
+						locationError={locationError}
+						locationLoading={locationLoading}
+						locationConfirmed={locationConfirmed}
+						mapboxToken={mapboxToken}
+						findAddress={findAddress}
+						selectLocation={(candidate) => setDeliveryCoordinate(candidate)}
+						confirmLocation={() => { setLocationConfirmed(true); setLocationError(""); }}
 						rates={rates}
 						selectedRateKey={selectedRateKey}
 						setSelectedRateKey={setSelectedRateKey}
@@ -426,9 +484,17 @@ function CheckoutSteps({ step, setStep, canOpenPayment, messages }: { step: Step
 	})}</nav>;
 }
 
-function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelectedRateKey, error, loading, checkShipping, continueToReview, turnstileVerified, turnstileSiteKey, turnstileResetKey, turnstileError, onTurnstileToken, onTurnstileError, messages, locale }: {
+function ShippingStep({ details, updateDetail, locationCandidates, locationError, locationLoading, locationConfirmed, mapboxToken, findAddress, selectLocation, confirmLocation, rates, selectedRateKey, setSelectedRateKey, error, loading, checkShipping, continueToReview, turnstileVerified, turnstileSiteKey, turnstileResetKey, turnstileError, onTurnstileToken, onTurnstileError, messages, locale }: {
 	details: ShippingDetails;
 	updateDetail: (field: keyof ShippingDetails, value: string) => void;
+	locationCandidates: LocationCandidate[];
+	locationError: string;
+	locationLoading: boolean;
+	locationConfirmed: boolean;
+	mapboxToken?: string;
+	findAddress: () => void;
+	selectLocation: (candidate: LocationCandidate) => void;
+	confirmLocation: () => void;
 	rates: ShippingRate[];
 	selectedRateKey: string;
 	setSelectedRateKey: (value: string) => void;
@@ -461,6 +527,14 @@ function ShippingStep({ details, updateDetail, rates, selectedRateKey, setSelect
 				<Field label={checkout.postcode} autoComplete="postal-code" inputMode="numeric" pattern="[0-9]{5}" minLength={5} maxLength={5} value={details.postalCode} update={(value) => updateDetail("postalCode", value)} />
 				<Field className="full" label={checkout.phone} type="tel" autoComplete="tel" value={details.phone} update={(value) => updateDetail("phone", value)} />
 			</div></fieldset>
+			<fieldset><legend>{checkout.deliveryLocation}</legend>
+				<p className="form-hint">{checkout.deliveryLocationIntro}</p>
+				<button className="button button-dark" type="button" onClick={findAddress} disabled={locationLoading || !mapboxToken}>{locationLoading ? checkout.findingAddress : checkout.findAddress}</button>
+				{!mapboxToken ? <p className="checkout-error" role="alert">{checkout.locationUnavailable}</p> : null}
+				{locationCandidates.length ? <div className="location-candidates">{locationCandidates.map((candidate) => <button type="button" key={candidate.id} onClick={() => selectLocation(candidate)}>{candidate.label}</button>)}</div> : null}
+				{details.destinationLatitude != null && details.destinationLongitude != null && mapboxToken ? <><DeliveryLocationMap token={mapboxToken} coordinate={{ latitude: details.destinationLatitude, longitude: details.destinationLongitude }} onChange={(coordinate) => selectLocation({ id: "pin", label: "", ...coordinate })} /><button className="button button-dark" type="button" onClick={confirmLocation}>{locationConfirmed ? checkout.locationConfirmed : checkout.confirmLocation}</button></> : null}
+				{locationError ? <p className="checkout-error" role="alert">{locationError}</p> : null}
+			</fieldset>
 			{turnstileSiteKey ? <TurnstileWidget siteKey={turnstileSiteKey} action="shipping-rates" language={locale} resetKey={turnstileResetKey} onToken={onTurnstileToken} onError={onTurnstileError} /> : null}
 			{!turnstileVerified && !turnstileError ? <p className="verification-status" role="status">{checkout.verifyingHuman}</p> : null}
 			{turnstileError ? <p className="payment-notice" role="alert">{turnstileError}</p> : null}

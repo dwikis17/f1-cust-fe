@@ -4219,6 +4219,27 @@ body:has(.race-ticker-bar) .page-shell {
 	margin: 9px 0 0;
 }
 
+.delivery-location-map {
+	border: 1px solid var(--line);
+	height: 300px;
+	margin: 16px 0;
+	width: 100%;
+}
+
+.location-candidates {
+	display: grid;
+	gap: 8px;
+	margin-top: 14px;
+}
+
+.location-candidates button {
+	background: white;
+	border: 1px solid var(--line);
+	cursor: pointer;
+	padding: 12px;
+	text-align: left;
+}
+
 .delivery-method {
 	align-items: center;
 	border: 1px solid var(--ink);
