@@ -81,7 +81,7 @@ export function CollectionResults({ path, params, response, locale }: { path: st
 	}
 	return (
 		<section className="catalog-layout" id="catalog">
-			<details className="filters-drawer" open>
+			<details className="filters-drawer">
 				<summary>{messages.filters.filters} {active.length ? `(${active.length})` : ""}</summary>
 				<form className="filters" action={path}>
 					{query.search ? <input type="hidden" name="search" value={query.search} /> : null}
