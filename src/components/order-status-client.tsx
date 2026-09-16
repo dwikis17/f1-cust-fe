@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Script from "next/script";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
@@ -20,6 +21,7 @@ type OrderReceipt = {
 	totalIdr: number;
 	promoCode: string | null;
 	paymentUrl: string | null;
+	paymentToken: string | null;
 	paymentExpiresAt: string;
 	paymentStatus: "PENDING" | "PAID" | "FAILED" | "EXPIRED" | "CANCELLED" | "REFUNDED";
 	fulfillmentStatus: "UNFULFILLED" | "BOOKED" | "BOOKING_FAILED";
@@ -30,6 +32,17 @@ type OrderReceipt = {
 	createdAt: string;
 };
 
+declare global {
+	interface Window {
+		snap?: { pay: (token: string, callbacks: { onSuccess: () => void; onPending: () => void; onError: () => void; onClose: () => void }) => void };
+	}
+}
+
+const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
+const midtransSnapUrl = String(process.env.NEXT_PUBLIC_MIDTRANS_ENV) === "production"
+	? "https://app.midtrans.com/snap/snap.js"
+	: "https://app.sandbox.midtrans.com/snap/snap.js";
+
 export function OrderStatusClient({ id, autoOpenPayment = false }: { id: string; autoOpenPayment?: boolean }) {
 	const messages = useDictionary().order;
 	const locale = useLocale();
@@ -37,7 +50,9 @@ export function OrderStatusClient({ id, autoOpenPayment = false }: { id: string;
 	const autoPaymentHandled = useRef(false);
 	const clearCart = useCartStore((state) => state.clear);
 	const [copied, setCopied] = useState(false);
-	const { data: order, error } = useQuery({
+	const [snapReady, setSnapReady] = useState(false);
+	const [paymentError, setPaymentError] = useState("");
+	const { data: order, error, refetch } = useQuery({
 		queryKey: ["order", id],
 		queryFn: async () => {
 			const response = await fetch(`/api/orders/${encodeURIComponent(id)}`, { cache: "no-store" });
@@ -62,16 +77,39 @@ export function OrderStatusClient({ id, autoOpenPayment = false }: { id: string;
 		if (order?.paymentStatus === "PAID") clearCart();
 	}, [order?.paymentStatus, clearCart]);
 
+	function openPayment() {
+		if (!order?.paymentToken || !window.snap) {
+			setPaymentError(messages.paymentUnavailable);
+			return;
+		}
+		setPaymentError("");
+		window.snap.pay(order.paymentToken, {
+			onSuccess: () => { void refetch(); },
+			onPending: () => { void refetch(); },
+			onError: () => setPaymentError(messages.paymentFailed),
+			onClose: () => undefined,
+		});
+	}
+
 	useEffect(() => {
-		if (!autoOpenPayment || !order || autoPaymentHandled.current) return;
-		autoPaymentHandled.current = true;
+		if (!autoOpenPayment) return;
 		window.history.replaceState(null, "", localizedPath(locale, `/orders/${id}`));
-		if (order.paymentStatus !== "PENDING" || !order.paymentUrl) return;
+	}, [autoOpenPayment, id, locale]);
+
+	useEffect(() => {
+		if (!autoOpenPayment || !order || !snapReady || autoPaymentHandled.current) return;
+		autoPaymentHandled.current = true;
+		if (order.paymentStatus !== "PENDING" || !order.paymentToken) return;
 		const storageKey = `midtrans-auto-open:${id}`;
 		if (sessionStorage.getItem(storageKey)) return;
 		sessionStorage.setItem(storageKey, "1");
-		window.location.assign(order.paymentUrl);
-	}, [autoOpenPayment, id, locale, order]);
+		window.snap?.pay(order.paymentToken, {
+			onSuccess: () => { void refetch(); },
+			onPending: () => { void refetch(); },
+			onError: () => setPaymentError(messages.paymentFailed),
+			onClose: () => undefined,
+		});
+	}, [autoOpenPayment, id, messages.paymentFailed, order, refetch, snapReady]);
 
 	if (!order) return <main className="page-shell order-status-page"><section className="order-status-card"><p className="eyebrow">{messages.title}</p><h1>{error instanceof Error ? error.message : messages.loading}</h1></section></main>;
 	const payment = messages.paymentStatuses[order.paymentStatus];
@@ -90,12 +128,14 @@ export function OrderStatusClient({ id, autoOpenPayment = false }: { id: string;
 	}
 	return (
 		<main className="page-shell order-status-page">
+			{midtransClientKey ? <Script src={midtransSnapUrl} data-client-key={midtransClientKey} strategy="afterInteractive" onReady={() => setSnapReady(Boolean(window.snap))} onError={() => setPaymentError(messages.paymentUnavailable)} /> : null}
 			<section className="order-status-card">
 				<p className="eyebrow">{messages.title}</p>
 				<h1>{heading}</h1>
 				<p className="order-number-line"><span>{messages.orderNumber}: <strong>{orderNumber}</strong></span><button className="order-number-copy" type="button" onClick={copyOrderNumber} aria-label={copied ? messages.orderNumberCopied : messages.copyOrderNumber}>{copied ? messages.orderNumberCopied : messages.copyOrderNumber}</button></p>
 				{order.refundState !== "NONE" ? <p className="payment-notice" role="status">{refund}</p> : null}
-				{order.paymentStatus === "PENDING" && order.paymentUrl ? <div className="payment-notice" role="status"><p>{messages.paymentLinkSent}</p><p>{messages.paymentExpires} {new Intl.DateTimeFormat(locale === "id" ? "id-ID" : "en-ID", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Jakarta" }).format(new Date(order.paymentExpiresAt))} WIB.</p><button className="button button-dark" type="button" onClick={() => window.location.assign(order.paymentUrl!)}>{messages.continuePayment}</button></div> : null}
+				{order.paymentStatus === "PENDING" && order.paymentToken ? <div className="payment-notice" role="status"><p>{messages.paymentLinkSent}</p><p>{messages.paymentExpires} {new Intl.DateTimeFormat(locale === "id" ? "id-ID" : "en-ID", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Jakarta" }).format(new Date(order.paymentExpiresAt))} WIB.</p><button className="button button-dark" type="button" disabled={!snapReady} onClick={openPayment}>{messages.continuePayment}</button></div> : null}
+				{paymentError ? <p className="payment-notice" role="alert">{paymentError}</p> : null}
 				<dl>
 					<div><dt>{messages.payment}</dt><dd>{payment}</dd></div>
 					<div><dt>{messages.fulfillment}</dt><dd>{lifecycle}</dd></div>
