@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import Script from "next/script";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -69,22 +68,11 @@ type CheckoutResponse = {
 	promoCode: string | null;
 };
 
-declare global {
-	interface Window {
-		snap?: { pay: (token: string, callbacks: { onSuccess: () => void; onPending: () => void; onError: () => void; onClose: () => void }) => void };
-	}
-}
-
-const midtransClientKey = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
 const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 const turnstileSiteKey = process.env.NEXT_PUBLIC_SITE_URL === "https://valydejersey.com"
 	? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 	: undefined;
 const turnstileEnabled = Boolean(turnstileSiteKey);
-const midtransSnapUrl = String(process.env.NEXT_PUBLIC_MIDTRANS_ENV) === "production"
-	? "https://app.midtrans.com/snap/snap.js"
-	: "https://app.sandbox.midtrans.com/snap/snap.js";
-
 const emptyDetails: ShippingDetails = { email: "", firstName: "", lastName: "", address: "", province: "", city: "", postalCode: "", phone: "" };
 const DeliveryLocationMap = dynamic(() => import("@/components/delivery-location-map").then((module) => module.DeliveryLocationMap), { ssr: false });
 
@@ -95,13 +83,13 @@ export function CheckoutClient() {
 	const messages = useDictionary();
 	const items = useCartStore((state) => state.items);
 	const ready = useCartStore((state) => state.hydrated);
+	const clearCart = useCartStore((state) => state.clear);
 	const { products, error: catalogError, loading: catalogLoading, stockAdjusted, retry: retryCatalog } = useCartCatalog();
 	const [step, setStep] = useState<Step>("shipping");
 	const [details, setDetails] = useState<ShippingDetails>(emptyDetails);
 	const [selectedRateKey, setSelectedRateKey] = useState("");
 	const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 	const [paymentError, setPaymentError] = useState("");
-	const [snapReady, setSnapReady] = useState(false);
 	const [turnstileToken, setTurnstileToken] = useState("");
 	const [turnstileError, setTurnstileError] = useState("");
 	const [turnstileResetKey, setTurnstileResetKey] = useState(0);
@@ -213,7 +201,10 @@ export function CheckoutClient() {
 			}
 			return body;
 		},
-		onSuccess: (checkout) => openSnap(checkout),
+		onSuccess: (checkout) => {
+			clearCart();
+			router.push(localizedPath(locale, `/orders/${checkout.orderId}?pay=1`));
+		},
 		onError: (error) => {
 			setPaymentError(error instanceof Error ? error.message : messages.checkout.paymentFailed);
 			setTurnstileToken("");
@@ -293,24 +284,7 @@ export function CheckoutClient() {
 		});
 	}
 
-	function openSnap(payment: CheckoutResponse) {
-		if (!window.snap) {
-			setPaymentError(messages.checkout.paymentUnavailable);
-			return;
-		}
-		window.snap.pay(payment.snapToken, {
-			onSuccess: () => router.push(localizedPath(locale, `/orders/${payment.orderId}`)),
-			onPending: () => router.push(localizedPath(locale, `/orders/${payment.orderId}`)),
-			onError: () => setPaymentError(messages.checkout.paymentFailed),
-			onClose: () => setPaymentError(messages.checkout.paymentClosed),
-		});
-	}
-
 	function startPayment() {
-		if (checkoutMutation.data) {
-			openSnap(checkoutMutation.data);
-			return;
-		}
 		if (!selectedRate || !idempotencyKey || !turnstileVerified) return;
 		setPaymentError("");
 		checkoutMutation.mutate();
@@ -322,7 +296,6 @@ export function CheckoutClient() {
 
 	return (
 		<main className="page-shell checkout-page">
-			{midtransClientKey ? <Script src={midtransSnapUrl} data-client-key={midtransClientKey} strategy="afterInteractive" onReady={() => setSnapReady(Boolean(window.snap))} onError={() => setPaymentError(messages.checkout.paymentUnavailable)} /> : null}
 			<CheckoutSteps step={step} setStep={(nextStep) => {
 				if (nextStep === "shipping") {
 					retryTurnstile();
@@ -379,7 +352,7 @@ export function CheckoutClient() {
 						locked={Boolean(checkoutMutation.data)}
 						startPayment={startPayment}
 						paymentLoading={checkoutMutation.isPending}
-						paymentReady={snapReady && Boolean(midtransClientKey) && turnstileVerified}
+						paymentReady={turnstileVerified}
 						paymentError={paymentError}
 						turnstileVerified={turnstileVerified}
 						turnstileSiteKey={turnstileSiteKey}

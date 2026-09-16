@@ -19,6 +19,8 @@ type OrderReceipt = {
 	insuranceFeeIdr: number;
 	totalIdr: number;
 	promoCode: string | null;
+	paymentUrl: string | null;
+	paymentExpiresAt: string;
 	paymentStatus: "PENDING" | "PAID" | "FAILED" | "EXPIRED" | "CANCELLED" | "REFUNDED";
 	fulfillmentStatus: "UNFULFILLED" | "BOOKED" | "BOOKING_FAILED";
 	lifecycleStatus: "UNFULFILLED" | "PROCESSING" | "FULFILLED" | "CANCELLED";
@@ -28,10 +30,11 @@ type OrderReceipt = {
 	createdAt: string;
 };
 
-export function OrderStatusClient({ id }: { id: string }) {
+export function OrderStatusClient({ id, autoOpenPayment = false }: { id: string; autoOpenPayment?: boolean }) {
 	const messages = useDictionary().order;
 	const locale = useLocale();
 	const attempts = useRef(0);
+	const autoPaymentHandled = useRef(false);
 	const clearCart = useCartStore((state) => state.clear);
 	const [copied, setCopied] = useState(false);
 	const { data: order, error } = useQuery({
@@ -45,9 +48,10 @@ export function OrderStatusClient({ id }: { id: string }) {
 		},
 		refetchInterval: (query) => {
 			const receipt = query.state.data;
-			if (query.state.status === "error" || !receipt || attempts.current >= 10) return false;
+			if (query.state.status === "error" || !receipt) return false;
 			if (receipt.lifecycleStatus === "CANCELLED") return false;
-			return receipt.paymentStatus === "PENDING" || (receipt.paymentStatus === "PAID" && receipt.fulfillmentStatus === "UNFULFILLED") ? 2_000 : false;
+			if (receipt.paymentStatus === "PENDING") return 2_000;
+			return receipt.paymentStatus === "PAID" && receipt.fulfillmentStatus === "UNFULFILLED" && attempts.current < 10 ? 2_000 : false;
 		},
 		refetchIntervalInBackground: true,
 		refetchOnReconnect: false,
@@ -57,6 +61,17 @@ export function OrderStatusClient({ id }: { id: string }) {
 	useEffect(() => {
 		if (order?.paymentStatus === "PAID") clearCart();
 	}, [order?.paymentStatus, clearCart]);
+
+	useEffect(() => {
+		if (!autoOpenPayment || !order || autoPaymentHandled.current) return;
+		autoPaymentHandled.current = true;
+		window.history.replaceState(null, "", localizedPath(locale, `/orders/${id}`));
+		if (order.paymentStatus !== "PENDING" || !order.paymentUrl) return;
+		const storageKey = `midtrans-auto-open:${id}`;
+		if (sessionStorage.getItem(storageKey)) return;
+		sessionStorage.setItem(storageKey, "1");
+		window.location.assign(order.paymentUrl);
+	}, [autoOpenPayment, id, locale, order]);
 
 	if (!order) return <main className="page-shell order-status-page"><section className="order-status-card"><p className="eyebrow">{messages.title}</p><h1>{error instanceof Error ? error.message : messages.loading}</h1></section></main>;
 	const payment = messages.paymentStatuses[order.paymentStatus];
@@ -80,6 +95,7 @@ export function OrderStatusClient({ id }: { id: string }) {
 				<h1>{heading}</h1>
 				<p className="order-number-line"><span>{messages.orderNumber}: <strong>{orderNumber}</strong></span><button className="order-number-copy" type="button" onClick={copyOrderNumber} aria-label={copied ? messages.orderNumberCopied : messages.copyOrderNumber}>{copied ? messages.orderNumberCopied : messages.copyOrderNumber}</button></p>
 				{order.refundState !== "NONE" ? <p className="payment-notice" role="status">{refund}</p> : null}
+				{order.paymentStatus === "PENDING" && order.paymentUrl ? <div className="payment-notice" role="status"><p>{messages.paymentLinkSent}</p><p>{messages.paymentExpires} {new Intl.DateTimeFormat(locale === "id" ? "id-ID" : "en-ID", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Jakarta" }).format(new Date(order.paymentExpiresAt))} WIB.</p><button className="button button-dark" type="button" onClick={() => window.location.assign(order.paymentUrl!)}>{messages.continuePayment}</button></div> : null}
 				<dl>
 					<div><dt>{messages.payment}</dt><dd>{payment}</dd></div>
 					<div><dt>{messages.fulfillment}</dt><dd>{lifecycle}</dd></div>

@@ -10,6 +10,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 	return locale ? noIndexMetadata(dictionary(locale).order.title) : {};
 }
 
-export default async function OrderPage({ params }: { params: Promise<{ locale: string; id: string }> }) {
-	return <QueryProvider><OrderStatusClient id={(await params).id} /></QueryProvider>;
+export default async function OrderPage({ params, searchParams }: { params: Promise<{ locale: string; id: string }>; searchParams: Promise<{ pay?: string }> }) {
+	const [{ id }, query] = await Promise.all([params, searchParams]);
+	return <QueryProvider><OrderStatusClient id={id} autoOpenPayment={query.pay === "1"} /></QueryProvider>;
 }
