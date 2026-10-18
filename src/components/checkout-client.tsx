@@ -4,13 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { useDictionary, useLocale } from "@/components/i18n-provider";
 import { TurnstileWidget } from "@/components/turnstile-widget";
 import { useCartCatalog } from "@/components/use-cart-catalog";
 import { cartSubtotal, resolveCartLines, type CartLine } from "@/lib/cart";
 import { useCartStore } from "@/lib/cart-store";
 import { formatPrice } from "@/lib/catalog";
+import { browserStorage, readStoredShippingDetails, type ShippingDetails, writeStoredShippingDetails } from "@/lib/checkout-details";
 import { localizedPath } from "@/lib/locale";
 
 type Step = "shipping" | "review";
@@ -29,16 +30,6 @@ type ShippingRate = {
 	insuranceFeeIdr: number;
 	insuranceValueIdr: number;
 	price: number;
-};
-type ShippingDetails = {
-	email: string;
-	firstName: string;
-	lastName: string;
-	address: string;
-	province: string;
-	city: string;
-	postalCode: string;
-	phone: string;
 };
 type ShippingRequest = { destinationPostalCode: string; items: Array<{ variantId: string; quantity: number }>; promoCode?: string; turnstileToken?: string };
 type PromoPreview = {
@@ -68,7 +59,6 @@ const turnstileSiteKey = process.env.NEXT_PUBLIC_SITE_URL === "https://valydejer
 	? process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 	: undefined;
 const turnstileEnabled = Boolean(turnstileSiteKey);
-const emptyDetails: ShippingDetails = { email: "", firstName: "", lastName: "", address: "", province: "", city: "", postalCode: "", phone: "" };
 
 export function CheckoutClient() {
 	const router = useRouter();
@@ -80,7 +70,8 @@ export function CheckoutClient() {
 	const clearCart = useCartStore((state) => state.clear);
 	const { products, error: catalogError, loading: catalogLoading, stockAdjusted, retry: retryCatalog } = useCartCatalog();
 	const [step, setStep] = useState<Step>("shipping");
-	const [details, setDetails] = useState<ShippingDetails>(emptyDetails);
+	// The page shows a skeleton until the cart hydrates, so reading storage here can't cause a hydration mismatch.
+	const [details, setDetails] = useState<ShippingDetails>(() => readStoredShippingDetails(browserStorage()));
 	const [selectedRateKey, setSelectedRateKey] = useState("");
 	const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 	const [paymentError, setPaymentError] = useState("");
@@ -89,6 +80,8 @@ export function CheckoutClient() {
 	const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 	const [promoInput, setPromoInput] = useState("");
 	const [appliedPromoState, setAppliedPromoState] = useState<{ cartKey: string; promo: PromoPreview } | null>(null);
+
+	useEffect(() => writeStoredShippingDetails(browserStorage(), details), [details]);
 
 	const lines = useMemo(() => resolveCartLines(items, products), [items, products]);
 	const cartKey = lines.map((line) => `${line.variantId}:${line.quantity}`).join("|");
